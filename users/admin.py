@@ -1,6 +1,6 @@
 from django.contrib.auth.admin import UserAdmin
 from django.contrib import admin
-from .models import User, Profile
+from .models import User, Profile, SysAdminUser, RegUser
 
 
 class ProfileInlineForm(admin.StackedInline):
@@ -10,6 +10,18 @@ class ProfileInlineForm(admin.StackedInline):
 
 
 class UserProfileAdmin(UserAdmin):
+    fieldsets = UserAdmin.fieldsets
+    inlines = [ProfileInlineForm]
+
+
+@admin.register(SysAdminUser)
+class SysAdminAdmin(UserAdmin):
+    fieldsets = UserAdmin.fieldsets
+    inlines = [ProfileInlineForm]
+
+
+@admin.register(RegUser)
+class RegUserAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets
     inlines = [ProfileInlineForm]
 
