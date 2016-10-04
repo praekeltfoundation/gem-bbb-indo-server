@@ -26,6 +26,8 @@ class RegUser(User):
 
     class Meta:
         proxy = True
+        verbose_name = 'Regular user'
+        verbose_name_plural = 'Regular users'
 
 
 # System administrators
@@ -34,6 +36,8 @@ class SysAdminUser(User):
 
     class Meta:
         proxy = True
+        verbose_name = 'System administrator'
+        verbose_name_plural = 'System administrators'
 
 
 # user profile information
