@@ -1,53 +1,60 @@
 from django.db import models
-
-from django.contrib.auth.models import AbstractUser
-
-
-class CustomUser(AbstractUser):
-    mobile = models.CharField(verbose_name='Mobile Number', blank=False, unique=True)
-    email = models.CharField(verbose_name='E-mail Address', blank=True, null=True)
-    join_date = models.DateTimeField(verbose_name='Date Joined', blank=False)
-    country = models.CharField(verbose_name="Country", max_length=50, blank=False)
-    area = models.CharField(verbose_name="Local Area", max_length=50, blank=True)
-    city = models.CharField(verbose_name="City", max_length=50, blank=True)
-
-    unique_token_expiry = models.DateTimeField(
-        verbose_name="Unique Login Token Expiry",
-        null=True,
-        blank=True
-    )
-
-    pass_reset_token = models.CharField(
-        verbose_name="Password Reset Token",
-        max_length=500,
-        blank=True,
-        null=True
-    )
-
-    pass_reset_token_expiry = models.DateTimeField(
-        verbose_name="Password Reset Token Expiry",
-        null=True,
-        blank=True
-    )
+from django.contrib.auth.models import User
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.core.validators import RegexValidator
 
 
-# System administrator with access to the admin console
-class SystemAdministrator(CustomUser):
-    class Meta:
-        verbose_name = "System Administrator"
-        verbose_name_plural = "System Administrators"
+# proxy managers
+class RegUserManager(models.Manager):
+    def get_queryset(self):
+        return super(RegUserManager, self).get_queryset().filter(is_staff=False, is_admin=False)
 
-    def save(self, *args, **kwargs):
-        self.is_staff = True
-        self.is_superuser = True
-        super(SystemAdministrator, self).save(*args, **kwargs)
+
+class SysAdminUserManager(models.Manager):
+    def get_queryset(self):
+        return super(SysAdminUserManager, self).get_queryset().filter(is_staff=True, is_admin=True)
+
+    def create(self, **kwargs):
+        kwargs.update({'is_staff': True, 'is_superuser': True})
+        return super(SysAdminUserManager, self).create(**kwargs)
 
 
 # Users registered by mobile phone
-class RegUser(CustomUser):
-    class Meta:
-        verbose_name = 'Regular User'
-        verbose_name_plural = 'Regular Users'
+class RegUser(User):
+    objects = RegUserManager()
 
-    name = models.CharField('Name', blank=False)
-    last_active_date = models.DateField('Last Active', null=True, blank=True)
+    class Meta:
+        proxy = True
+
+
+# System administrators
+class SysAdminUser(User):
+    objects = SysAdminUserManager()
+
+    class Meta:
+        proxy = True
+
+
+# user profile information
+class Profile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    mobile_regex = RegexValidator(
+        regex=r'^\+?1?\d{9,15}$',
+        message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.")
+    mobile = models.CharField(validators=[mobile_regex], max_length=15, blank=True)
+
+    class Meta:
+        verbose_name = 'Profile'
+        verbose_name_plural = 'Profiles'
+
+
+@receiver(post_save, sender=User)
+def create_profile(sender, instance, created, **kwargs):
+    if created:
+        Profile.objects.create(user=instance)
+
+
+@receiver(post_save, sender=User)
+def save_profile(sender, instance, **kwargs):
+    instance.profile.save()
