@@ -8,12 +8,12 @@ from django.core.validators import RegexValidator
 # proxy managers
 class RegUserManager(models.Manager):
     def get_queryset(self):
-        return super(RegUserManager, self).get_queryset().filter(is_staff=False, is_admin=False)
+        return super(RegUserManager, self).get_queryset().filter(is_staff=False, is_superuser=False)
 
 
 class SysAdminUserManager(models.Manager):
     def get_queryset(self):
-        return super(SysAdminUserManager, self).get_queryset().filter(is_staff=True, is_admin=True)
+        return super(SysAdminUserManager, self).get_queryset().filter(is_staff=True, is_superuser=True)
 
     def create(self, **kwargs):
         kwargs.update({'is_staff': True, 'is_superuser': True})
