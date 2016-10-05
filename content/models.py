@@ -30,3 +30,20 @@ class Challenge(models.Model):
 
     def is_active(self):
         return (self.state == 'published') and (self.activation_date < datetime.now() < self.deactivation_date)
+
+
+class Question(models.Model):
+    # question types
+    QT_CHOICE = 0
+    QT_FREEFORM = 1
+    QT_PICTURE = 2
+
+    picture = models.URLField('Picture URL', blank=False, null=True)
+    text = models.TextField('Text', blank=True)
+    type = models.PositiveIntegerField(
+        'Type', choices=(
+            (QT_CHOICE, 'Multiple choice'),
+            (QT_FREEFORM, 'Freeform'),
+            (QT_PICTURE, 'Picture')
+        ),
+        default=QT_FREEFORM)
