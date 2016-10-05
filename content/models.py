@@ -40,6 +40,7 @@ class Question(models.Model):
     QT_FREEFORM = 2
     QT_PICTURE = 3
 
+    challenge = models.ForeignKey(Challenge, blank=False, null=True)
     picture = models.URLField('Picture URL', blank=False, null=True)
     text = models.TextField('Text', blank=True)
     type = models.PositiveIntegerField(
