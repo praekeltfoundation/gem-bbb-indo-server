@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.core.validators import RegexValidator
+from django.utils.encoding import python_2_unicode_compatible
 
 
 # proxy managers
@@ -41,6 +42,7 @@ class SysAdminUser(User):
 
 
 # user profile information
+@python_2_unicode_compatible
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     mobile_regex = RegexValidator(
@@ -51,6 +53,9 @@ class Profile(models.Model):
     class Meta:
         verbose_name = 'Profile'
         verbose_name_plural = 'Profiles'
+
+    def __str__(self):
+        return self.mobile
 
 
 @receiver(post_save, sender=User)

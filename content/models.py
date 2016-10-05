@@ -1,8 +1,9 @@
 from django.db import models
 from datetime import datetime
+from django.utils.encoding import python_2_unicode_compatible
 
 
-# Create your models here.
+@python_2_unicode_compatible
 class Challenge(models.Model):
     # challenge states
     CST_INCOMPLETE = 1
@@ -32,6 +33,7 @@ class Challenge(models.Model):
         return (self.state == 'published') and (self.activation_date < datetime.now() < self.deactivation_date)
 
 
+@python_2_unicode_compatible
 class Question(models.Model):
     # question types
     QT_CHOICE = 1
@@ -48,8 +50,15 @@ class Question(models.Model):
         ),
         default=QT_FREEFORM)
 
+    def __str__(self):
+        return self.text
 
+
+@python_2_unicode_compatible
 class QuestionOption(models.Model):
     question = models.ForeignKey(Question, blank=False, null=True)
     picture = models.URLField('Picture URL', blank=False, null=True)
     text = models.TextField('Text', blank=True)
+
+    def __str__(self):
+        return self.text
