@@ -70,8 +70,8 @@ class QuestionOption(models.Model):
     text = models.TextField('Text', blank=True)
 
     class Meta:
-        verbose_name = 'Option'
-        verbose_name_plural = 'Options'
+        verbose_name = 'Question Option'
+        verbose_name_plural = 'Question Options'
 
     def __str__(self):
         return self.text
