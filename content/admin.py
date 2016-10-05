@@ -2,6 +2,7 @@ from django.contrib import admin
 from .models import Challenge, Question, QuestionOption
 
 
+@admin.register(Challenge)
 class ChallengeAdmin(admin.ModelAdmin):
     fieldsets = [
         (None,
@@ -14,6 +15,7 @@ class ChallengeAdmin(admin.ModelAdmin):
     list_filter = ('name', 'state')
 
 
+@admin.register(Question)
 class QuestionAdmin(admin.ModelAdmin):
     fieldsets = [
         (None,
@@ -23,6 +25,7 @@ class QuestionAdmin(admin.ModelAdmin):
     list_filter = ('challenge', 'text', 'type')
 
 
+@admin.register(QuestionOption)
 class QuestionOptionAdmin(admin.ModelAdmin):
     fieldsets = [
         (None,
@@ -30,8 +33,3 @@ class QuestionOptionAdmin(admin.ModelAdmin):
     ]
     list_display = ('question', 'text')
     list_filter = ('question', 'text')
-
-
-admin.site.register(Challenge, ChallengeAdmin)
-admin.site.register(Question, QuestionAdmin)
-admin.site.register(QuestionOption, QuestionOptionAdmin)
