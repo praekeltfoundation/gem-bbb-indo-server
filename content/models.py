@@ -26,6 +26,10 @@ class Challenge(models.Model):
         default=CST_INCOMPLETE)
     end_processed = models.BooleanField('Processed', default=False)
 
+    class Meta:
+        verbose_name = 'Challenge'
+        verbose_name_plural = 'Challenges'
+
     def __str__(self):
         return self.name
 
@@ -51,6 +55,10 @@ class Question(models.Model):
         ),
         default=QT_FREEFORM)
 
+    class Meta:
+        verbose_name = 'Question'
+        verbose_name_plural = 'Questions'
+
     def __str__(self):
         return self.text
 
@@ -60,6 +68,10 @@ class QuestionOption(models.Model):
     question = models.ForeignKey(Question, blank=False, null=True)
     picture = models.URLField('Picture URL', blank=False, null=True)
     text = models.TextField('Text', blank=True)
+
+    class Meta:
+        verbose_name = 'Option'
+        verbose_name_plural = 'Options'
 
     def __str__(self):
         return self.text
