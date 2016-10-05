@@ -5,10 +5,10 @@ from datetime import datetime
 # Create your models here.
 class Challenge(models.Model):
     # challenge states
-    CST_INCOMPLETE = 0
-    CST_REVIEW_READY = 1
-    CST_PUBLISHED = 2
-    CST_DONE = 3
+    CST_INCOMPLETE = 1
+    CST_REVIEW_READY = 2
+    CST_PUBLISHED = 3
+    CST_DONE = 4
 
     name = models.CharField('Challenge Name', max_length=30, null=False, blank=False)
     activation_date = models.DateTimeField('Activate On')
@@ -34,9 +34,9 @@ class Challenge(models.Model):
 
 class Question(models.Model):
     # question types
-    QT_CHOICE = 0
-    QT_FREEFORM = 1
-    QT_PICTURE = 2
+    QT_CHOICE = 1
+    QT_FREEFORM = 2
+    QT_PICTURE = 3
 
     picture = models.URLField('Picture URL', blank=False, null=True)
     text = models.TextField('Text', blank=True)
