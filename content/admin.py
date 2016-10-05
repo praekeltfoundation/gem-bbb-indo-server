@@ -1,5 +1,18 @@
+from django import forms
 from django.contrib import admin
 from .models import Challenge, Question, QuestionOption
+
+
+class QuestionOptionInline(admin.StackedInline):
+    model = QuestionOption
+    max_num = 5
+    extra = 0
+
+
+class QuestionInline(admin.StackedInline):
+    model = Question
+    max_num = 10
+    extra = 0
 
 
 @admin.register(Challenge)
@@ -13,6 +26,7 @@ class ChallengeAdmin(admin.ModelAdmin):
     ]
     list_display = ('name', 'state', 'activation_date', 'deactivation_date')
     list_filter = ('name', 'state')
+    inlines = [QuestionInline]
 
 
 @admin.register(Question)
@@ -23,6 +37,7 @@ class QuestionAdmin(admin.ModelAdmin):
     ]
     list_display = ('challenge', 'text', 'type')
     list_filter = ('challenge', 'text', 'type')
+    inlines = [QuestionOptionInline]
 
 
 @admin.register(QuestionOption)
