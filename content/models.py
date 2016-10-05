@@ -45,7 +45,7 @@ class Question(models.Model):
     QT_PICTURE = 3
 
     challenge = models.ForeignKey(Challenge, blank=False, null=True)
-    picture = models.URLField('Picture URL', blank=False, null=True)
+    picture = models.URLField('Picture URL', blank=True, null=True)
     text = models.TextField('Text', blank=True)
     type = models.PositiveIntegerField(
         'Type', choices=(
@@ -66,7 +66,7 @@ class Question(models.Model):
 @python_2_unicode_compatible
 class QuestionOption(models.Model):
     question = models.ForeignKey(Question, blank=False, null=True)
-    picture = models.URLField('Picture URL', blank=False, null=True)
+    picture = models.URLField('Picture URL', blank=True, null=True)
     text = models.TextField('Text', blank=True)
 
     class Meta:
