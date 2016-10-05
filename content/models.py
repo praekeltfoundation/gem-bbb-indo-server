@@ -47,3 +47,9 @@ class Question(models.Model):
             (QT_PICTURE, 'Picture')
         ),
         default=QT_FREEFORM)
+
+
+class QuestionOption(models.Model):
+    question = models.ForeignKey(Question, blank=False, null=True)
+    picture = models.URLField('Picture URL', blank=False, null=True)
+    text = models.TextField('Text', blank=True)
