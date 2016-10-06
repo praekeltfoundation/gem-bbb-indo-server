@@ -11,6 +11,10 @@ class RegUserManager(models.Manager):
     def get_queryset(self):
         return super(RegUserManager, self).get_queryset().filter(is_staff=False, is_superuser=False)
 
+    def create(self, **kwargs):
+        kwargs.update({'is_staff': False, 'is_superuser': False})
+        return super(RegUserManager, self).create(**kwargs)
+
 
 class SysAdminUserManager(models.Manager):
     def get_queryset(self):
