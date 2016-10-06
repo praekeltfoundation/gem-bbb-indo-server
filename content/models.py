@@ -48,6 +48,7 @@ class Question(models.Model):
     QT_PICTURE = 3
 
     name = models.TextField('Text', blank=True, null=False, unique=True)
+    order = models.PositiveIntegerField('Order', default=0)
     challenge = models.ForeignKey(Challenge, blank=False, null=True)
     picture = models.URLField('Picture URL', blank=True, null=True)
     text = models.TextField('Text', blank=True)
