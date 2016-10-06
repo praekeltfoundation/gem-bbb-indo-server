@@ -74,9 +74,9 @@ class Question(models.Model):
 class QuestionOption(models.Model):
     question = models.ForeignKey(Question, blank=False, null=True)
     picture = models.URLField('Picture URL', blank=True, null=True)
-    name = models.TextField('Text', blank=False,null=False)
+    name = models.TextField('Text', blank=False, null=True)
     text = models.TextField('Text', blank=True)
-    
+
     class Meta:
         verbose_name = 'Question Option'
         verbose_name_plural = 'Question Options'
