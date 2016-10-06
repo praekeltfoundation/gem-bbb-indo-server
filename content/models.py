@@ -1,7 +1,7 @@
 from django.db import models
 from datetime import datetime
 from django.utils.encoding import python_2_unicode_compatible
-
+from django.utils import timezone
 
 @python_2_unicode_compatible
 class Challenge(models.Model):
@@ -67,7 +67,7 @@ class Question(models.Model):
 class QuestionOption(models.Model):
     question = models.ForeignKey(Question, blank=False, null=True)
     picture = models.URLField('Picture URL', blank=True, null=True)
-    name = models.TextField('Text', blank=False,null=False,unique=True)
+    name = models.TextField('Text', blank=False,null=False)
     text = models.TextField('Text', blank=True)
     class Meta:
         verbose_name = 'Question Option'
@@ -81,6 +81,7 @@ class AnswerLog(models.Model):
     question = models.ForeignKey(Question, blank=False, null=True, related_name='+')
     challenge = models.ForeignKey(Challenge, blank=False, null=True)
     answered = models.DateTimeField('Answered On')
+    saved = models.DateTimeField('Saved On',default=timezone.now)
     user = models.TextField('Text', blank=True)
     response = models.TextField('Text', blank=True)
 
