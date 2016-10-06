@@ -43,7 +43,7 @@ class Question(models.Model):
     QT_CHOICE = 1
     QT_FREEFORM = 2
     QT_PICTURE = 3
-
+    name = models.TextField('Text', blank=False)
     challenge = models.ForeignKey(Challenge, blank=False, null=True)
     picture = models.URLField('Picture URL', blank=True, null=True)
     text = models.TextField('Text', blank=True)
@@ -67,8 +67,9 @@ class Question(models.Model):
 class QuestionOption(models.Model):
     question = models.ForeignKey(Question, blank=False, null=True)
     picture = models.URLField('Picture URL', blank=True, null=True)
+    name = models.TextField('Text', blank=False)
     text = models.TextField('Text', blank=True)
-
+    next = models.ForeignKey(Question, blank=False, null=True)
     class Meta:
         verbose_name = 'Question Option'
         verbose_name_plural = 'Question Options'
