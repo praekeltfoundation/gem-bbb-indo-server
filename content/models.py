@@ -33,6 +33,9 @@ class Challenge(models.Model):
     def __str__(self):
         return self.name
 
+    def get_questions(self):
+        return Question.objects.filter(challenge=self)
+
     def is_active(self):
         return (self.state == 'published') and (self.activation_date < datetime.now() < self.deactivation_date)
 
@@ -43,6 +46,7 @@ class Question(models.Model):
     QT_CHOICE = 1
     QT_FREEFORM = 2
     QT_PICTURE = 3
+
     name = models.TextField('Text', blank=True, null=False, unique=True)
     challenge = models.ForeignKey(Challenge, blank=False, null=True)
     picture = models.URLField('Picture URL', blank=True, null=True)
@@ -62,6 +66,9 @@ class Question(models.Model):
     def __str__(self):
         return self.text
 
+    def get_options(self):
+        return QuestionOption.objects.filter(question=self)
+
 
 @python_2_unicode_compatible
 class QuestionOption(models.Model):
@@ -69,6 +76,7 @@ class QuestionOption(models.Model):
     picture = models.URLField('Picture URL', blank=True, null=True)
     name = models.TextField('Text', blank=False,null=False)
     text = models.TextField('Text', blank=True)
+    
     class Meta:
         verbose_name = 'Question Option'
         verbose_name_plural = 'Question Options'
