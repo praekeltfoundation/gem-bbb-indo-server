@@ -34,7 +34,7 @@ class Challenge(models.Model):
         return self.name
 
     def ensure_question_order(self):
-        questions = Question.objects.filter(challenge=self).order_by('order', 'pk')
+        questions = Question.objects.filter(challenge=self.pk).order_by('order', 'pk')
         i = 1
         for q in questions:
             q.order = i
@@ -42,7 +42,7 @@ class Challenge(models.Model):
             i += 1
 
     def get_questions(self):
-        return Question.objects.filter(challenge=self)
+        return Question.objects.filter(challenge=self.pk)
 
     def is_active(self):
         return (self.state == 'published') and (self.activation_date < datetime.now() < self.deactivation_date)
@@ -57,7 +57,7 @@ class Question(models.Model):
 
     name = models.TextField('Text', blank=True, null=False, unique=True)
     order = models.PositiveIntegerField('Order', default=0)
-    challenge = models.ForeignKey(Challenge, blank=False, null=True)
+    challenge = models.ForeignKey(Challenge, related_name='questions', blank=False, null=True)
     picture = models.URLField('Picture URL', blank=True, null=True)
     text = models.TextField('Text', blank=True)
     type = models.PositiveIntegerField(
@@ -100,7 +100,7 @@ class Question(models.Model):
 
 @python_2_unicode_compatible
 class QuestionOption(models.Model):
-    question = models.ForeignKey(Question, blank=False, null=True)
+    question = models.ForeignKey(Question, related_name='options', blank=False, null=True)
     picture = models.URLField('Picture URL', blank=True, null=True)
     name = models.TextField('Text', blank=False, null=True)
     text = models.TextField('Text', blank=True)
