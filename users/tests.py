@@ -1,8 +1,8 @@
-from django.test import TestCase
+from django import test
 from .models import User, RegUser, SysAdminUser, Profile
 
 
-class TestUserModel(TestCase):
+class TestUserModel(test.TestCase):
     def create_regular_user(self, username='anonymous', **kwargs):
         return RegUser.objects.create(username=username, **kwargs)
 
@@ -10,7 +10,9 @@ class TestUserModel(TestCase):
         return SysAdminUser.objects.create(username=username, **kwargs)
 
     def setUp(self):
-        # TODO: Add test setup
+        self.factory = test.RequestFactory()
+        self.reguser = self.create_regular_user('anonymous', password='Honkhonk')
+        self.sysadmin = self.create_sysadmin('anon_admin', password='Honkadmin')
         return None
 
     def test_create_user(self):
