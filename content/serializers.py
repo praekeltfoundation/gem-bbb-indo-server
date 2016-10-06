@@ -2,17 +2,24 @@ from content.models import Challenge, Question, QuestionOption
 from rest_framework import serializers
 
 
-class ChallengeSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Challenge
-        fields = ('name')
+class QuestionOptionSerializer(serializers.ModelSerializer):
 
-class QuestionSerializer(serializers.HyperlinkedModelSerializer):
-    class Meta:
-        model = Challenge
-        fields = ('name','text','type')
-
-class QuestionOptionSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = QuestionOption
-        fields = ('name','text','next')
+        fields = ('id', 'text')
+
+
+class QuestionSerializer(serializers.ModelSerializer):
+    options = QuestionOptionSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Question
+        fields = ('id', 'text', 'options')
+
+
+class ChallengeSerializer(serializers.ModelSerializer):
+    questions = QuestionSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Challenge
+        fields = ('id', 'name', 'questions')
