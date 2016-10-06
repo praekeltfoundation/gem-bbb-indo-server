@@ -33,6 +33,14 @@ class Challenge(models.Model):
     def __str__(self):
         return self.name
 
+    def ensure_question_order(self):
+        questions = Question.objects.filter(challenge=self).order_by('order', 'pk')
+        i = 1
+        for q in questions:
+            q.order = i
+            q.save()
+            i += 1
+
     def get_questions(self):
         return Question.objects.filter(challenge=self)
 
