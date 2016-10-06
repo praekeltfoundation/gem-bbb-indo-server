@@ -43,7 +43,7 @@ class Question(models.Model):
     QT_CHOICE = 1
     QT_FREEFORM = 2
     QT_PICTURE = 3
-    name = models.TextField('Text', blank=False)
+    name = models.TextField('Text', blank=True,null=False,unique=True)
     challenge = models.ForeignKey(Challenge, blank=False, null=True)
     picture = models.URLField('Picture URL', blank=True, null=True)
     text = models.TextField('Text', blank=True)
@@ -67,9 +67,8 @@ class Question(models.Model):
 class QuestionOption(models.Model):
     question = models.ForeignKey(Question, blank=False, null=True)
     picture = models.URLField('Picture URL', blank=True, null=True)
-    name = models.TextField('Text', blank=False)
+    name = models.TextField('Text', blank=True)
     text = models.TextField('Text', blank=True)
-    next = models.ForeignKey(Question, blank=False, null=True)
     class Meta:
         verbose_name = 'Question Option'
         verbose_name_plural = 'Question Options'
@@ -79,7 +78,7 @@ class QuestionOption(models.Model):
 
 @python_2_unicode_compatible
 class AnswerLog(models.Model):
-    question = models.ForeignKey(Question, blank=False, null=True)
+    question = models.ForeignKey(Question, blank=False, null=True, related_name='+')
     challenge = models.ForeignKey(Challenge, blank=False, null=True)
     answered = models.DateTimeField('Answered On')
     user = models.TextField('Text', blank=True)
