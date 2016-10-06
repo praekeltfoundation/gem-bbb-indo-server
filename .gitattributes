@@ -1,0 +1,11 @@
+# Set defaults for people who haven't set crlf.auto=true
+*.html text=auto
+*.md text=auto
+*.py text=auto
+*.txt text=auto
+
+# Set true binary files to avoid modification
+*.gif binary
+*.ico binary
+*.jpg binary
+*.png binary
