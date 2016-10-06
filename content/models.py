@@ -75,6 +75,25 @@ class Question(models.Model):
     def __str__(self):
         return self.text
 
+    def insert_at_order(self, idx):
+        questions = Question.objects.filter(challenge=self.challenge)
+        if questions.count() == 0:
+            self.order = 1
+            self.save()
+        else:
+            if idx < 1:
+                idx = 1
+            if idx > questions.count() + 1:
+                self.order = questions.count() + 1
+            else:
+                if questions[idx - 1] is not None:
+                    self.order = idx
+                    self.save()
+                    while idx <= questions.count():
+                        questions[idx].order = idx + 1
+                        questions[idx].save()
+                        idx += 1
+
     def get_options(self):
         return QuestionOption.objects.filter(question=self)
 
