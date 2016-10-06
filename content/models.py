@@ -75,3 +75,18 @@ class QuestionOption(models.Model):
 
     def __str__(self):
         return self.text
+
+@python_2_unicode_compatible
+class AnswerLog(models.Model):
+    question = models.ForeignKey(Question, blank=False, null=True)
+    challenge = models.ForeignKey(Challenge, blank=False, null=True)
+    answered = models.DateTimeField('Answered On')
+    user = models.TextField('Text', blank=True)
+    response = models.TextField('Text', blank=True)
+
+    class Meta:
+        verbose_name = 'User Answer Log'
+        verbose_name_plural = 'User Answers'
+
+    def __str__(self):
+        return self.text
