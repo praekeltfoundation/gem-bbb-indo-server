@@ -6,6 +6,9 @@ class TestUserModel(TestCase):
     def create_regular_user(self, username='anonymous', **kwargs):
         return RegUser.objects.create(username=username, **kwargs)
 
+    def create_sysadmin(self, username='admin', **kwargs):
+        return SysAdminUser.objects.create(username=username, **kwargs)
+
     def setUp(self):
         # TODO: Add test setup
         return None
@@ -22,3 +25,9 @@ class TestUserModel(TestCase):
         self.assertIsNotNone(u, 'Regular user not created by proxy.')
         self.assertFalse(u.is_staff, 'Regular user set as staff.')
         self.assertFalse(u.is_superuser, 'Regular user set as superuser.')
+
+    def test_create_sysadmin(self):
+        u = self.create_sysadmin(username='anonadmin', password='Honkhonk')
+        self.assertIsNotNone(u, 'System administrator not created by proxy.')
+        self.assertTrue(u.is_staff, 'System administrator not set as staff.')
+        self.assertTrue(u.is_superuser, 'System administrator not set as superuser.')
