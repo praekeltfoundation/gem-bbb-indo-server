@@ -10,7 +10,7 @@ class ChallengeSerializer(serializers.HyperlinkedModelSerializer):
 class QuestionSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = Challenge
-        fields = ('text','type')
+        fields = ('name','text','type')
 
 class QuestionOptionSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:

@@ -43,7 +43,7 @@ class Question(models.Model):
     QT_CHOICE = 1
     QT_FREEFORM = 2
     QT_PICTURE = 3
-    name = models.TextField('Text', blank=True,null=False,unique=True)
+    name = models.TextField('Text', blank=True, null=False, unique=True)
     challenge = models.ForeignKey(Challenge, blank=False, null=True)
     picture = models.URLField('Picture URL', blank=True, null=True)
     text = models.TextField('Text', blank=True)
