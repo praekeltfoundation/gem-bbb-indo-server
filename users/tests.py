@@ -11,8 +11,6 @@ class TestUserModel(test.TestCase):
 
     def setUp(self):
         self.factory = test.RequestFactory()
-        self.reguser = self.create_regular_user('anonymous', password='Honkhonk')
-        self.sysadmin = self.create_sysadmin('anon_admin', password='Honkadmin')
         return None
 
     def test_create_user(self):
