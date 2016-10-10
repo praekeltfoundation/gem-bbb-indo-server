@@ -7,6 +7,7 @@ class QuestionOptionInline(admin.StackedInline):
     model = QuestionOption
     max_num = 5
     extra = 0
+    fk_name = 'question'
 
 
 class QuestionInline(admin.StackedInline):
