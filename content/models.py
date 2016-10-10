@@ -101,6 +101,7 @@ class Question(models.Model):
 @python_2_unicode_compatible
 class QuestionOption(models.Model):
     question = models.ForeignKey(Question, related_name='options', blank=False, null=True)
+    next_question = models.ForeignKey(Question, related_name='+', blank=False, null=True)
     picture = models.URLField('Picture URL', blank=True, null=True)
     name = models.TextField('Name', blank=False, null=True)
     text = models.TextField('Text', blank=True)
@@ -111,6 +112,7 @@ class QuestionOption(models.Model):
 
     def __str__(self):
         return self.text
+
 
 @python_2_unicode_compatible
 class AnswerLog(models.Model):
