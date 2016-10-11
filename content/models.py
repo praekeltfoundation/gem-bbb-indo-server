@@ -156,7 +156,6 @@ class Tip(wagtail_models.Page):
     cover_image = models.ForeignKey(wagtail_image_models.Image, blank=True, null=True,
                                     on_delete=models.SET_NULL, related_name='+')
     body = wagtail_fields.RichTextField(blank=True)
-    #tags = models.ManyToManyField(Tag, blank=True)
 
     content_panels = wagtail_models.Page.content_panels + [
         wagtail_image_edit.ImageChooserPanel('cover_image'),
@@ -166,6 +165,15 @@ class Tip(wagtail_models.Page):
     promote_panels = wagtail_models.Page.promote_panels + [
         wagtail_edit_handlers.InlinePanel('tags', label='Tags', help_text='Tag the tip with keywords'),
     ]
+
+    def get_cover_image_url(self):
+        if self.cover_image:
+            return self.cover_image.file.url
+        else:
+            return None
+
+    def get_tag_name_list(self):
+        return [tag.name for tag in self.tags.all()]
 
     class Meta:
         verbose_name = 'Tip'
