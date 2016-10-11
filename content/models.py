@@ -2,6 +2,10 @@ from django.db import models
 from datetime import datetime
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils import timezone
+from wagtail.wagtailcore import models as wagtail_models
+from wagtail.wagtailcore import fields as wagtail_fields
+from wagtail.wagtailimages import models as wagtail_image_models
+
 
 @python_2_unicode_compatible
 class Challenge(models.Model):
@@ -129,3 +133,23 @@ class AnswerLog(models.Model):
 
     def __str__(self):
         return self.text
+
+
+@python_2_unicode_compatible
+class Tag(models.Model):
+    name = models.CharField(max_length=30)
+
+
+@python_2_unicode_compatible
+class Tip(wagtail_models.Page):
+    cover_image = models.ForeignKey(wagtail_image_models.Image, blank=True, null=True,
+                                    on_delete=models.SET_NULL, related_name='+')
+    body = wagtail_fields.RichTextField(blank=True)
+    tags = models.ManyToManyField(Tag, blank=True)
+
+    class Meta:
+        verbose_name = 'Tip'
+        verbose_name_plural = 'Tips'
+
+    def __str__(self):
+        return self.title
