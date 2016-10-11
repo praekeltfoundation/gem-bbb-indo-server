@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ page.title }}</title>
+
+    {% load wagtailcore_tags %}
+
+</head>
+<body>
+    <h1>{{ page.title }}</h1>
+    <div id="tip-body">
+        {{ page.body|richtext }}
+    </div>
+    <ul>
+    {% for tag in page.tags.all %}
+        <li>{{ tag.name }}</li>
+    {% endfor %}
+    </ul>
+</body>
+</html>
