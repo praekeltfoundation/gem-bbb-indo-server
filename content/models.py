@@ -3,6 +3,8 @@ from datetime import datetime
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils import timezone
 from modelcluster import fields as modelcluster_fields
+from modelcluster.contrib.taggit import ClusterTaggableManager
+from taggit.models import TaggedItemBase
 from wagtail.wagtailadmin import edit_handlers as wagtail_edit_handlers
 from wagtail.wagtailcore import models as wagtail_models
 from wagtail.wagtailcore import fields as wagtail_fields
@@ -138,17 +140,8 @@ class AnswerLog(models.Model):
         return self.text
 
 
-@python_2_unicode_compatible
-class Tag(models.Model):
-    name = models.CharField(max_length=30)
-
-    panels = [
-        wagtail_edit_handlers.FieldPanel('name'),
-    ]
-
-
-class TipTag(wagtail_models.Orderable, Tag):
-    tip = modelcluster_fields.ParentalKey('content.Tip', related_name='tags')
+class TipTag(TaggedItemBase):
+    content_object = modelcluster_fields.ParentalKey('content.Tip', related_name='tagged_item')
 
 
 @python_2_unicode_compatible
@@ -156,6 +149,7 @@ class Tip(wagtail_models.Page):
     cover_image = models.ForeignKey(wagtail_image_models.Image, blank=True, null=True,
                                     on_delete=models.SET_NULL, related_name='+')
     body = wagtail_fields.RichTextField(blank=True)
+    tags = ClusterTaggableManager(through=TipTag, blank=True)
 
     content_panels = wagtail_models.Page.content_panels + [
         wagtail_image_edit.ImageChooserPanel('cover_image'),
@@ -163,7 +157,7 @@ class Tip(wagtail_models.Page):
     ]
 
     promote_panels = wagtail_models.Page.promote_panels + [
-        wagtail_edit_handlers.InlinePanel('tags', label='Tags', help_text='Tag the tip with keywords'),
+        wagtail_edit_handlers.FieldPanel('tags'),
     ]
 
     def get_cover_image_url(self):
