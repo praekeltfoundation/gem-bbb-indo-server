@@ -11,8 +11,6 @@ import wagtail.wagtailcore.fields
 
 class Migration(migrations.Migration):
 
-    replaces = [('content', '0003_tag_tip'), ('content', '0004_auto_20161011_1002'), ('content', '0005_remove_tag'), ('content', '0006_auto_20161011_1314')]
-
     dependencies = [
         ('wagtailimages', '0013_make_rendition_upload_callable'),
         ('taggit', '0002_auto_20150616_2121'),
