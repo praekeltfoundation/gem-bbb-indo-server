@@ -27,7 +27,7 @@ class TipViewSet(viewsets.ModelViewSet):
     renderer_classes = (JSONRenderer,)
 
     def list(self, request, *args, **kwargs):
-        serializer = self.get_serializer(self.get_queryset(), many=True)
+        serializer = self.get_serializer(self.get_queryset().filter(live=True), many=True)
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None, *args, **kwargs):
