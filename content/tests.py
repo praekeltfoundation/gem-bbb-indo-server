@@ -18,7 +18,7 @@ def create_tip(title='Test tip', body='This is a test tip', **kwargs):
     tip = Tip(
         title=title,
         body=body,
-        **kwargs,
+        **kwargs
     )
     parent_page.add_child(instance=tip)
     tip.save()
