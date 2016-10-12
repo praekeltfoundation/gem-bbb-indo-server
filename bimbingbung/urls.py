@@ -21,8 +21,8 @@ urlpatterns = [
     url(r'^challenges/?$', content_views.ChallengeViewSet.as_view({'get': 'list'})),
     url(r'^challenges/(?P<pk>[0-9]+)/?$', content_views.ChallengeViewSet.as_view({'get': 'retrieve'})),
 
-    url(r'^tips/$', content_views.TipViewSet.as_view({'get': 'list'}), name='tip-list'),
-    url(r'^tips/(?P<pk>[0-9]+)/$', content_views.TipViewSet.as_view({'get': 'retrieve'}), name='tip-detail'),
+    url(r'^api/tips/$', content_views.TipViewSet.as_view({'get': 'list'}), name='tip-list'),
+    url(r'^api/tips/(?P<pk>[0-9]+)/$', content_views.TipViewSet.as_view({'get': 'retrieve'}), name='tip-detail'),
 
     url(r'', include(wagtail_urls)),
 ]
