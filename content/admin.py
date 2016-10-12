@@ -1,6 +1,7 @@
 from django import forms
 from django.contrib import admin
-from .models import Challenge, Question, QuestionOption
+import wagtail.contrib.modeladmin.options as wagadmin
+from .models import Challenge, Question, QuestionOption, Tip
 
 
 class QuestionOptionInline(admin.StackedInline):
@@ -49,3 +50,9 @@ class QuestionOptionAdmin(admin.ModelAdmin):
     ]
     list_display = ('question', 'text')
     list_filter = ('question', 'text')
+
+
+class TipAdmin(wagadmin.ModelAdmin):
+    model = Tip
+    menu_order = 200
+    list_display = ('body',)
