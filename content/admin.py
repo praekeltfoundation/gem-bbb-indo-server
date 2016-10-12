@@ -55,4 +55,5 @@ class QuestionOptionAdmin(admin.ModelAdmin):
 class TipAdmin(wagadmin.ModelAdmin):
     model = Tip
     menu_order = 200
-    list_display = ('body',)
+    list_display = ('title', 'live', 'owner', 'first_published_at')
+    list_filter = ('title', 'live', 'owner', 'first_published_at')
