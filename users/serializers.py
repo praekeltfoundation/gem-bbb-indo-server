@@ -3,7 +3,6 @@ from .models import Profile, RegUser
 
 
 class RegUserSerializer(serializers.ModelSerializer):
-    username = serializers.CharField()
 
     class Meta:
         model = RegUser
@@ -18,7 +17,7 @@ class RegUserProfileSerializer(serializers.ModelSerializer):
 
     def __init__(self, *args, **kwargs):
         super(RegUserProfileSerializer, self).__init__(*args, **kwargs)
-        if self.initial_data is not None:
+        if hasattr(self, 'initial_data'):
             data = self.initial_data
             user = data.get('user')
             if user is not None:
