@@ -27,7 +27,7 @@ urlpatterns = [
 
     url(r'^search/$', search_views.search, name='search'),
 
-    url(r'^api/tokens', framework_views.obtain_auth_token, name='tokens'),
+    url(r'^api/token/', framework_views.obtain_auth_token, name='token'),
     url(r'^api/', include(router.urls, namespace='api')),
 
     url(r'', include(wagtail_urls)),
