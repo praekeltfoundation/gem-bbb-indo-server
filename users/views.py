@@ -2,7 +2,6 @@ from django.shortcuts import render
 
 # Create your views here.
 from django.shortcuts import get_object_or_404
-from rest_framework.renderers import JSONRenderer
 from rest_framework import viewsets
 from rest_framework.response import Response
 from .models import RegUser
@@ -13,7 +12,7 @@ from .serializers import RegUserDeepSerializer
 class RegUserViewSet(viewsets.ModelViewSet):
     queryset = RegUser.objects.all()
     serializer_class = RegUserDeepSerializer
-    renderer_classes = (JSONRenderer,)
+    http_method_names = ('options', 'head', 'get', 'post',)
 
     def list(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_queryset(), many=True)
