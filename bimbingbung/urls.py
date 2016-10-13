@@ -4,6 +4,7 @@ from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
 from rest_framework.routers import DefaultRouter
+from rest_framework.authtoken import views as framework_views
 
 from search import views as search_views
 from content import views as content_views
@@ -26,6 +27,7 @@ urlpatterns = [
 
     url(r'^search/$', search_views.search, name='search'),
 
+    url(r'^api/tokens', framework_views.obtain_auth_token, name='tokens'),
     url(r'^api/', include(router.urls, namespace='api')),
 
     url(r'', include(wagtail_urls)),
