@@ -31,3 +31,20 @@ class TestUserModel(test.TestCase):
         self.assertIsNotNone(u, 'System administrator not created by proxy.')
         self.assertTrue(u.is_staff, 'System administrator not set as staff.')
         self.assertTrue(u.is_superuser, 'System administrator not set as superuser.')
+
+
+class TestToken(test.TestCase):
+
+    def test_reset_token_on_password_change(self):
+        self.skipTest('TODO')
+
+    def test_reset_other_users(self):
+        """When a user resets their password, and their token is deleted, it should not affect the tokens of other
+        users
+        """
+        self.skipTest('TODO')
+
+    def test_reset_when_password_same(self):
+        """When a user object is edited and saved, but the password has not changed, the token should not change.
+        """
+        self.skipTest('TODO')
