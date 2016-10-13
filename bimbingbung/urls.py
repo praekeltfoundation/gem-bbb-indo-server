@@ -3,6 +3,7 @@ from __future__ import absolute_import, unicode_literals
 from django.conf import settings
 from django.conf.urls import include, url
 from django.contrib import admin
+from rest_framework.routers import DefaultRouter
 
 from search import views as search_views
 from content import views as content_views
@@ -12,6 +13,11 @@ from wagtail.wagtailcore import urls as wagtail_urls
 from wagtail.wagtaildocs import urls as wagtaildocs_urls
 
 
+router = DefaultRouter()
+router.register(r'challenges', content_views.ChallengeViewSet)
+router.register(r'tips', content_views.TipViewSet)
+router.register(r'users', user_views.RegUserViewSet)
+
 urlpatterns = [
     url(r'^django-admin/', include(admin.site.urls)),
 
@@ -20,14 +26,7 @@ urlpatterns = [
 
     url(r'^search/$', search_views.search, name='search'),
 
-    url(r'^api/challenges/?$', content_views.ChallengeViewSet.as_view({'get': 'list'})),
-    url(r'^api/challenges/(?P<pk>[0-9]+)/?$', content_views.ChallengeViewSet.as_view({'get': 'retrieve'})),
-
-    url(r'^api/tips/$', content_views.TipViewSet.as_view({'get': 'list'}), name='tip-list'),
-    url(r'^api/tips/(?P<pk>[0-9]+)/$', content_views.TipViewSet.as_view({'get': 'retrieve'}), name='tip-detail'),
-
-    url(r'^api/users/$', user_views.RegUserViewSet.as_view({'get': 'list', 'post': 'create'}), name='user-list'),
-    url(r'^api/users/(?P<pk>[0-9]+)/$', user_views.RegUserViewSet.as_view({'get': 'retrieve'}), name='user-detail'),
+    url(r'^api/', include(router.urls, namespace='api')),
 
     url(r'', include(wagtail_urls)),
 ]
