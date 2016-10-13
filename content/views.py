@@ -1,9 +1,11 @@
+
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
 from .models import Challenge, Tip
 from .serializers import ChallengeSerializer, TipSerializer
-# Create your views here.
 
 
 class ChallengeViewSet(viewsets.ModelViewSet):
@@ -25,6 +27,7 @@ class TipViewSet(viewsets.ModelViewSet):
     """
     queryset = Tip.objects.all()
     serializer_class = TipSerializer
+    permission_classes = (IsAuthenticated,)
     http_method_names = ('options', 'head', 'get',)
 
     def list(self, request, *args, **kwargs):
