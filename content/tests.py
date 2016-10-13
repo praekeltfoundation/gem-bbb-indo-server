@@ -71,9 +71,11 @@ class TestTipAPI(APITestCase):
 
     def setUp(self):
         self.user = create_test_user()
+        self.client.force_authenticate(user=self.user)
 
     def tearDown(self):
         self.user.delete()
+        self.client.force_authenticate(user=None)
 
     def test_draft_filter(self):
         """When listing Tips in the REST endpoint, only published tips should be included."""
