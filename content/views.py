@@ -22,6 +22,8 @@ class ChallengeViewSet(viewsets.ModelViewSet):
 
 
 class TipViewSet(viewsets.ModelViewSet):
+    """Follow the article url to get the CMS page.
+    """
     queryset = Tip.objects.all()
     serializer_class = TipSerializer
     renderer_classes = (JSONRenderer, BrowsableAPIRenderer)
