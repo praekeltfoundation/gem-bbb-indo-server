@@ -6,6 +6,7 @@ from django.contrib import admin
 
 from search import views as search_views
 from content import views as content_views
+from users import views as user_views
 from wagtail.wagtailadmin import urls as wagtailadmin_urls
 from wagtail.wagtailcore import urls as wagtail_urls
 from wagtail.wagtaildocs import urls as wagtaildocs_urls
@@ -18,11 +19,15 @@ urlpatterns = [
     url(r'^documents/', include(wagtaildocs_urls)),
 
     url(r'^search/$', search_views.search, name='search'),
-    url(r'^challenges/?$', content_views.ChallengeViewSet.as_view({'get': 'list'})),
-    url(r'^challenges/(?P<pk>[0-9]+)/?$', content_views.ChallengeViewSet.as_view({'get': 'retrieve'})),
+
+    url(r'^api/challenges/?$', content_views.ChallengeViewSet.as_view({'get': 'list'})),
+    url(r'^api/challenges/(?P<pk>[0-9]+)/?$', content_views.ChallengeViewSet.as_view({'get': 'retrieve'})),
 
     url(r'^api/tips/$', content_views.TipViewSet.as_view({'get': 'list'}), name='tip-list'),
     url(r'^api/tips/(?P<pk>[0-9]+)/$', content_views.TipViewSet.as_view({'get': 'retrieve'}), name='tip-detail'),
+
+    url(r'^api/users/$', user_views.RegUserViewSet.as_view({'get': 'list', 'post': 'create'}), name='user-list'),
+    url(r'^api/users/(?P<pk>[0-9]+)/$', user_views.RegUserViewSet.as_view({'get': 'retrieve'}), name='user-detail'),
 
     url(r'', include(wagtail_urls)),
 ]
