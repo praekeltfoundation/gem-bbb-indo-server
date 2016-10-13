@@ -12,11 +12,11 @@ class ChallengeViewSet(viewsets.ModelViewSet):
     http_method_names = ('options', 'get',)
 
     def list(self, request, *args, **kwargs):
-        serializer = ChallengeSerializer(Challenge.objects.all(), many=True)
+        serializer = self.get_serializer(self.get_queryset(), many=True)
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None, *args, **kwargs):
-        serializer = ChallengeSerializer(Challenge.objects.get(pk=pk))
+        serializer = self.get_serializer(get_object_or_404(self.get_queryset(), pk=pk))
         return Response(serializer.data)
 
 
