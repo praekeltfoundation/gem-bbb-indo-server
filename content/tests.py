@@ -82,7 +82,7 @@ class TestTipAPI(APITestCase):
         live_tip = create_tip(title='Live tip')
         publish_page(self.user, live_tip)
 
-        response = self.client.get(reverse('tip-list'))
+        response = self.client.get(reverse('api:tips-list'))
         data = json.loads(response.content.decode('utf-8'))
         self.assertEqual(Tip.objects.all().count(), 2, 'Test did not set up Tip pages correctly.')
         self.assertEqual(len(data), 1, 'View returned more than one Tip.')
