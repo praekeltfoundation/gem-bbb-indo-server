@@ -12,7 +12,7 @@ from .serializers import RegUserDeepSerializer
 class RegUserViewSet(viewsets.ModelViewSet):
     queryset = RegUser.objects.all()
     serializer_class = RegUserDeepSerializer
-    http_method_names = ('options', 'get', 'post',)
+    http_method_names = ('options', 'head', 'get', 'post',)
 
     def list(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_queryset(), many=True)

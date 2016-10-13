@@ -9,7 +9,7 @@ from .serializers import ChallengeSerializer, TipSerializer
 class ChallengeViewSet(viewsets.ModelViewSet):
     queryset = Challenge.objects.all()
     serializer_class = ChallengeSerializer
-    http_method_names = ('options', 'get',)
+    http_method_names = ('options', 'head', 'get',)
 
     def list(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_queryset(), many=True)
@@ -25,7 +25,7 @@ class TipViewSet(viewsets.ModelViewSet):
     """
     queryset = Tip.objects.all()
     serializer_class = TipSerializer
-    http_method_names = ('options', 'get',)
+    http_method_names = ('options', 'head', 'get',)
 
     def list(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_queryset().filter(live=True), many=True)
