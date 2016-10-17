@@ -1,4 +1,5 @@
 from django import test
+from rest_framework.authtoken.models import Token
 from .models import User, RegUser, SysAdminUser, Profile
 
 
@@ -35,8 +36,33 @@ class TestUserModel(test.TestCase):
 
 class TestToken(test.TestCase):
 
+    @staticmethod
+    def create_user(username='anonymous', **kwargs):
+        return RegUser.objects.create(username=username, **kwargs)
+
+    def test_token_create(self):
+        user = self.create_user()
+        Token.objects.get_or_create(user=user)
+        try:
+            token = Token.objects.get(user=user)
+        except Token.DoesNotExist:
+            token = None
+        self.assertIsNotNone(token, "Token was not created.")
+
     def test_reset_token_on_password_change(self):
-        self.skipTest('TODO')
+        user = self.create_user(password='first')
+        first_token, _ = Token.objects.get_or_create(user=user)
+
+        user.set_password('second')
+        user.save()
+
+        try:
+            second_token = Token.objects.get(user=user)
+        except Token.DoesNotExist:
+            second_token = None
+
+        self.assertNotEqual(first_token, second_token, "Token stayed the same after reset.")
+        self.assertIsNone(second_token, "Token was not deleted.")
 
     def test_reset_other_users(self):
         """When a user resets their password, and their token is deleted, it should not affect the tokens of other

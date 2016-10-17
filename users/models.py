@@ -64,7 +64,6 @@ class Profile(models.Model):
         return self.mobile
 
 
-@receiver(pre_save, sender=User)
 def reset_token(sender, instance, **kwargs):
     """Invalidates a token when a user's password is changed."""
     new_password = instance.password
@@ -76,6 +75,13 @@ def reset_token(sender, instance, **kwargs):
 
     if new_password != old_password:
         Token.objects.filter(user=instance).delete()
+
+
+# Django signals do not consider subclasses of the sender. When connected using User, RegUser will not trigger the
+# handler. Each model is registered separately.
+MODEL_CLASSES = (User, RegUser, SysAdminUser)
+for model in MODEL_CLASSES:
+    pre_save.connect(reset_token, model)
 
 
 @receiver(post_save, sender=User)
