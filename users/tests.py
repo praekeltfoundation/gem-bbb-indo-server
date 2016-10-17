@@ -47,7 +47,7 @@ class TestToken(test.TestCase):
             token = Token.objects.get(user=user)
         except Token.DoesNotExist:
             token = None
-        self.assertIsNotNone(token, "Token was not created.")
+        self.assertIsNotNone(token, 'Token was not created.')
 
     def test_reset_token_on_password_change(self):
         user = self.create_user(password='first')
@@ -61,14 +61,28 @@ class TestToken(test.TestCase):
         except Token.DoesNotExist:
             second_token = None
 
-        self.assertNotEqual(first_token, second_token, "Token stayed the same after reset.")
-        self.assertIsNone(second_token, "Token was not deleted.")
+        self.assertNotEqual(first_token, second_token, 'Token stayed the same after reset.')
+        self.assertIsNone(second_token, 'Token was not deleted.')
 
     def test_reset_other_users(self):
         """When a user resets their password, and their token is deleted, it should not affect the tokens of other
-        users
+        users.
         """
-        self.skipTest('TODO')
+        user_1 = self.create_user('user_1')
+        user_2 = self.create_user('user_2')
+        token_1, _ = Token.objects.get_or_create(user=user_1)
+        token_2, _ = Token.objects.get_or_create(user=user_2)
+
+        user_1.set_password('second')
+        user_1.save()
+
+        try:
+            user_2_token = Token.objects.get(user=user_2)
+        except Token.DoesNotExist:
+            user_2_token = None
+
+        self.assertIsNotNone(user_2_token, "User 2 had it's token deleted.")
+        self.assertEqual(token_2, user_2_token, "User's previous token doesn't match on second retrieve.")
 
     def test_reset_when_password_same(self):
         """When a user object is edited and saved, but the password has not changed, the token should not change.
