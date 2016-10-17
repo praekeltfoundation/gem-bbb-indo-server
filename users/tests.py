@@ -87,4 +87,15 @@ class TestToken(test.TestCase):
     def test_reset_when_password_same(self):
         """When a user object is edited and saved, but the password has not changed, the token should not change.
         """
-        self.skipTest('TODO')
+        user = self.create_user('anon')
+        token, _ = Token.objects.get_or_create(user=user)
+
+        user.email = 'anon@ymous.com'
+        user.save()
+
+        try:
+            new_token = Token.objects.get(user=user)
+        except Token.DoesNotExist:
+            new_token = None
+
+        self.assertEqual(token, new_token, "Token was changed unexpectedly.")
