@@ -16,6 +16,7 @@ COPY search /deploy/search
 COPY content /deploy/content
 COPY core /deploy/core
 COPY home /deploy/home
+ADD setup.py /deploy/
 ADD manage.py /deploy/
 ADD requirements.txt /deploy/
 ADD README.md /deploy/
