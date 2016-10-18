@@ -16,13 +16,6 @@ PROJECT_ROOT = (
 
 COMPRESS_OFFLINE = True
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'bimbingbung.db'),
-    }
-}
-
 MEDIA_ROOT = join(PROJECT_ROOT, 'media')
 
 STATIC_ROOT = join(PROJECT_ROOT, 'static')
