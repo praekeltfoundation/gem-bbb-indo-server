@@ -11,7 +11,11 @@ ENV DJANGO_SETTINGS_MODULE bimbingbung.settings.docker
 WORKDIR /deploy/
 
 COPY bimbingbung /deploy/bimbingbung
-COPY locale /deploy/locale
+COPY users /deploy/users
+COPY search /deploy/search
+COPY content /deploy/content
+COPY core /deploy/core
+COPY home /deploy/home
 ADD manage.py /deploy/
 ADD requirements.txt /deploy/
 ADD README.md /deploy/
