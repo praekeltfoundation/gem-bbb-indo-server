@@ -3,7 +3,7 @@ MAINTAINER Colin Alston <colin@praekelt.com>
 RUN apt-get update && apt-get -y --force-yes install libjpeg-dev zlib1g-dev libxslt1-dev libpq-dev nginx redis-server supervisor python3-dev python3-pip
 RUN apt-get -y install libffi-dev gettext
 
-RUN pip install --upgrade pip
+RUN pip3 install --upgrade pip3
 
 ENV PROJECT_ROOT /deploy/
 ENV DJANGO_SETTINGS_MODULE bimbingbung.settings.docker
