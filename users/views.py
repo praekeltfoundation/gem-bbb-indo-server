@@ -21,7 +21,6 @@ class RegUserViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
+        if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response({'success': True, 'id': serializer.instance.pk})
-        return Response({'success': False, 'errors': serializer.errors}, status=400)
