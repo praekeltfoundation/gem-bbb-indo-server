@@ -1,9 +1,12 @@
+import json
 from django import test
+from django.urls import reverse
 from rest_framework.authtoken.models import Token
+from rest_framework.test import APITestCase
 from .models import User, RegUser, SysAdminUser, Profile
 
 
-class TestUserModel(test.TestCase):
+class TestUserModel(APITestCase):
     def create_regular_user(self, username='anonymous', **kwargs):
         return RegUser.objects.create(username=username, **kwargs)
 
@@ -32,6 +35,19 @@ class TestUserModel(test.TestCase):
         self.assertIsNotNone(u, 'System administrator not created by proxy.')
         self.assertTrue(u.is_staff, 'System administrator not set as staff.')
         self.assertTrue(u.is_superuser, 'System administrator not set as superuser.')
+
+    def test_regular_user_password_hash(self):
+        password = 'foobar'
+        response = self.client.post(reverse('api:users-list'), data={
+            'username': 'anon',
+            'password': password,
+            'profile': {'mobile': ''}
+        }, format='json')
+        data = json.loads(response.content.decode('utf-8'))
+        u = RegUser.objects.get(pk=data['id'])
+        self.assertNotEqual(password, u.password, 'Password was stored as plain text.')
+        self.assertNotEqual(u.password, '', 'Password was excluded.')
+        self.assertIsNotNone(u.password, 'Password was excluded.')
 
 
 class TestToken(test.TestCase):
