@@ -48,7 +48,7 @@ class RegUserDeepSerializer(serializers.ModelSerializer):
     class Meta:
         model = RegUser
         depth = 1
-        exclude = ('password',)
+        extra_kwargs = {'password': {'write_only': True}}
 
     def __init__(self, *args, **kwargs):
         super(RegUserDeepSerializer, self).__init__(*args, **kwargs)
@@ -62,6 +62,10 @@ class RegUserDeepSerializer(serializers.ModelSerializer):
     def create(self, validated_data):
         user_data = validated_data
         profile_data = validated_data.pop('profile')
+        password = validated_data.pop('password')
         user = RegUser.objects.create(**user_data)
+        # Required to hash password
+        user.set_password(password)
+        user.save()
         profile = Profile.objects.create(user=user, **profile_data)
         return user
