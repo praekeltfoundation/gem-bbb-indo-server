@@ -2,14 +2,13 @@
 
 set -e
 
-./manage.py migrate --noinput
-./manage.py collectstatic --noinput
-./manage.py compress
+${PYTHON} ./manage.py migrate --noinput
+${PYTHON} ./manage.py collectstatic --noinput
 
 echo "from django.contrib.auth.models import User
 if not User.objects.filter(username='admin').count():
     User.objects.create_superuser('admin', 'admin@example.com', 'pass')
-" | ./manage.py shell
+" | ${PYTHON} ./manage.py shell
 
 echo "=> Starting nginx"
 nginx; service nginx reload

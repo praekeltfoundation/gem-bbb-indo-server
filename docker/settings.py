@@ -1,6 +1,7 @@
 """Django settings for use within the docker container."""
 
 from os import environ
+from os.path import join
 
 from .base import *
 
