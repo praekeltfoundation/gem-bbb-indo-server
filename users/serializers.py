@@ -39,6 +39,7 @@ class RegUserProfileSerializer(serializers.ModelSerializer):
 class ProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = Profile
+        read_only_fields = ('profile_image',)
         exclude = ('user',)
 
 

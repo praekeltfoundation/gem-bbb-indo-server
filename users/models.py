@@ -1,4 +1,3 @@
-
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import pre_save, post_save
@@ -6,6 +5,8 @@ from django.dispatch import receiver
 from django.core.validators import RegexValidator
 from django.utils.encoding import python_2_unicode_compatible
 from rest_framework.authtoken.models import Token
+
+from util.storage import OverwriteStorage
 
 
 # proxy managers
@@ -47,6 +48,10 @@ class SysAdminUser(User):
         verbose_name_plural = 'System administrators'
 
 
+def get_profile_image_filename(instance, filename):
+    return '/'.join(('protected', 'profile', '{}-{}'.format(instance.user.pk, filename)))
+
+
 # user profile information
 @python_2_unicode_compatible
 class Profile(models.Model):
@@ -55,6 +60,7 @@ class Profile(models.Model):
         regex=r'^\+?1?\d{9,15}$',
         message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.")
     mobile = models.CharField(validators=[mobile_regex], max_length=15, blank=True)
+    profile_image = models.ImageField(upload_to=get_profile_image_filename, storage=OverwriteStorage(), null=True)
 
     class Meta:
         verbose_name = 'Profile'

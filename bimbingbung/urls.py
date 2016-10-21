@@ -28,6 +28,7 @@ urlpatterns = [
     url(r'^search/$', search_views.search, name='search'),
 
     url(r'^api/token/', framework_views.obtain_auth_token, name='token'),
+    url(r'^api/profile-image/(?P<user_pk>\d+)/$', user_views.ProfileImageView.as_view(), name='profile-image'),
     url(r'^api/', include(router.urls, namespace='api')),
 
     url(r'', include(wagtail_urls)),
