@@ -17,6 +17,8 @@ PROJECT_ROOT = (
 
 COMPRESS_OFFLINE = True
 
+ALLOWED_HOSTS = environ.get('ALLOWED_HOSTS', ['*'])
+
 MEDIA_ROOT = join(PROJECT_ROOT, 'media')
 
 STATIC_ROOT = join(PROJECT_ROOT, 'static')
