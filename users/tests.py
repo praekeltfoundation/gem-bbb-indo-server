@@ -136,6 +136,7 @@ class TestProfileImage(APITestCase):
                                     data={'file': tmp_file}, **headers)
 
         data = json.loads(response.content.decode('utf-8'))
+        expected_name = '{}-profile.png'.format(user.pk)
         self.assertIsNotNone(data['profile']['profile_image'], 'Returned user has no profile image')
-        self.assertTrue(data['profile']['profile_image'].endswith('1-profile.png'),
+        self.assertTrue(data['profile']['profile_image'].endswith(expected_name),
                         'Saved profile image had unexpected name')
