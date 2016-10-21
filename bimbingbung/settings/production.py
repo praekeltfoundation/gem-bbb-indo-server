@@ -8,7 +8,7 @@ DEBUG = False
 # SENDFILE settings
 
 SENDFILE_BACKEND = 'sendfile.backends.nginx'
-SENDFILE_ROOT = os.environ.get('SENDFILE_ROOT', os.path.join(PROJECT_DIR, 'protected'))
+SENDFILE_ROOT = os.environ.get('SENDFILE_ROOT', os.path.join(BASE_DIR, 'protected'))
 
 
 try:

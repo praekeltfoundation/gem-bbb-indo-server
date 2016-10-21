@@ -15,7 +15,7 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 # SENDFILE settings
 
 SENDFILE_BACKEND = 'sendfile.backends.development'
-SENDFILE_ROOT = os.path.join(PROJECT_DIR, 'protected')
+SENDFILE_ROOT = os.path.join(BASE_DIR, 'protected')
 
 
 try:
