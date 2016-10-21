@@ -7,7 +7,3 @@ class OverwriteStorage(FileSystemStorage):
     def get_available_name(self, name, max_length=None):
         self.delete(name)
         return name
-
-    def generate_filename(self, filename):
-        print('Filename ', filename)
-        return super().generate_filename(filename)
