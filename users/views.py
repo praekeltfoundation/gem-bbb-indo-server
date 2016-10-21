@@ -1,13 +1,16 @@
 
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
-from rest_framework import views, status
+from rest_framework import status
+from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import GenericAPIView
 from rest_framework.parsers import FileUploadParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+
 from .models import RegUser
-from .serializers import ProfileSerializer, RegUserDeepSerializer
+from .serializers import RegUserDeepSerializer
+from .permissions import IsUserSelf
 
 
 class ProfileImageView(GenericAPIView):
@@ -23,8 +26,13 @@ class ProfileImageView(GenericAPIView):
         }
         return self.serializer_class(*args, **kwargs)
 
+    def check_object_permissions(self, request, obj):
+        if not IsUserSelf().has_object_permission(request, self, obj):
+            raise PermissionDenied("Users can only upload their own profile images.")
+
     def post(self, request, user_pk):
         user = get_object_or_404(RegUser, pk=user_pk)
+        self.check_object_permissions(request, user)
         user.profile.profile_image = request.FILES['file']
         user.profile.save()
         serializer = self.get_serializer(RegUser.objects.get(pk=user.pk))
