@@ -162,3 +162,8 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     )
 }
+
+
+# SENDFILE settings
+
+SENDFILE_URL = '/protected/'
