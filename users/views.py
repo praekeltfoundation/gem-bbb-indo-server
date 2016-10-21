@@ -7,6 +7,7 @@ from rest_framework.generics import GenericAPIView
 from rest_framework.parsers import FileUploadParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from sendfile import sendfile
 
 from .models import RegUser
 from .serializers import RegUserDeepSerializer
@@ -37,6 +38,11 @@ class ProfileImageView(GenericAPIView):
         user.profile.save()
         serializer = self.get_serializer(RegUser.objects.get(pk=user.pk))
         return Response(serializer.data, status.HTTP_201_CREATED)
+
+    def get(self, request, user_pk):
+        user = get_object_or_404(RegUser, pk=user_pk)
+        self.check_object_permissions(request, user)
+        return sendfile(request, user.profile.profile_image.path, attachment=True)
 
 
 class RegUserViewSet(viewsets.ModelViewSet):
