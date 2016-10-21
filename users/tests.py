@@ -1,4 +1,6 @@
 import json
+from io import BytesIO
+
 from django import test
 from django.urls import reverse
 from rest_framework.authtoken.models import Token
@@ -115,3 +117,25 @@ class TestToken(test.TestCase):
             new_token = None
 
         self.assertEqual(token, new_token, "Token was changed unexpectedly.")
+
+
+class TestProfileImage(APITestCase):
+
+    def test_file_uploads(self):
+        user = RegUser.objects.create(username='anon')
+        Profile.objects.create(user=user, mobile='1112223334')
+
+        headers = {
+            'HTTP_CONTENT_TYPE': 'image/png',
+            'HTTP_CONTENT_DISPOSITION': 'attachment;filename="profile.png"'
+        }
+
+        self.client.force_login(user=user)
+        tmp_file = BytesIO(b'foobar')
+        response = self.client.post(reverse('profile-image', kwargs={'user_pk': user.pk}),
+                                    data={'file': tmp_file}, **headers)
+
+        data = json.loads(response.content.decode('utf-8'))
+        self.assertIsNotNone(data['profile']['profile_image'], 'Returned user has no profile image')
+        self.assertTrue(data['profile']['profile_image'].endswith('1-profile.png'),
+                        'Saved profile image had unexpected name')
