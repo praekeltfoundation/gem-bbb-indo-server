@@ -7,6 +7,7 @@ from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 from .models import User, RegUser, SysAdminUser, Profile
+from .serializers import RegUserDeepSerializer
 
 
 class TestUserModel(APITestCase):
@@ -163,3 +164,11 @@ class TestProfileImage(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN,
                          "View did not prevent user from uploading to someone else's profile image")
+
+    def test_no_image(self):
+        """When the user has no profile image, the url field should be None.
+        """
+        user = self.create_user()
+        data = RegUserDeepSerializer(user).data
+        url = data['profile']['profile_image_url']
+        self.assertIsNone(url, "User data includes has url to nonexistent image '%s'" % url)
