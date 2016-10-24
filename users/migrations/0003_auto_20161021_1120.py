@@ -3,8 +3,9 @@
 from __future__ import unicode_literals
 
 from django.db import migrations, models
+
 import users.models
-import util.storage
+import users.storage
 
 
 class Migration(migrations.Migration):
@@ -17,6 +18,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='profile',
             name='profile_image',
-            field=models.ImageField(null=True, storage=util.storage.OverwriteStorage(), upload_to=users.models.get_profile_image_filename),
+            field=models.ImageField(null=True, storage=users.storage.OverwriteStorage(), upload_to=users.models.get_profile_image_filename),
         ),
     ]
