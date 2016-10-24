@@ -4,6 +4,7 @@ from os import environ
 from os.path import join
 
 from .base import *
+import raven
 
 
 # Disable debug mode
@@ -18,6 +19,10 @@ PROJECT_ROOT = (
 COMPRESS_OFFLINE = True
 
 ALLOWED_HOSTS = environ.get('ALLOWED_HOSTS', ['*'])
+
+RAVEN_DSN = environ.get('RAVEN_DSN')
+RAVEN_CONFIG = {'dsn': RAVEN_DSN} if RAVEN_DSN else {}
+
 
 MEDIA_ROOT = join(PROJECT_ROOT, 'media')
 

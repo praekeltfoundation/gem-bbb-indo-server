@@ -3,3 +3,4 @@ wagtail>=1.6,<1.7
 gunicorn
 psycopg2
 dj_database_url
+raven
