@@ -66,7 +66,28 @@ If the user's credentials are correct, the service will respond with HTTP status
 
 ```json
 {
-  "token" : "ef1595a6cc293e19cc46908ef9e5754598a922fd"
+  "token": {
+    "token": "ef1595a6cc293e19cc46908ef9e5754598a922fd"
+  },
+  "user": {
+    "id": 3,
+    "profile": {
+      "id": 3,
+      "profile_image_url": "http://localhost:8000/api/profile-image/3/",
+      "mobile": "271112223334"
+    },
+    "last_login": null,
+    "is_superuser": false,
+    "username": "foo",
+    "first_name": "Foo",
+    "last_name": "Bar",
+    "email": "foo@bar.baz",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2016-10-13T13:15:27Z",
+    "groups": [],
+    "user_permissions": []
+  }
 }
 ```
 
