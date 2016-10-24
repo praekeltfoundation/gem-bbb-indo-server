@@ -58,6 +58,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'rest_framework.authtoken',
     'sendfile',
+    'raven.contrib.django.raven_compat',
 ]
 
 MIDDLEWARE = [

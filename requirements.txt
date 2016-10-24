@@ -4,3 +4,4 @@ django-sendfile==0.3.11
 gunicorn
 psycopg2
 dj_database_url
+raven
