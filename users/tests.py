@@ -1,9 +1,13 @@
 import json
+from io import BytesIO
+
 from django import test
 from django.urls import reverse
+from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
 from .models import User, RegUser, SysAdminUser, Profile
+from .serializers import RegUserDeepSerializer
 
 
 class TestUserModel(APITestCase):
@@ -115,3 +119,53 @@ class TestToken(test.TestCase):
             new_token = None
 
         self.assertEqual(token, new_token, "Token was changed unexpectedly.")
+
+
+class TestProfileImage(APITestCase):
+
+    @staticmethod
+    def create_user(username='anon'):
+        user = RegUser.objects.create(username=username)
+        Profile.objects.create(user=user, mobile='1112223334')
+        return user
+
+    def test_file_uploads(self):
+        user = self.create_user()
+
+        headers = {
+            'HTTP_CONTENT_TYPE': 'image/png',
+            'HTTP_CONTENT_DISPOSITION': 'attachment;filename="profile.png"'
+        }
+
+        self.client.force_login(user=user)
+        tmp_file = BytesIO(b'foobar')
+        response = self.client.post(reverse('profile-image', kwargs={'user_pk': user.pk}),
+                                    data={'file': tmp_file}, **headers)
+
+        data = json.loads(response.content.decode('utf-8'))
+        self.assertIsNotNone(data['profile'].get('profile_image_url', None), 'Returned user has no profile image')
+
+    def test_upload_restricted(self):
+        user = self.create_user('anon')
+        wrong_user = self.create_user('wrong')
+
+        headers = {
+            'HTTP_CONTENT_TYPE': 'image/png',
+            'HTTP_CONTENT_DISPOSITION': 'attachment;filename="profile.png"'
+        }
+
+        self.client.force_login(user=user)
+        tmp_file = BytesIO(b'foobar')
+        response = self.client.post(reverse('profile-image', kwargs={'user_pk': wrong_user.pk}),
+                                    data={'file': tmp_file}, **headers)
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN,
+                         "View did not prevent user from uploading to someone else's profile image")
+
+    def test_no_image(self):
+        """When the user has no profile image, the url field should be None.
+        """
+        user = self.create_user()
+        data = RegUserDeepSerializer(user).data
+        url = data['profile']['profile_image_url']
+        self.assertIsNone(url, "User data includes has url to nonexistent image '%s'" % url)

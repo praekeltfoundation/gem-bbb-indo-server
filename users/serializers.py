@@ -1,4 +1,5 @@
 from rest_framework import serializers
+from rest_framework.reverse import reverse
 from .models import Profile, RegUser
 
 
@@ -37,9 +38,17 @@ class RegUserProfileSerializer(serializers.ModelSerializer):
 
 
 class ProfileSerializer(serializers.ModelSerializer):
+    profile_image_url = serializers.SerializerMethodField()
+
+    def get_profile_image_url(self, obj):
+        if not obj.profile_image:
+            return None
+        request = self.context.get('request')
+        return reverse('profile-image', request=request, kwargs={'user_pk': obj.user.pk})
+
     class Meta:
         model = Profile
-        exclude = ('user',)
+        exclude = ('user', 'profile_image')
 
 
 class RegUserDeepSerializer(serializers.ModelSerializer):
@@ -48,6 +57,7 @@ class RegUserDeepSerializer(serializers.ModelSerializer):
     class Meta:
         model = RegUser
         depth = 1
+        fields = '__all__'
         extra_kwargs = {'password': {'write_only': True}}
 
     def __init__(self, *args, **kwargs):

@@ -57,7 +57,7 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'rest_framework.authtoken',
-
+    'sendfile',
     'raven.contrib.django.raven_compat',
 ]
 
@@ -163,3 +163,8 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     )
 }
+
+
+# SENDFILE settings
+
+SENDFILE_URL = '/protected/'

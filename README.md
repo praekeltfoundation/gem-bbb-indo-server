@@ -66,7 +66,28 @@ If the user's credentials are correct, the service will respond with HTTP status
 
 ```json
 {
-  "token" : "ef1595a6cc293e19cc46908ef9e5754598a922fd"
+  "token": {
+    "token": "ef1595a6cc293e19cc46908ef9e5754598a922fd"
+  },
+  "user": {
+    "id": 3,
+    "profile": {
+      "id": 3,
+      "profile_image_url": "http://localhost:8000/api/profile-image/3/",
+      "mobile": "271112223334"
+    },
+    "last_login": null,
+    "is_superuser": false,
+    "username": "foo",
+    "first_name": "Foo",
+    "last_name": "Bar",
+    "email": "foo@bar.baz",
+    "is_staff": false,
+    "is_active": true,
+    "date_joined": "2016-10-13T13:15:27Z",
+    "groups": [],
+    "user_permissions": []
+  }
 }
 ```
 
@@ -111,5 +132,41 @@ When attempting to access a protected endpoint with no `Authorization` header se
 ```json
 {
   "detail": "Authentication credentials were not provided."
+}
+```
+
+# Profile Image
+
+To upload a profile image, `POST` the file with the `Content-Type` and
+`Content-Disposition` set.
+
+```
+HTTP 1.1 POST /api/profile-image/{user_pk}/
+Authorization: Token ef1595a6cc293e19cc46908ef9e5754598a922fd
+Content-Type: image/png
+Content-Disposition: attachment;filename="profile.png"
+```
+
+The image url will then appear in the profile.
+
+```json
+{
+  "id": 3,
+  "profile": {
+    "id": 3,
+    "mobile": "271112223333",
+    "profile_image": "/media/protected/profile/3-profile.png"
+  },
+  "last_login": null,
+  "is_superuser": false,
+  "username": "foo",
+  "first_name": "Foo",
+  "last_name": "Bar",
+  "email": "foo@bar.baz",
+  "is_staff": false,
+  "is_active": true,
+  "date_joined": "2016-10-13T13:15:27Z",
+  "groups": [],
+  "user_permissions": []
 }
 ```
