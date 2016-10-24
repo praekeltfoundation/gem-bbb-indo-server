@@ -41,6 +41,8 @@ class ProfileSerializer(serializers.ModelSerializer):
     profile_image_url = serializers.SerializerMethodField()
 
     def get_profile_image_url(self, obj):
+        if not obj.profile_image:
+            return None
         request = self.context.get('request')
         return reverse('profile-image', request=request, kwargs={'user_pk': obj.user.pk})
 
