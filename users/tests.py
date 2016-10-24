@@ -143,7 +143,6 @@ class TestProfileImage(APITestCase):
                                     data={'file': tmp_file}, **headers)
 
         data = json.loads(response.content.decode('utf-8'))
-        expected_name = '{}-profile.png'.format(user.pk)
         self.assertIsNotNone(data['profile'].get('profile_image_url', None), 'Returned user has no profile image')
 
     def test_upload_restricted(self):
