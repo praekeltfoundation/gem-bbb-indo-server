@@ -144,9 +144,7 @@ class TestProfileImage(APITestCase):
 
         data = json.loads(response.content.decode('utf-8'))
         expected_name = '{}-profile.png'.format(user.pk)
-        self.assertIsNotNone(data['profile']['profile_image'], 'Returned user has no profile image')
-        self.assertTrue(data['profile']['profile_image'].endswith(expected_name),
-                        'Saved profile image had unexpected name')
+        self.assertIsNotNone(data['profile'].get('profile_image_url', None), 'Returned user has no profile image')
 
     def test_upload_restricted(self):
         user = self.create_user('anon')
