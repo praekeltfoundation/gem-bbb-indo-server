@@ -3,7 +3,7 @@
 from os import environ
 from os.path import join
 
-from .base import *
+from .production import *
 import raven
 
 
