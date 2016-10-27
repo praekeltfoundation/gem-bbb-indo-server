@@ -4,7 +4,6 @@ from rest_framework import serializers
 
 
 class QuestionOptionSerializer(serializers.ModelSerializer):
-
     class Meta:
         model = QuestionOption
         fields = ('id', 'text')
@@ -23,7 +22,21 @@ class ChallengeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Challenge
-        fields = ('id', 'name', 'questions')
+        fields = ('id', 'name', 'type', 'activation_date', 'deactivation_date', 'questions')
+
+    def __init__(self, *args, **kwargs):
+        super(ChallengeSerializer, self).__init__(*args, **kwargs)
+
+        # get fields to remove
+        exclude_set = set()
+        if len(args) > 0 and isinstance(args[0], Challenge):
+            self.Meta.fields = list(self.Meta.fields)
+            if args[0].type != Challenge.CTP_QUIZ:
+                exclude_set.add('questions')
+
+        # remove incorrect fields
+        for field_name in exclude_set:
+            self.fields.pop(field_name)
 
 
 class TipSerializer(serializers.ModelSerializer):
