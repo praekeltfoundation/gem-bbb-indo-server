@@ -35,10 +35,10 @@ class ChallengeAdmin(admin.ModelAdmin):
 class QuestionAdmin(admin.ModelAdmin):
     fieldsets = [
         (None,
-         {'fields': ['challenge', 'picture', 'text', 'type']})
+         {'fields': ['challenge', 'text']})
     ]
-    list_display = ('challenge', 'text', 'type')
-    list_filter = ('challenge', 'text', 'type')
+    list_display = ('challenge', 'text')
+    list_filter = ('challenge', 'text')
     inlines = [QuestionOptionInline]
 
 
