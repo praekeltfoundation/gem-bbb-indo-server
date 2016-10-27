@@ -73,7 +73,7 @@ class Challenge(models.Model):
 class QuizQuestion(models.Model):
     name = models.TextField('name', blank=True, null=False, unique=True)
     order = models.PositiveIntegerField('order', default=0)
-    challenge = models.ForeignKey(Challenge, related_name='questions', blank=False, null=True)
+    challenge = models.ForeignKey('Challenge', related_name='questions', blank=False, null=True)
     text = models.TextField('text', blank=True)
 
     class Meta:
@@ -125,7 +125,7 @@ class QuestionOption(models.Model):
 @python_2_unicode_compatible
 class AnswerLog(models.Model):
     question = models.ForeignKey('QuizQuestion', blank=False, null=True, related_name='+')
-    challenge = models.ForeignKey(Challenge, blank=False, null=True)
+    challenge = models.ForeignKey('Challenge', blank=False, null=True)
     answered = models.DateTimeField('answered on')
     saved = models.DateTimeField('saved on',default=timezone.now)
     user = models.TextField('user ID', blank=True)
