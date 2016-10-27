@@ -21,13 +21,13 @@ class QuestionInline(admin.StackedInline):
 class ChallengeAdmin(admin.ModelAdmin):
     fieldsets = [
         (None,
-         {'fields': ['name', 'state', 'end_processed']}),
+         {'fields': ['name', 'type', 'state', 'end_processed']}),
         ('Dates',
          {'fields': ['activation_date', 'deactivation_date']})
 
     ]
-    list_display = ('name', 'state', 'activation_date', 'deactivation_date')
-    list_filter = ('name', 'state')
+    list_display = ('name', 'type', 'state', 'activation_date', 'deactivation_date')
+    list_filter = ('name', 'type', 'state')
     inlines = [QuestionInline]
 
 
