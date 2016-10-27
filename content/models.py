@@ -25,13 +25,13 @@ class Challenge(models.Model):
     CTP_PICTURE = 2
     CTP_FREEFORM = 3
 
-    name = models.CharField('Challenge Name', max_length=30, null=False, blank=False)
-    activation_date = models.DateTimeField('Activate On')
-    deactivation_date = models.DateTimeField('Deactivate On')
+    name = models.CharField('challenge name', max_length=30, null=False, blank=False)
+    activation_date = models.DateTimeField('activate on')
+    deactivation_date = models.DateTimeField('deactivate on')
     # questions = models.ManyToManyField('Questions')
     # challenge_badge = models.ForeignKey('', null=True, blank=True)
     state = models.PositiveIntegerField(
-        'State', choices=(
+        'state', choices=(
             (CST_INCOMPLETE, 'Incomplete'),
             (CST_REVIEW_READY, 'Ready for review'),
             (CST_PUBLISHED, 'Published'),
@@ -39,17 +39,17 @@ class Challenge(models.Model):
         ),
         default=CST_INCOMPLETE)
     type = models.PositiveIntegerField(
-        'Type', choices=(
+        'type', choices=(
             (CTP_QUIZ, 'Quiz'),
             (CTP_PICTURE, 'Picture'),
             (CTP_FREEFORM, 'Free text'),
         ),
         default=CTP_QUIZ)
-    end_processed = models.BooleanField('Processed', default=False)
+    end_processed = models.BooleanField('processed', default=False)
 
     class Meta:
-        verbose_name = 'Challenge'
-        verbose_name_plural = 'Challenges'
+        verbose_name = 'challenge'
+        verbose_name_plural = 'challenges'
 
     def __str__(self):
         return self.name
@@ -76,13 +76,13 @@ class Question(models.Model):
     QT_FREEFORM = 2
     QT_PICTURE = 3
 
-    name = models.TextField('Name', blank=True, null=False, unique=True)
-    order = models.PositiveIntegerField('Order', default=0)
+    name = models.TextField('name', blank=True, null=False, unique=True)
+    order = models.PositiveIntegerField('order', default=0)
     challenge = models.ForeignKey(Challenge, related_name='questions', blank=False, null=True)
-    picture = models.URLField('Picture URL', blank=True, null=True)
-    text = models.TextField('Text', blank=True)
+    picture = models.URLField('picture URL', blank=True, null=True)
+    text = models.TextField('text', blank=True)
     type = models.PositiveIntegerField(
-        'Type', choices=(
+        'type', choices=(
             (QT_CHOICE, 'Multiple choice'),
             (QT_FREEFORM, 'Freeform'),
             (QT_PICTURE, 'Picture')
@@ -90,8 +90,8 @@ class Question(models.Model):
         default=QT_FREEFORM)
 
     class Meta:
-        verbose_name = 'Question'
-        verbose_name_plural = 'Questions'
+        verbose_name = 'question'
+        verbose_name_plural = 'questions'
 
     def __str__(self):
         return self.text
@@ -123,13 +123,13 @@ class Question(models.Model):
 class QuestionOption(models.Model):
     question = models.ForeignKey(Question, related_name='options', blank=False, null=True)
     next_question = models.ForeignKey(Question, related_name='+', blank=False, null=True)
-    picture = models.URLField('Picture URL', blank=True, null=True)
-    name = models.TextField('Name', blank=False, null=True)
-    text = models.TextField('Text', blank=True)
+    picture = models.URLField('picture URL', blank=True, null=True)
+    name = models.TextField('name', blank=False, null=True)
+    text = models.TextField('text', blank=True)
 
     class Meta:
-        verbose_name = 'Question Option'
-        verbose_name_plural = 'Question Options'
+        verbose_name = 'question option'
+        verbose_name_plural = 'question options'
 
     def __str__(self):
         return self.text
@@ -139,14 +139,14 @@ class QuestionOption(models.Model):
 class AnswerLog(models.Model):
     question = models.ForeignKey(Question, blank=False, null=True, related_name='+')
     challenge = models.ForeignKey(Challenge, blank=False, null=True)
-    answered = models.DateTimeField('Answered On')
-    saved = models.DateTimeField('Saved On',default=timezone.now)
-    user = models.TextField('User Id', blank=True)
-    response = models.TextField('Response ', blank=True)
+    answered = models.DateTimeField('answered on')
+    saved = models.DateTimeField('saved on',default=timezone.now)
+    user = models.TextField('user ID', blank=True)
+    response = models.TextField('response', blank=True)
 
     class Meta:
-        verbose_name = 'User Answer Log'
-        verbose_name_plural = 'User Answers'
+        verbose_name = 'user answer log'
+        verbose_name_plural = 'user answers'
 
     def __str__(self):
         return self.text
@@ -182,8 +182,8 @@ class Tip(wagtail_models.Page):
         return [tag.name for tag in self.tags.all()]
 
     class Meta:
-        verbose_name = 'Tip'
-        verbose_name_plural = 'Tips'
+        verbose_name = 'tip'
+        verbose_name_plural = 'tips'
 
     def __str__(self):
         return self.title
