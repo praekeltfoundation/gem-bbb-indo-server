@@ -20,6 +20,11 @@ class Challenge(models.Model):
     CST_PUBLISHED = 3
     CST_DONE = 4
 
+    # challenge types
+    CTP_QUIZ = 1
+    CTP_PICTURE = 2
+    CTP_FREEFORM = 3
+
     name = models.CharField('Challenge Name', max_length=30, null=False, blank=False)
     activation_date = models.DateTimeField('Activate On')
     deactivation_date = models.DateTimeField('Deactivate On')
@@ -33,6 +38,13 @@ class Challenge(models.Model):
             (CST_DONE, 'Done'),
         ),
         default=CST_INCOMPLETE)
+    type = models.PositiveIntegerField(
+        'Type', choices=(
+            (CTP_QUIZ, 'Quiz'),
+            (CTP_PICTURE, 'Picture'),
+            (CTP_FREEFORM, 'Free text'),
+        ),
+        default=CTP_QUIZ)
     end_processed = models.BooleanField('Processed', default=False)
 
     class Meta:
