@@ -71,23 +71,10 @@ class Challenge(models.Model):
 
 @python_2_unicode_compatible
 class Question(models.Model):
-    # question types
-    QT_CHOICE = 1
-    QT_FREEFORM = 2
-    QT_PICTURE = 3
-
     name = models.TextField('name', blank=True, null=False, unique=True)
     order = models.PositiveIntegerField('order', default=0)
     challenge = models.ForeignKey(Challenge, related_name='questions', blank=False, null=True)
-    picture = models.URLField('picture URL', blank=True, null=True)
     text = models.TextField('text', blank=True)
-    type = models.PositiveIntegerField(
-        'type', choices=(
-            (QT_CHOICE, 'Multiple choice'),
-            (QT_FREEFORM, 'Freeform'),
-            (QT_PICTURE, 'Picture')
-        ),
-        default=QT_FREEFORM)
 
     class Meta:
         verbose_name = 'question'
