@@ -55,7 +55,7 @@ class Challenge(models.Model):
         return self.name
 
     def ensure_question_order(self):
-        questions = Question.objects.filter(challenge=self.pk).order_by('order', 'pk')
+        questions = QuizQuestion.objects.filter(challenge=self.pk).order_by('order', 'pk')
         i = 1
         for q in questions:
             q.order = i
@@ -63,14 +63,14 @@ class Challenge(models.Model):
             i += 1
 
     def get_questions(self):
-        return Question.objects.filter(challenge=self.pk)
+        return QuizQuestion.objects.filter(challenge=self.pk)
 
     def is_active(self):
         return (self.state == 'published') and (self.activation_date < datetime.now() < self.deactivation_date)
 
 
 @python_2_unicode_compatible
-class Question(models.Model):
+class QuizQuestion(models.Model):
     name = models.TextField('name', blank=True, null=False, unique=True)
     order = models.PositiveIntegerField('order', default=0)
     challenge = models.ForeignKey(Challenge, related_name='questions', blank=False, null=True)
@@ -84,7 +84,7 @@ class Question(models.Model):
         return self.text
 
     def insert_at_order(self, idx):
-        questions = Question.objects.filter(challenge=self.challenge)
+        questions = QuizQuestion.objects.filter(challenge=self.challenge)
         if questions.count() == 0:
             self.order = 1
             self.save()
@@ -108,8 +108,8 @@ class Question(models.Model):
 
 @python_2_unicode_compatible
 class QuestionOption(models.Model):
-    question = models.ForeignKey(Question, related_name='options', blank=False, null=True)
-    next_question = models.ForeignKey(Question, related_name='+', blank=False, null=True)
+    question = models.ForeignKey('QuizQuestion', related_name='options', blank=False, null=True)
+    next_question = models.ForeignKey('QuizQuestion', related_name='+', blank=False, null=True)
     picture = models.URLField('picture URL', blank=True, null=True)
     name = models.TextField('name', blank=False, null=True)
     text = models.TextField('text', blank=True)
@@ -124,7 +124,7 @@ class QuestionOption(models.Model):
 
 @python_2_unicode_compatible
 class AnswerLog(models.Model):
-    question = models.ForeignKey(Question, blank=False, null=True, related_name='+')
+    question = models.ForeignKey('QuizQuestion', blank=False, null=True, related_name='+')
     challenge = models.ForeignKey(Challenge, blank=False, null=True)
     answered = models.DateTimeField('answered on')
     saved = models.DateTimeField('saved on',default=timezone.now)

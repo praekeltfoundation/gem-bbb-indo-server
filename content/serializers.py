@@ -1,4 +1,4 @@
-from content.models import Challenge, Question, QuestionOption
+from content.models import Challenge, QuizQuestion, QuestionOption
 from content.models import Tip
 from rest_framework import serializers
 
@@ -14,7 +14,7 @@ class QuestionSerializer(serializers.ModelSerializer):
     options = QuestionOptionSerializer(many=True, read_only=True)
 
     class Meta:
-        model = Question
+        model = QuizQuestion
         fields = ('id', 'text', 'options')
 
 

@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib import admin
 import wagtail.contrib.modeladmin.options as wagadmin
-from .models import Challenge, Question, QuestionOption, Tip
+from .models import Challenge, QuizQuestion, QuestionOption, Tip
 
 
 class QuestionOptionInline(admin.StackedInline):
@@ -12,7 +12,7 @@ class QuestionOptionInline(admin.StackedInline):
 
 
 class QuestionInline(admin.StackedInline):
-    model = Question
+    model = QuizQuestion
     max_num = 10
     extra = 0
 
@@ -31,7 +31,7 @@ class ChallengeAdmin(admin.ModelAdmin):
     inlines = [QuestionInline]
 
 
-@admin.register(Question)
+@admin.register(QuizQuestion)
 class QuestionAdmin(admin.ModelAdmin):
     fieldsets = [
         (None,

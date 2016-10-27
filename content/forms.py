@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Challenge, Question, QuestionOption
+from .models import Challenge, QuizQuestion, QuestionOption
 
 
 class ChallengeForm(forms.ModelForm):
@@ -11,7 +11,7 @@ class ChallengeForm(forms.ModelForm):
 
 class QuestionForm(forms.ModelForm):
     class Meta:
-        model = Question
+        model = QuizQuestion
         fields = ('challenge', 'picture', 'text', 'type')
 
 
