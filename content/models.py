@@ -72,7 +72,6 @@ class Challenge(models.Model):
 
 @python_2_unicode_compatible
 class QuizQuestion(models.Model):
-    name = models.TextField('name', blank=True, null=False, unique=True)
     order = models.PositiveIntegerField('order', default=0)
     challenge = models.ForeignKey('Challenge', related_name='questions', blank=False, null=True)
     text = models.TextField('text', blank=True)
@@ -110,9 +109,7 @@ class QuizQuestion(models.Model):
 @python_2_unicode_compatible
 class QuestionOption(models.Model):
     question = models.ForeignKey('QuizQuestion', related_name='options', blank=False, null=True)
-    next_question = models.ForeignKey('QuizQuestion', related_name='+', blank=False, null=True)
     picture = models.URLField('picture URL', blank=True, null=True)
-    name = models.TextField('name', blank=False, null=True)
     text = models.TextField('text', blank=True)
     correct = models.BooleanField('correct', default=False)
 
