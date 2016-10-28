@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib import admin
 import wagtail.contrib.modeladmin.options as wagadmin
-from .models import Challenge, Question, QuestionOption, Tip
+from .models import Challenge, QuizQuestion, QuestionOption, Tip
 
 
 class QuestionOptionInline(admin.StackedInline):
@@ -12,7 +12,7 @@ class QuestionOptionInline(admin.StackedInline):
 
 
 class QuestionInline(admin.StackedInline):
-    model = Question
+    model = QuizQuestion
     max_num = 10
     extra = 0
 
@@ -21,24 +21,24 @@ class QuestionInline(admin.StackedInline):
 class ChallengeAdmin(admin.ModelAdmin):
     fieldsets = [
         (None,
-         {'fields': ['name', 'state', 'end_processed']}),
+         {'fields': ['name', 'type', 'state', 'end_processed']}),
         ('Dates',
          {'fields': ['activation_date', 'deactivation_date']})
 
     ]
-    list_display = ('name', 'state', 'activation_date', 'deactivation_date')
-    list_filter = ('name', 'state')
+    list_display = ('name', 'type', 'state', 'activation_date', 'deactivation_date')
+    list_filter = ('name', 'type', 'state')
     inlines = [QuestionInline]
 
 
-@admin.register(Question)
+@admin.register(QuizQuestion)
 class QuestionAdmin(admin.ModelAdmin):
     fieldsets = [
         (None,
-         {'fields': ['challenge', 'picture', 'text', 'type']})
+         {'fields': ['challenge', 'text']})
     ]
-    list_display = ('challenge', 'text', 'type')
-    list_filter = ('challenge', 'text', 'type')
+    list_display = ('challenge', 'text')
+    list_filter = ('challenge', 'text')
     inlines = [QuestionOptionInline]
 
 
@@ -46,10 +46,10 @@ class QuestionAdmin(admin.ModelAdmin):
 class QuestionOptionAdmin(admin.ModelAdmin):
     fieldsets = [
         (None,
-         {'fields': ['question', 'picture', 'text']})
+         {'fields': ['question', 'picture', 'text', 'correct']})
     ]
-    list_display = ('question', 'text')
-    list_filter = ('question', 'text')
+    list_display = ('question', 'text', 'correct')
+    list_filter = ('question', 'text', 'correct')
 
 
 class TipAdmin(wagadmin.ModelAdmin):
