@@ -62,7 +62,9 @@ class Profile(models.Model):
         message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.")
     mobile = models.CharField(validators=[mobile_regex], max_length=15, blank=True)
     profile_image = models.ImageField(upload_to=get_profile_image_filename,
-                                      storage=OverwriteStorage(settings.SENDFILE_ROOT, settings.SENDFILE_URL), null=True)
+                                      storage=OverwriteStorage(settings.SENDFILE_ROOT, settings.SENDFILE_URL),
+                                      null=True,
+                                      blank=True)
 
     class Meta:
         verbose_name = 'Profile'
