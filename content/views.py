@@ -1,11 +1,12 @@
 
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
+from rest_framework.request import Request
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .models import Challenge, Tip
-from .serializers import ChallengeSerializer, TipSerializer
+from .models import Challenge, ParticipantAnswer, Tip
+from .serializers import ChallengeSerializer, ParticipantAnswerSerializer, TipSerializer
 
 
 class ChallengeViewSet(viewsets.ModelViewSet):
@@ -20,6 +21,12 @@ class ChallengeViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, pk=None, *args, **kwargs):
         serializer = self.get_serializer(get_object_or_404(self.get_queryset(), pk=pk))
         return Response(serializer.data)
+
+
+class ParticipantAnswerViewSet(viewsets.ModelViewSet):
+    queryset = ParticipantAnswer.objects.all()
+    serializer_class = ParticipantAnswerSerializer
+    http_method_names = ('options', 'head', 'get', 'post')
 
 
 class TipViewSet(viewsets.ModelViewSet):
