@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.auth.models import User
 from datetime import datetime
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils import timezone
@@ -124,17 +125,16 @@ class QuestionOption(models.Model):
 
 
 @python_2_unicode_compatible
-class AnswerLog(models.Model):
+class ParticipantAnswer(models.Model):
+    user = models.ForeignKey(User, null=True, related_name='+')
     question = models.ForeignKey('QuizQuestion', blank=False, null=True, related_name='+')
-    challenge = models.ForeignKey('Challenge', blank=False, null=True)
-    answered = models.DateTimeField('answered on')
-    saved = models.DateTimeField('saved on',default=timezone.now)
-    user = models.TextField('user ID', blank=True)
-    response = models.TextField('response', blank=True)
+    selected_option = models.ForeignKey('QuestionOption', blank=False, null=True, related_name='+')
+    date_answered = models.DateTimeField('answered on')
+    date_saved = models.DateTimeField('saved on', default=timezone.now)
 
     class Meta:
-        verbose_name = 'user answer log'
-        verbose_name_plural = 'user answers'
+        verbose_name = 'participant answer'
+        verbose_name_plural = 'participant answers'
 
     def __str__(self):
         return self.text
