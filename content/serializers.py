@@ -6,7 +6,7 @@ from rest_framework import serializers
 class QuestionOptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuestionOption
-        fields = ('id', 'text')
+        fields = ('id', 'text', 'correct')
 
 
 class QuestionSerializer(serializers.ModelSerializer):

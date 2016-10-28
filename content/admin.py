@@ -46,10 +46,10 @@ class QuestionAdmin(admin.ModelAdmin):
 class QuestionOptionAdmin(admin.ModelAdmin):
     fieldsets = [
         (None,
-         {'fields': ['question', 'picture', 'text']})
+         {'fields': ['question', 'picture', 'text', 'correct']})
     ]
-    list_display = ('question', 'text')
-    list_filter = ('question', 'text')
+    list_display = ('question', 'text', 'correct')
+    list_filter = ('question', 'text', 'correct')
 
 
 class TipAdmin(wagadmin.ModelAdmin):

@@ -113,6 +113,7 @@ class QuestionOption(models.Model):
     picture = models.URLField('picture URL', blank=True, null=True)
     name = models.TextField('name', blank=False, null=True)
     text = models.TextField('text', blank=True)
+    correct = models.BooleanField('correct', default=False)
 
     class Meta:
         verbose_name = 'question option'

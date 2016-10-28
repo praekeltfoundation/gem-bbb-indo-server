@@ -18,4 +18,4 @@ class QuestionForm(forms.ModelForm):
 class QuestionOptionForm(forms.ModelForm):
     class Meta:
         model = QuestionOption
-        fields = ('question', 'picture', 'text')
+        fields = ('question', 'picture', 'text', 'correct')
