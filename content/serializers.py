@@ -1,4 +1,5 @@
-from content.models import Challenge, QuizQuestion, QuestionOption
+from django.contrib.auth.models import User
+from content.models import Challenge, ParticipantAnswer, QuestionOption, QuizQuestion
 from content.models import Tip
 from rest_framework import serializers
 
@@ -37,6 +38,17 @@ class ChallengeSerializer(serializers.ModelSerializer):
         # remove incorrect fields
         for field_name in exclude_set:
             self.fields.pop(field_name)
+
+
+class ParticipantAnswerSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    question = serializers.PrimaryKeyRelatedField(queryset=QuizQuestion.objects.all())
+    selected_option = serializers.PrimaryKeyRelatedField(queryset=QuestionOption.objects.all())
+
+    class Meta:
+        model = ParticipantAnswer
+        fields = ('id', 'user', 'question', 'selected_option', 'date_answered', 'date_saved')
+        read_only_fields = ('id', 'date_saved')
 
 
 class TipSerializer(serializers.ModelSerializer):
