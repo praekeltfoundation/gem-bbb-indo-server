@@ -28,6 +28,13 @@ class ParticipantAnswerViewSet(viewsets.ModelViewSet):
     serializer_class = ParticipantAnswerSerializer
     http_method_names = ('options', 'head', 'get', 'post')
 
+    def create(self, request, *args, **kwargs):
+        serial = self.get_serializer(data=request.data, many=isinstance(request.data, list))
+        if not serial.is_valid():
+            return Response(data=serial.errors, status=400)
+        serial.create(serial.validated_data)
+        return Response(serial.data, status=201)
+
 
 class TipViewSet(viewsets.ModelViewSet):
     """Follow the article url to get the CMS page.
