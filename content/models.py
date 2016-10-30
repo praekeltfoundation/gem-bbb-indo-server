@@ -134,7 +134,7 @@ class ParticipantAnswer(models.Model):
         verbose_name_plural = 'participant answers'
 
     def __str__(self):
-        return self.text
+        return str(self.user.username)[:8] + str(self.question.text[:8]) + str(self.selected_option.text[:8])
 
 
 class TipTag(TaggedItemBase):
