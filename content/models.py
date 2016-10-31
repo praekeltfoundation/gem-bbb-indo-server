@@ -126,7 +126,7 @@ class Participant(models.Model):
     user = models.ForeignKey(User, related_name='users', blank=False, null=True)
     challenge = models.ForeignKey(Challenge, related_name='challenges', blank=False, null=True)
     completed = models.BooleanField('completed', default=False)
-    date_created = models.DateTimeField('created on', default=datetime.now())
+    date_created = models.DateTimeField('created on', default=datetime.now)
     date_completed = models.DateTimeField('completed on', null=True)
 
     class Meta:
@@ -139,11 +139,11 @@ class Participant(models.Model):
 
 @python_2_unicode_compatible
 class ParticipantAnswer(models.Model):
-    user = models.ForeignKey(User, null=True, related_name='+')
-    question = models.ForeignKey('QuizQuestion', blank=False, null=True, related_name='+')
-    selected_option = models.ForeignKey('QuestionOption', blank=False, null=True, related_name='+')
+    participant = models.ForeignKey(Participant, null=True, related_name='answers')
+    question = models.ForeignKey(QuizQuestion, blank=False, null=True, related_name='+')
+    selected_option = models.ForeignKey(QuestionOption, blank=False, null=True, related_name='+')
     date_answered = models.DateTimeField('answered on')
-    date_saved = models.DateTimeField('saved on', default=timezone.now)
+    date_saved = models.DateTimeField('saved on', default=datetime.now)
 
     class Meta:
         verbose_name = 'participant answer'

@@ -1,5 +1,4 @@
-from django.contrib.auth.models import User
-from content.models import Challenge, ParticipantAnswer, QuestionOption, QuizQuestion
+from content.models import Challenge, Participant, ParticipantAnswer, QuestionOption, QuizQuestion
 from content.models import Tip
 from rest_framework import serializers
 
@@ -41,7 +40,7 @@ class ChallengeSerializer(serializers.ModelSerializer):
 
 
 class ParticipantAnswerSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    participant = serializers.PrimaryKeyRelatedField(queryset=Participant.objects.all())
     question = serializers.PrimaryKeyRelatedField(queryset=QuizQuestion.objects.all())
     selected_option = serializers.PrimaryKeyRelatedField(queryset=QuestionOption.objects.all())
 
