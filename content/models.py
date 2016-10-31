@@ -179,6 +179,38 @@ class ParticipantAnswer(models.Model):
         return str(self.user.username)[:8] + str(self.question.text[:8]) + str(self.selected_option.text[:8])
 
 
+@python_2_unicode_compatible
+class ParticipantPicture(models.Model):
+    participant = models.ForeignKey(Participant, null=True, related_name='picture_answer')
+    question = models.ForeignKey(PictureQuestion, blank=False, null=True, related_name='+')
+    picture = models.ImageField()
+    date_answered = models.DateTimeField('answered on')
+    date_saved = models.DateTimeField('saved on', default=datetime.now)
+
+    class Meta:
+        verbose_name = 'picture answer'
+        verbose_name_plural = 'picture answers'
+
+    def __str__(self):
+        return str(self.user.username)[:8] + ': Pic'
+
+
+@python_2_unicode_compatible
+class ParticipantFreeText(models.Model):
+    participant = models.ForeignKey(Participant, null=True, related_name='freetext_answer')
+    question = models.ForeignKey(FreeTextQuestion, blank=False, null=True, related_name='+')
+    text = models.TextField('text', blank=True)
+    date_answered = models.DateTimeField('answered on')
+    date_saved = models.DateTimeField('saved on', default=datetime.now)
+
+    class Meta:
+        verbose_name = 'free-text answer'
+        verbose_name_plural = 'free-text answers'
+
+    def __str__(self):
+        return str(self.user.username)[:8] + ': Free'
+
+
 class TipTag(TaggedItemBase):
     content_object = modelcluster_fields.ParentalKey('content.Tip', related_name='tagged_item')
 
