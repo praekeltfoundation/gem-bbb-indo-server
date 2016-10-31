@@ -122,6 +122,32 @@ class QuestionOption(models.Model):
 
 
 @python_2_unicode_compatible
+class PictureQuestion(models.Model):
+    challenge = models.OneToOneField(Challenge, related_name='picture_question', blank=False, null=True)
+    text = models.TextField('text', blank=True)
+
+    class Meta:
+        verbose_name = 'picture question'
+        verbose_name_plural = 'picture questions'
+
+    def __str__(self):
+        return self.text
+
+
+@python_2_unicode_compatible
+class FreeTextQuestion(models.Model):
+    challenge = models.OneToOneField(Challenge, related_name='freetext_question', blank=False, null=True)
+    text = models.TextField('text', blank=True)
+
+    class Meta:
+        verbose_name = 'free text question'
+        verbose_name_plural = 'free text questions'
+
+    def __str__(self):
+        return self.text
+
+
+@python_2_unicode_compatible
 class Participant(models.Model):
     user = models.ForeignKey(User, related_name='users', blank=False, null=True)
     challenge = models.ForeignKey(Challenge, related_name='challenges', blank=False, null=True)
