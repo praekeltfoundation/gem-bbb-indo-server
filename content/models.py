@@ -195,7 +195,7 @@ class Goal(models.Model):
 class GoalTransaction(models.Model):
     date = models.DateTimeField()
     value = models.DecimalField(max_digits=12, decimal_places=2)
-    goal = models.ForeignKey(Goal)
+    goal = models.ForeignKey(Goal, related_name='transactions')
 
     class Meta:
         verbose_name = 'goal transaction'
