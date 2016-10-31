@@ -181,6 +181,7 @@ class Goal(models.Model):
     end_date = models.DateTimeField()
     value = models.DecimalField(max_digits=12, decimal_places=2)
     image = models.ImageField(null=True, blank=True)
+    user = models.ForeignKey(User, related_name='+')
 
     class Meta:
         verbose_name = 'goal'
