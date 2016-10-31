@@ -172,3 +172,33 @@ class Tip(wagtail_models.Page):
 
     def __str__(self):
         return self.title
+
+
+@python_2_unicode_compatible
+class Goal(models.Model):
+    name = models.CharField(max_length=30)
+    start_date = models.DateTimeField()
+    end_date = models.DateTimeField()
+    value = models.DecimalField(max_digits=12, decimal_places=2)
+    image = models.ImageField(null=True, blank=True)
+
+    class Meta:
+        verbose_name = 'goal'
+        verbose_name_plural = 'goals'
+
+    def __str__(self):
+        return self.name
+
+
+@python_2_unicode_compatible
+class GoalTransaction(models.Model):
+    date = models.DateTimeField()
+    value = models.DecimalField(max_digits=12, decimal_places=2)
+    goal = models.ForeignKey(Goal)
+
+    class Meta:
+        verbose_name = 'goal transaction'
+        verbose_name_plural = 'goal transactions'
+
+    def __str__(self):
+        return '{} {}'.format(self.date, self.value)
