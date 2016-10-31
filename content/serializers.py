@@ -46,8 +46,20 @@ class ParticipantAnswerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ParticipantAnswer
-        fields = ('id', 'user', 'question', 'selected_option', 'date_answered', 'date_saved')
+        fields = ('id', 'participant', 'question', 'selected_option', 'date_answered', 'date_saved')
         read_only_fields = ('id', 'date_saved')
+
+    def to_internal_value(self, data):
+        if data.get('user') is not None and data.get('participant') is None:
+            user_id = data.pop('user')
+            try:
+                q = QuizQuestion.objects.get(id=data.get('question'))
+                p = Participant.objects.get(user_id=user_id, challenge_id=q.challenge_id)
+                data['participant'] = p.id
+            except Participant.DoesNotExist:
+                p = Participant.objects.create(user_id=user_id, challenge_id=q.challenge_id)
+                data['participant'] = p.id
+        return super(ParticipantAnswerSerializer, self).to_internal_value(data)
 
 
 class TipSerializer(serializers.ModelSerializer):
