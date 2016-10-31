@@ -122,6 +122,22 @@ class QuestionOption(models.Model):
 
 
 @python_2_unicode_compatible
+class Participant(models.Model):
+    user = models.ForeignKey(User, related_name='users', blank=False, null=True)
+    challenge = models.ForeignKey(Challenge, related_name='challenges', blank=False, null=True)
+    completed = models.BooleanField('completed', default=False)
+    date_created = models.DateTimeField('created on', default=datetime.now())
+    date_completed = models.DateTimeField('completed on', null=True)
+
+    class Meta:
+        verbose_name = 'participant'
+        verbose_name_plural = 'participants'
+
+    def __str__(self):
+        return str(self.user) + ": " + str(self.challenge)
+
+
+@python_2_unicode_compatible
 class ParticipantAnswer(models.Model):
     user = models.ForeignKey(User, null=True, related_name='+')
     question = models.ForeignKey('QuizQuestion', blank=False, null=True, related_name='+')
