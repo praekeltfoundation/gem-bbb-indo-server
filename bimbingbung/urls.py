@@ -17,6 +17,7 @@ from wagtail.wagtaildocs import urls as wagtaildocs_urls
 router = DefaultRouter()
 router.register(r'challenges', content_views.ChallengeViewSet, base_name='challenges')
 router.register(r'tips', content_views.TipViewSet, base_name='tips')
+router.register(r'goals', content_views.GoalViewSet, base_name='goals')
 router.register(r'users', user_views.RegUserViewSet, base_name='users')
 
 urlpatterns = [

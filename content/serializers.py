@@ -1,5 +1,6 @@
 from content.models import Challenge, QuizQuestion, QuestionOption
 from content.models import Tip
+from content.models import Goal, GoalTransaction
 from rest_framework import serializers
 
 
@@ -47,3 +48,18 @@ class TipSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tip
         fields = ('id', 'title', 'article_url', 'cover_image_url', 'tags')
+
+
+class GoalTransactionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = GoalTransaction
+        exclude = ('goal',)
+
+
+class GoalSerializer(serializers.ModelSerializer):
+    transactions = GoalTransactionSerializer(many=True)
+
+    class Meta:
+        model = Goal
+        exclude = ('user',)
