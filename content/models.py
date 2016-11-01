@@ -164,8 +164,22 @@ class Participant(models.Model):
 
 
 @python_2_unicode_compatible
+class Entry(models.Model):
+    participant = models.ForeignKey(Participant, null=True, related_name='entries')
+    date_saved = models.DateTimeField('saved on', default=datetime.now)
+    date_completed = models.DateTimeField('completed on', null=True)
+
+    class Meta:
+        verbose_name = 'entry'
+        verbose_name_plural = 'entries'
+
+    def __str__(self):
+        return str(self.participant.user.username) + ": " + str(self.participant.challenge.name)
+
+
+@python_2_unicode_compatible
 class ParticipantAnswer(models.Model):
-    participant = models.ForeignKey(Participant, null=True, related_name='answers')
+    entry = models.ForeignKey(Entry, null=True, related_name='answers')
     question = models.ForeignKey(QuizQuestion, blank=False, null=True, related_name='+')
     selected_option = models.ForeignKey(QuestionOption, blank=False, null=True, related_name='+')
     date_answered = models.DateTimeField('answered on')
