@@ -1,5 +1,5 @@
-from content.models import Challenge, Participant, ParticipantAnswer, QuestionOption, QuizQuestion
-from content.models import Tip
+from django.contrib.auth.models import User
+from content.models import Challenge, Entry, Participant, ParticipantAnswer, QuestionOption, QuizQuestion, Tip
 from rest_framework import serializers
 
 
@@ -40,26 +40,68 @@ class ChallengeSerializer(serializers.ModelSerializer):
 
 
 class ParticipantAnswerSerializer(serializers.ModelSerializer):
-    participant = serializers.PrimaryKeyRelatedField(queryset=Participant.objects.all())
+    entry = serializers.PrimaryKeyRelatedField(queryset=Entry.objects.all())
     question = serializers.PrimaryKeyRelatedField(queryset=QuizQuestion.objects.all())
     selected_option = serializers.PrimaryKeyRelatedField(queryset=QuestionOption.objects.all())
 
     class Meta:
         model = ParticipantAnswer
-        fields = ('id', 'participant', 'question', 'selected_option', 'date_answered', 'date_saved')
+        fields = ('id', 'entry', 'question', 'selected_option', 'date_answered', 'date_saved')
+        read_only_fields = ('id', 'date_saved')
+
+
+class EntrySerializer(serializers.ModelSerializer):
+    participant = serializers.PrimaryKeyRelatedField(queryset=Participant.objects.all())
+    answers = ParticipantAnswerSerializer(many=True)
+
+    class Meta:
+        model = Entry
+        fields = ('id', 'participant', 'date_saved', 'date_completed', 'answers')
         read_only_fields = ('id', 'date_saved')
 
     def to_internal_value(self, data):
-        if data.get('user') is not None and data.get('participant') is None:
-            user_id = data.pop('user')
+        user = data.pop('user', None)
+        challenge = data.pop('challenge', None)
+
+        if data.get('participant') is None:
+            if user is None or challenge is None:
+                raise serializers.ValidationError(
+                    {'participant': 'Must specify either participant or user and challenge.'})
+
             try:
-                q = QuizQuestion.objects.get(id=data.get('question'))
-                p = Participant.objects.get(user_id=user_id, challenge_id=q.challenge_id)
-                data['participant'] = p.id
-            except Participant.DoesNotExist:
-                p = Participant.objects.create(user_id=user_id, challenge_id=q.challenge_id)
-                data['participant'] = p.id
-        return super(ParticipantAnswerSerializer, self).to_internal_value(data)
+                User.objects.get(id=user)
+            except User.DoesNotExist:
+                raise serializers.ValidationError({'user': 'No such user.'})
+
+            try:
+                Challenge.objects.get(id=challenge)
+            except Challenge.DoesNotExist:
+                raise serializers.ValidationError({'challenge': 'No such challenge.'})
+
+            try:
+                participant = Participant.objects.get(user_id=user, challenge_id=challenge)
+                data['participant'] = participant.id
+            except:
+                try:
+                    participant = Participant.objects.create(challenge_id=challenge, user_id=user)
+                    data['participant'] = participant.id
+                except Participant.DoesNotExist:
+                    raise serializers.ValidationError({'user': 'Could not create participant.'})
+
+        return super(EntrySerializer, self).to_internal_value(data)
+
+    def validate(self, data):
+        participant = Participant.objects.get(id=data.get('participant'))
+        answers = data.get('answers')
+        if answers is None or not isinstance(answers, list):
+            raise serializers.ValidationError('Should be a list of answers.')
+        question_ids = [answer.question for answer in data]
+        required_questions = QuizQuestion.objects\
+            .filter(challenge_id=participant.challenge_id)\
+            .values_list('id', flat=True)
+        if not set(required_questions).issubset(question_ids):
+            raise serializers.ValidationError('Not all questions answered.')
+        return data
 
 
 class TipSerializer(serializers.ModelSerializer):
