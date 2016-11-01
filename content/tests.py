@@ -1,10 +1,15 @@
+
+from datetime import datetime
 import json
+
 from django.test import TestCase
 from django.urls import reverse
 from rest_framework.test import APITestCase
 from wagtail.wagtailcore.models import Page
-from users.models import User
+from users.models import User, RegUser
+
 from .models import Tip
+from .models import Goal, GoalTransaction
 
 
 def create_test_user():
@@ -89,3 +94,47 @@ class TestTipAPI(APITestCase):
         self.assertEqual(Tip.objects.all().count(), 2, 'Test did not set up Tip pages correctly.')
         self.assertEqual(len(data), 1, 'View returned more than one Tip.')
         self.assertEqual(data[0]['title'], 'Live tip', 'The returned Tip was not the expected live page.')
+
+
+class TestGoalAPI(APITestCase):
+
+    @staticmethod
+    def create_staff_user(username='AnonStaff'):
+        return User.objects.create(username=username, email='anon@ymous.org', password='Blarg',
+                                   is_staff=True, is_superuser=False)
+
+    @staticmethod
+    def create_regular_user(username='AnonReg'):
+        return RegUser.objects.create(username=username, email='anon-reg@ymous.org', password='Blarg',
+                                      is_staff=False, is_superuser=False)
+
+    def test_admin_list_all(self):
+        """A staff member must be able to see all goals."""
+
+        # Model instances
+        user_1 = self.create_regular_user('User1')
+        user_2 = self.create_regular_user('User2')
+        user_admin = self.create_regular_user('AdminUser')
+
+        # TODO: Refactor Goal creation into helper function
+        goal_1 = Goal.objects.create(name='Goal 1', user=user_1, value=1000, start_date=datetime.utcnow(), end_date=datetime.utcnow())
+        goal_2 = Goal.objects.create(name='Goal 2', user=user_1, value=1000, start_date=datetime.utcnow(), end_date=datetime.utcnow())
+
+        goal_3 = Goal.objects.create(name='Goal 3', user=user_2, value=1000, start_date=datetime.utcnow(), end_date=datetime.utcnow())
+
+        # Test view permissions
+
+        self.skipTest('TODO')
+
+    def test_admin_filter_by_user(self):
+        """A staff member must be able to filter any user."""
+        self.skipTest('TODO')
+
+    def test_user_list_all_restriction(self):
+        """A user must not see other user's Goals when listing all.
+        """
+        self.skipTest('TODO')
+
+    def test_user_filter_by_owned(self):
+        """User must be able to retrieve their own Goals."""
+        self.skipTest('TODO')
