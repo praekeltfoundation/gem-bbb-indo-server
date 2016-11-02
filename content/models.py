@@ -190,7 +190,7 @@ class ParticipantAnswer(models.Model):
         verbose_name_plural = 'participant answers'
 
     def __str__(self):
-        return str(self.user.username)[:8] + str(self.question.text[:8]) + str(self.selected_option.text[:8])
+        return str(self.participant.user.username)[:8] + str(self.question.text[:8]) + str(self.selected_option.text[:8])
 
 
 @python_2_unicode_compatible
