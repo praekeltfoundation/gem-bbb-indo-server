@@ -125,6 +125,10 @@ class TestGoalAPI(APITestCase):
         return RegUser.objects.create(username=username, email='anon-reg@ymous.org', password='Blarg',
                                       is_staff=False, is_superuser=False)
 
+    @staticmethod
+    def create_goal(name, user, value):
+        return Goal.objects.create(name=name, user=user, value=value, start_date=timezone.now(), end_date=timezone.now())
+
     def test_require_param_for_regular_user(self):
         """When a regular user attempts to list all goals, they should be restricted by a permission denied error."""
         user = self.create_regular_user()
@@ -156,13 +160,36 @@ class TestGoalAPI(APITestCase):
         goal_1_data = self.find_by_attr(data, 'name', goal_1_name, {})
         goal_2_data = self.find_by_attr(data, 'name', goal_2_name, {})
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, "Admin user was blocked from accessing Goals")
-        self.assertEqual(goal_1_data.get('id', None), goal_1.id, "Admin user can't see Goal for User 1")
-        self.assertEqual(goal_2_data.get('id', None), goal_2.id, "Admin user can't see Goal for User 2")
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Admin user was blocked from accessing Goals.")
+        self.assertEqual(goal_1_data.get('id', None), goal_1.id, "Admin user can't see Goal for User 1.")
+        self.assertEqual(goal_2_data.get('id', None), goal_2.id, "Admin user can't see Goal for User 2.")
 
     def test_admin_filter_by_user(self):
         """A staff member must be able to filter any user."""
-        self.skipTest('TODO')
+        # Model instances
+        user_1 = self.create_regular_user('User1')
+        user_2 = self.create_regular_user('User2')
+        user_admin = self.create_staff_user('AdminUser')
+
+        goal_1_name = 'Goal 1'
+        goal_2_name = 'Goal 2'
+
+        goal_1 = self.create_goal(goal_1_name, user_1, 1000)
+        goal_2 = self.create_goal(goal_2_name, user_2, 1000)
+
+        # Test restricted view
+        self.client.force_authenticate(user=user_admin)
+        q = QueryDict(mutable=True)
+        q['user_pk'] = user_1.pk
+        response = self.client.get('%s?%s' % (reverse('api:goals-list'), q.urlencode()))
+        data = response.data
+
+        # Find goals by name
+        goal_1_data = self.find_by_attr(data, 'name', goal_1_name, {})
+        goal_2_data = self.find_by_attr(data, 'name', goal_2_name, None)
+
+        self.assertIsNone(goal_2_data, "Goal 2 found despite applied filter.")
+        self.assertEqual(goal_1_data.get('id', None), goal_1.id, "Goal 1 was not retrieved.")
 
     def test_user_list_all_restriction(self):
         """A user must not see other user's Goals when listing all.
