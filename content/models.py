@@ -177,8 +177,8 @@ class Tip(wagtail_models.Page):
 @python_2_unicode_compatible
 class Goal(models.Model):
     name = models.CharField(max_length=30)
-    start_date = models.DateTimeField()
-    end_date = models.DateTimeField()
+    start_date = models.DateField()
+    end_date = models.DateField()
     value = models.DecimalField(max_digits=12, decimal_places=2)
     image = models.ImageField(null=True, blank=True)
     user = models.ForeignKey(User, related_name='+')
@@ -193,7 +193,7 @@ class Goal(models.Model):
 
 @python_2_unicode_compatible
 class GoalTransaction(models.Model):
-    date = models.DateTimeField()
+    date = models.DateField()
     value = models.DecimalField(max_digits=12, decimal_places=2)
     goal = models.ForeignKey(Goal, related_name='transactions')
 
