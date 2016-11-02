@@ -123,17 +123,26 @@ class TestGoalAPI(APITestCase):
         # Model instances
         user_1 = self.create_regular_user('User1')
         user_2 = self.create_regular_user('User2')
-        user_admin = self.create_regular_user('AdminUser')
+        user_admin = self.create_staff_user('AdminUser')
+
+        goal_1_name = 'Goal 1'
+        goal_2_name = 'Goal 2'
 
         # TODO: Refactor Goal creation into helper function
-        goal_1 = Goal.objects.create(name='Goal 1', user=user_1, value=1000, start_date=timezone.now(), end_date=timezone.now())
-        goal_2 = Goal.objects.create(name='Goal 2', user=user_1, value=1000, start_date=timezone.now(), end_date=timezone.now())
+        goal_1 = Goal.objects.create(name=goal_1_name, user=user_1, value=1000, start_date=timezone.now(), end_date=timezone.now())
+        goal_2 = Goal.objects.create(name=goal_2_name, user=user_2, value=1000, start_date=timezone.now(), end_date=timezone.now())
 
-        goal_3 = Goal.objects.create(name='Goal 3', user=user_2, value=1000, start_date=timezone.now(), end_date=timezone.now())
+        # Test restricted view
+        self.client.force_authenticate(user=user_admin)
+        response = self.client.get(reverse('api:goals-list'))
+        data = response.data
 
-        # Test view permissions
-
-        self.skipTest('TODO')
+        # Find goals by name
+        goal_1_data = [g for g in data if g.get('name', None) == goal_1_name][0]
+        goal_2_data = [g for g in data if g.get('name', None) == goal_2_name][0]
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Admin user was blocked from accessing Goals")
+        self.assertEqual(goal_1_data.get('id', None), goal_1.id, "Admin user can't see Goal for User 1")
+        self.assertEqual(goal_2_data.get('id', None), goal_2.id, "Admin user can't see Goal for User 2")
 
     def test_admin_filter_by_user(self):
         """A staff member must be able to filter any user."""
