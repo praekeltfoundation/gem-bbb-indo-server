@@ -194,7 +194,15 @@ class TestGoalAPI(APITestCase):
     def test_user_list_all_restriction(self):
         """A user must not see other user's Goals when listing all.
         """
-        self.skipTest('TODO')
+        user_1 = self.create_regular_user('User 1')
+        user_2 = self.create_regular_user('User 2')
+
+        # Authenticate User 1, request Goals for User 2
+        self.client.force_authenticate(user=user_1)
+        q = QueryDict(mutable=True)
+        q['user_pk'] = user_2.pk
+        response = self.client.get('%s?%s' % (reverse('api:goals-list'), q.urlencode()))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_user_filter_by_owned(self):
         """User must be able to retrieve their own Goals."""
