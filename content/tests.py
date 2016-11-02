@@ -12,6 +12,7 @@ from users.models import User, RegUser
 
 from .models import Tip
 from .models import Goal, GoalTransaction
+from .serializers import GoalSerializer
 
 
 def create_test_user():
@@ -201,9 +202,22 @@ class TestGoalAPI(APITestCase):
         self.client.force_authenticate(user=user_1)
         q = QueryDict(mutable=True)
         q['user_pk'] = user_2.pk
+
         response = self.client.get('%s?%s' % (reverse('api:goals-list'), q.urlencode()))
+        # FIXME: Response is HTTP 200
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_user_filter_by_owned(self):
         """User must be able to retrieve their own Goals."""
-        self.skipTest('TODO')
+        user = self.create_regular_user('User 1')
+        goal = self.create_goal('Goal 1', user, 1000)
+
+        self.client.force_authenticate(user=user)
+        q = QueryDict(mutable=True)
+        q['user_pk'] = user.pk
+        response = self.client.get('%s?%s' % (reverse('api:goals-list'), q.urlencode()))
+
+        goal_data = self.find_by_attr(response.data, 'name', 'Goal 1', {})
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Request failed.")
+        self.assertEqual(goal.id, goal_data.get('id', None), "Retrieved goal is not the same as created goal.")
