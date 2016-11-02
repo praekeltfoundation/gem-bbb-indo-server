@@ -67,8 +67,11 @@ class GoalViewSet(viewsets.ModelViewSet):
         return queryset.filter(user__pk=user_pk)
 
     def list(self, request, *args, **kwargs):
-        if not getattr(request, 'query_params', {}).get(self.PARAM_USER_PK, None) and not request.user.is_staff:
-            raise PermissionDenied("Required query param %s" % self.PARAM_USER_PK)
+        if not request.user.is_staff:
+            if not getattr(request, 'query_params', {}).get(self.PARAM_USER_PK, None):
+                raise PermissionDenied("Required query param %s" % self.PARAM_USER_PK)
+            elif request.query_params.get(self.PARAM_USER_PK, None) != request.user.pk:
+                raise PermissionDenied("Restricted from accessing other Goals")
 
         serializer = self.get_serializer(self.get_queryset(), many=True)
         return Response(serializer.data)
