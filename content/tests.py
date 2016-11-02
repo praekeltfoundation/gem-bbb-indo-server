@@ -1,9 +1,9 @@
 
-from datetime import datetime
 import json
 
 from django.test import TestCase
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework.test import APITestCase
 from wagtail.wagtailcore.models import Page
 from users.models import User, RegUser
@@ -117,10 +117,10 @@ class TestGoalAPI(APITestCase):
         user_admin = self.create_regular_user('AdminUser')
 
         # TODO: Refactor Goal creation into helper function
-        goal_1 = Goal.objects.create(name='Goal 1', user=user_1, value=1000, start_date=datetime.utcnow(), end_date=datetime.utcnow())
-        goal_2 = Goal.objects.create(name='Goal 2', user=user_1, value=1000, start_date=datetime.utcnow(), end_date=datetime.utcnow())
+        goal_1 = Goal.objects.create(name='Goal 1', user=user_1, value=1000, start_date=timezone.now(), end_date=timezone.now())
+        goal_2 = Goal.objects.create(name='Goal 2', user=user_1, value=1000, start_date=timezone.now(), end_date=timezone.now())
 
-        goal_3 = Goal.objects.create(name='Goal 3', user=user_2, value=1000, start_date=datetime.utcnow(), end_date=datetime.utcnow())
+        goal_3 = Goal.objects.create(name='Goal 3', user=user_2, value=1000, start_date=timezone.now(), end_date=timezone.now())
 
         # Test view permissions
 
