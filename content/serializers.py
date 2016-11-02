@@ -40,13 +40,12 @@ class ChallengeSerializer(serializers.ModelSerializer):
 
 
 class ParticipantAnswerSerializer(serializers.ModelSerializer):
-    entry = serializers.PrimaryKeyRelatedField(queryset=Entry.objects.all())
     question = serializers.PrimaryKeyRelatedField(queryset=QuizQuestion.objects.all())
     selected_option = serializers.PrimaryKeyRelatedField(queryset=QuestionOption.objects.all())
 
     class Meta:
         model = ParticipantAnswer
-        fields = ('id', 'entry', 'question', 'selected_option', 'date_answered', 'date_saved')
+        fields = ('id', 'question', 'selected_option', 'date_answered', 'date_saved')
         read_only_fields = ('id', 'date_saved')
 
 
@@ -91,17 +90,27 @@ class EntrySerializer(serializers.ModelSerializer):
         return super(EntrySerializer, self).to_internal_value(data)
 
     def validate(self, data):
-        participant = Participant.objects.get(id=data.get('participant'))
+        participant = Participant.objects.get(id=data.get('participant').id)
         answers = data.get('answers')
         if answers is None or not isinstance(answers, list):
             raise serializers.ValidationError('Should be a list of answers.')
-        question_ids = [answer.question for answer in data]
+        question_ids = [answer['question'].id for answer in data['answers']]
         required_questions = QuizQuestion.objects\
             .filter(challenge_id=participant.challenge_id)\
             .values_list('id', flat=True)
         if not set(required_questions).issubset(question_ids):
             raise serializers.ValidationError('Not all questions answered.')
         return data
+
+    def create(self, validated_data):
+        entry = Entry.objects.create(participant=validated_data.get('participant'),
+                                     date_completed=validated_data.get('date_completed'))
+        answers = validated_data.get('answers')
+        for answer in answers:
+            answer['entry'] = entry
+            ParticipantAnswer.objects.create(**answer)
+
+        return entry
 
 
 class TipSerializer(serializers.ModelSerializer):
