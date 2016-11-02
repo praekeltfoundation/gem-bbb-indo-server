@@ -1,9 +1,11 @@
 
 import json
 
+from django.http import QueryDict
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
+from rest_framework import status
 from rest_framework.test import APITestCase
 from wagtail.wagtailcore.models import Page
 from users.models import User, RegUser
@@ -107,6 +109,13 @@ class TestGoalAPI(APITestCase):
     def create_regular_user(username='AnonReg'):
         return RegUser.objects.create(username=username, email='anon-reg@ymous.org', password='Blarg',
                                       is_staff=False, is_superuser=False)
+
+    def test_require_param_for_regular_user(self):
+        """When a regular user attempts to list all goals, they should be restricted by a permission denied error."""
+        user = self.create_regular_user()
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:goals-list'))
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_admin_list_all(self):
         """A staff member must be able to see all goals."""
