@@ -101,6 +101,21 @@ class TestTipAPI(APITestCase):
 class TestGoalAPI(APITestCase):
 
     @staticmethod
+    def find_by_attr(lst, attr, val, default=None):
+        """
+        Helper to find dict in list.
+        :param lst: List to search
+        :param attr: Name of dict property to match
+        :param val: Value to match
+        :param default: Value to return if not found
+        :return:
+        """
+        try:
+            return [e for e in lst if e.get(attr, None) == val][0]
+        except IndexError:
+            return default
+
+    @staticmethod
     def create_staff_user(username='AnonStaff'):
         return User.objects.create(username=username, email='anon@ymous.org', password='Blarg',
                                    is_staff=True, is_superuser=False)
@@ -138,8 +153,9 @@ class TestGoalAPI(APITestCase):
         data = response.data
 
         # Find goals by name
-        goal_1_data = [g for g in data if g.get('name', None) == goal_1_name][0]
-        goal_2_data = [g for g in data if g.get('name', None) == goal_2_name][0]
+        goal_1_data = self.find_by_attr(data, 'name', goal_1_name, {})
+        goal_2_data = self.find_by_attr(data, 'name', goal_2_name, {})
+
         self.assertEqual(response.status_code, status.HTTP_200_OK, "Admin user was blocked from accessing Goals")
         self.assertEqual(goal_1_data.get('id', None), goal_1.id, "Admin user can't see Goal for User 1")
         self.assertEqual(goal_2_data.get('id', None), goal_2.id, "Admin user can't see Goal for User 2")
