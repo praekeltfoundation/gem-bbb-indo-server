@@ -10,6 +10,7 @@ import django.utils.timezone
 def to_tmp_old(apps, schema_editor):
     Question = apps.get_model('content.Question')
     QuestionOption = apps.get_model('content.QuestionOption')
+    AnswerLog = apps.get_model('content.AnswerLog')
     for question in Question.objects.all():
         question.old_challenge_id = question.challenge_id
         question.save()
@@ -17,11 +18,15 @@ def to_tmp_old(apps, schema_editor):
         option.old_question_id = option.question_id
         option.old_next_question_id = option.next_question_id
         option.save()
+    for answer in AnswerLog.objects.all():
+        answer.old_question_id = answer.question_id
+        answer.save()
 
 
 def from_tmp_old(apps, schema_editor):
     Question = apps.get_model('content.Question')
     QuestionOption = apps.get_model('content.QuestionOption')
+    AnswerLog = apps.get_model('content.AnswerLog')
     for question in Question.objects.all():
         question.challenge_id = question.old_challenge_id
         question.save()
@@ -29,6 +34,9 @@ def from_tmp_old(apps, schema_editor):
         option.question_id = option.old_question_id
         option.next_question_id = option.old_next_question_id
         option.save()
+    for answer in AnswerLog.objects.all():
+        answer.question_id = answer.old_question_id
+        answer.save()
 
 
 class Migration(migrations.Migration):
@@ -176,6 +184,15 @@ class Migration(migrations.Migration):
             name='old_next_question_id',
             field=models.PositiveIntegerField(null=True),
         ),
+        migrations.AddField(
+            model_name='answerlog',
+            name='old_question_id',
+            field=models.PositiveIntegerField(null=True),
+        ),
+        migrations.RunPython(
+            code=to_tmp_old,
+            reverse_code=from_tmp_old,
+        ),
         migrations.RemoveField(
             model_name='question',
             name='challenge',
@@ -188,9 +205,9 @@ class Migration(migrations.Migration):
             model_name='questionoption',
             name='next_question',
         ),
-        migrations.RunPython(
-            code=to_tmp_old,
-            reverse_code=from_tmp_old,
+        migrations.RemoveField(
+            model_name='answerlog',
+            name='question',
         ),
         migrations.RenameModel(
             old_name='Question',

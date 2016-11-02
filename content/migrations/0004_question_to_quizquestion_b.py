@@ -10,6 +10,7 @@ import django.utils.timezone
 def from_tmp_new(apps, schema_editor):
     Question = apps.get_model('content.QuizQuestion')
     QuestionOption = apps.get_model('content.QuestionOption')
+    AnswerLog = apps.get_model('content.AnswerLog')
     for question in Question.objects.all():
         question.challenge_id = question.old_challenge_id
         question.save()
@@ -17,11 +18,15 @@ def from_tmp_new(apps, schema_editor):
         option.question_id = option.old_question_id
         option.next_question_id = option.old_next_question_id
         option.save()
+    for answer in AnswerLog.objects.all():
+        answer.question_id = answer.old_question_id
+        answer.save()
 
 
 def to_tmp_new(apps, schema_editor):
     Question = apps.get_model('content.QuizQuestion')
     QuestionOption = apps.get_model('content.QuestionOption')
+    AnswerLog = apps.get_model('content.AnswerLog')
     for question in Question.objects.all():
         question.old_challenge_id = question.challenge_id
         question.save()
@@ -29,6 +34,9 @@ def to_tmp_new(apps, schema_editor):
         option.old_question_id = option.question_id
         option.old_next_question_id = option.next_question_id
         option.save()
+    for answer in AnswerLog.objects.all():
+        answer.old_question_id = answer.question_id
+        answer.save()
 
 
 class Migration(migrations.Migration):
@@ -43,11 +51,6 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.AddField(
-            model_name='answerlog',
-            name='question',
-            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='answers', to='content.QuizQuestion'),
-        ),
-        migrations.AddField(
             model_name='quizquestion',
             name='challenge',
             field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='questions', to='content.Challenge'),
@@ -60,6 +63,11 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='questionoption',
             name='next_question',
+            field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='+', to='content.QuizQuestion'),
+        ),
+        migrations.AddField(
+            model_name='answerlog',
+            name='question',
             field=models.ForeignKey(null=True, on_delete=django.db.models.deletion.CASCADE, related_name='+', to='content.QuizQuestion'),
         ),
         migrations.RunPython(
@@ -77,5 +85,9 @@ class Migration(migrations.Migration):
         migrations.RemoveField(
             model_name='questionoption',
             name='old_next_question_id',
+        ),
+        migrations.RemoveField(
+            model_name='answerlog',
+            name='old_question_id',
         ),
     ]
