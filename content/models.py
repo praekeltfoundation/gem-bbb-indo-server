@@ -122,19 +122,107 @@ class QuestionOption(models.Model):
 
 
 @python_2_unicode_compatible
+class PictureQuestion(models.Model):
+    challenge = models.OneToOneField(Challenge, related_name='picture_question', blank=False, null=True)
+    text = models.TextField('text', blank=True)
+
+    class Meta:
+        verbose_name = 'picture question'
+        verbose_name_plural = 'picture questions'
+
+    def __str__(self):
+        return self.text
+
+
+@python_2_unicode_compatible
+class FreeTextQuestion(models.Model):
+    challenge = models.OneToOneField(Challenge, related_name='freetext_question', blank=False, null=True)
+    text = models.TextField('text', blank=True)
+
+    class Meta:
+        verbose_name = 'free text question'
+        verbose_name_plural = 'free text questions'
+
+    def __str__(self):
+        return self.text
+
+
+@python_2_unicode_compatible
+class Participant(models.Model):
+    user = models.ForeignKey(User, related_name='users', blank=False, null=True)
+    challenge = models.ForeignKey(Challenge, related_name='challenges', blank=False, null=True)
+    completed = models.BooleanField('completed', default=False)
+    date_created = models.DateTimeField('created on', default=datetime.now)
+    date_completed = models.DateTimeField('completed on', null=True)
+
+    class Meta:
+        verbose_name = 'participant'
+        verbose_name_plural = 'participants'
+
+    def __str__(self):
+        return str(self.user) + ": " + str(self.challenge)
+
+
+@python_2_unicode_compatible
+class Entry(models.Model):
+    participant = models.ForeignKey(Participant, null=True, related_name='entries')
+    date_saved = models.DateTimeField('saved on', default=datetime.now)
+    date_completed = models.DateTimeField('completed on', null=True)
+
+    class Meta:
+        verbose_name = 'entry'
+        verbose_name_plural = 'entries'
+
+    def __str__(self):
+        return str(self.participant.user.username) + ": " + str(self.participant.challenge.name)
+
+
+@python_2_unicode_compatible
 class ParticipantAnswer(models.Model):
-    user = models.ForeignKey(User, null=True, related_name='+')
-    question = models.ForeignKey('QuizQuestion', blank=False, null=True, related_name='+')
-    selected_option = models.ForeignKey('QuestionOption', blank=False, null=True, related_name='+')
+    entry = models.ForeignKey(Entry, null=True, related_name='answers')
+    question = models.ForeignKey(QuizQuestion, blank=False, null=True, related_name='+')
+    selected_option = models.ForeignKey(QuestionOption, blank=False, null=True, related_name='+')
     date_answered = models.DateTimeField('answered on')
-    date_saved = models.DateTimeField('saved on', default=timezone.now)
+    date_saved = models.DateTimeField('saved on', default=datetime.now)
 
     class Meta:
         verbose_name = 'participant answer'
         verbose_name_plural = 'participant answers'
 
     def __str__(self):
-        return self.text
+        return str(self.participant.user.username)[:8] + str(self.question.text[:8]) + str(self.selected_option.text[:8])
+
+
+@python_2_unicode_compatible
+class ParticipantPicture(models.Model):
+    participant = models.ForeignKey(Participant, null=True, related_name='picture_answer')
+    question = models.ForeignKey(PictureQuestion, blank=False, null=True, related_name='+')
+    picture = models.ImageField()
+    date_answered = models.DateTimeField('answered on')
+    date_saved = models.DateTimeField('saved on', default=datetime.now)
+
+    class Meta:
+        verbose_name = 'picture answer'
+        verbose_name_plural = 'picture answers'
+
+    def __str__(self):
+        return str(self.user.username)[:8] + ': Pic'
+
+
+@python_2_unicode_compatible
+class ParticipantFreeText(models.Model):
+    participant = models.ForeignKey(Participant, null=True, related_name='freetext_answer')
+    question = models.ForeignKey(FreeTextQuestion, blank=False, null=True, related_name='+')
+    text = models.TextField('text', blank=True)
+    date_answered = models.DateTimeField('answered on')
+    date_saved = models.DateTimeField('saved on', default=datetime.now)
+
+    class Meta:
+        verbose_name = 'free-text answer'
+        verbose_name_plural = 'free-text answers'
+
+    def __str__(self):
+        return str(self.user.username)[:8] + ': Free'
 
 
 class TipTag(TaggedItemBase):

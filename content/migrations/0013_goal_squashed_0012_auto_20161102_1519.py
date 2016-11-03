@@ -10,7 +10,8 @@ import django.db.models.deletion
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('content', '0008_auto_20161028_1115'),
+        #('content', '0008_auto_20161028_1115'),
+        ('content', '0012_participantanswers_to_entries'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
