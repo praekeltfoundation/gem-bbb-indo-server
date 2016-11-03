@@ -242,6 +242,24 @@ class TestGoalAPI(APITestCase):
         
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
+    def test_user_goal_create_user_pk_required(self):
+        """A user must provide their user_pk when creating a goal"""
+        user = self.create_regular_user('User 1')
+
+        data = {
+            "name": "Goal 1",
+            "transactions": [],
+            "start_date": datetime.utcnow().strftime('%Y-%m-%d'),
+            "end_date": datetime.utcnow().strftime('%Y-%m-%d'),
+            "value": 1000,
+            "image": None
+        }
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:goals-list'), data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
     def test_user_goal_update(self):
         """User must be able to update their own goals."""
 
