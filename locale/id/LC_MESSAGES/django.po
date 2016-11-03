@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-11-03 08:48+0200\n"
+"POT-Creation-Date: 2016-11-03 09:07+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -186,4 +186,34 @@ msgstr ""
 
 #: content/models.py:259
 msgid "tips"
+msgstr ""
+
+#: users/models.py:38
+msgid "regular user"
+msgstr ""
+
+#: users/models.py:39
+msgid "regular users"
+msgstr ""
+
+#: users/models.py:48
+msgid "system administrator"
+msgstr ""
+
+#: users/models.py:49
+msgid "system administrators"
+msgstr ""
+
+#: users/models.py:62
+msgid ""
+"Phone number must be entered in the format: '+999999999'. Up to 15 digits "
+"allowed."
+msgstr ""
+
+#: users/models.py:70
+msgid "profile"
+msgstr ""
+
+#: users/models.py:71
+msgid "profiles"
 msgstr ""
