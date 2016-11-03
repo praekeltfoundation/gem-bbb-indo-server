@@ -1,3 +1,4 @@
+from django.contrib.auth.models import User
 from content.models import Challenge, QuizQuestion, QuestionOption
 from content.models import Tip
 from content.models import Goal, GoalTransaction
@@ -58,8 +59,18 @@ class GoalTransactionSerializer(serializers.ModelSerializer):
 
 
 class GoalSerializer(serializers.ModelSerializer):
-    transactions = GoalTransactionSerializer(many=True)
+    transactions = GoalTransactionSerializer(required=False, many=True)
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
 
     class Meta:
         model = Goal
-        exclude = ('user',)
+        fields = '__all__'
+
+    def create(self, validated_data):
+        transactions = validated_data.pop('transactions', [])
+        goal = Goal.objects.create(**validated_data)
+
+        for trans_data in transactions:
+            GoalTransaction.objects.create(goal=goal, **trans_data)
+
+        return goal

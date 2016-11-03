@@ -1,4 +1,5 @@
 
+from datetime import datetime
 import json
 
 from django.http import QueryDict
@@ -221,3 +222,22 @@ class TestGoalAPI(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK, "Request failed.")
         self.assertEqual(goal.id, goal_data.get('id', None), "Retrieved goal is not the same as created goal.")
+
+    def test_user_goal_create(self):
+        """User must be able to create their own goals."""
+        user = self.create_regular_user('User 1')
+
+        data = {
+            "name": "Goal 1",
+            "transactions": [],
+            "start_date": datetime.utcnow().strftime('%Y-%m-%d'),
+            "end_date": datetime.utcnow().strftime('%Y-%m-%d'),
+            "value": 1000,
+            "image": None,
+            "user": user.pk
+        }
+        print(data)
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:goals-list'), data, format='json')
+        print(response.data)
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)

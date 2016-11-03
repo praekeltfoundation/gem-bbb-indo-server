@@ -1,6 +1,7 @@
 
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
+from rest_framework import status
 from rest_framework.exceptions import ValidationError, PermissionDenied
 from rest_framework.parsers import FileUploadParser
 from rest_framework.permissions import IsAuthenticated
@@ -93,7 +94,12 @@ class GoalViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(request.data)
+        # TODO: Stricter permissions on User Ownership
+        serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
+
+            if serializer.validated_data.get('user', None) != request.user:
+                raise PermissionError('Cannot create a goal for another user.')
+
             serializer.save()
-            return Response(serializer.data)
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
