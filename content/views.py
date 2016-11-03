@@ -3,12 +3,13 @@ from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.parsers import FileUploadParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.generics import GenericAPIView
 from sendfile import sendfile
 
-from .exceptions import InvalidQueryParam
+from .exceptions import InvalidQueryParam, ImageNotFound
 from .models import Challenge, Entry, ParticipantAnswer, Tip, Goal
 from .permissions import IsAdminOrOwner
 from .serializers import ChallengeSerializer, EntrySerializer, ParticipantAnswerSerializer, TipSerializer, GoalSerializer
@@ -148,6 +149,7 @@ class GoalViewSet(viewsets.ModelViewSet):
 
 
 class GoalImageView(GenericAPIView):
+    parser_classes = (FileUploadParser,)
     permission_classes = (IsAuthenticated,)
     serializer_class = GoalSerializer
 
@@ -155,7 +157,17 @@ class GoalImageView(GenericAPIView):
         if not IsAdminOrOwner().has_object_permission(request, self, obj):
             raise PermissionDenied("Users can only access their own goal images.")
 
+    def post(self, request, goal_pk):
+        goal = get_object_or_404(Goal, pk=goal_pk)
+        self.check_object_permissions(request, goal)
+        goal.image = request.FILES['file']
+        goal.save()
+        serializer = self.get_serializer(get_object_or_404(Goal, pk=goal.pk))
+        return Response(serializer.data, status.HTTP_201_CREATED)
+
     def get(self, request, goal_pk):
         goal = get_object_or_404(Goal, pk=goal_pk)
         self.check_object_permissions(request, goal)
+        if not goal.image:
+            raise ImageNotFound()
         return sendfile(request, goal.image.path)
