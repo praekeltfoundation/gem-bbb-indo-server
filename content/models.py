@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 from datetime import datetime
+from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext as _
 from modelcluster import fields as modelcluster_fields
@@ -67,7 +68,7 @@ class Challenge(models.Model):
         return QuizQuestion.objects.filter(challenge=self.pk)
 
     def is_active(self):
-        return (self.state == 'published') and (self.activation_date < datetime.now() < self.deactivation_date)
+        return (self.state == 'published') and (self.activation_date < timezone.now() < self.deactivation_date)
 
 
 @python_2_unicode_compatible
@@ -152,7 +153,7 @@ class Participant(models.Model):
     user = models.ForeignKey(User, related_name='users', blank=False, null=True)
     challenge = models.ForeignKey(Challenge, related_name='challenges', blank=False, null=True)
     completed = models.BooleanField(_('completed'), default=False)
-    date_created = models.DateTimeField(_('created on'), default=datetime.now)
+    date_created = models.DateTimeField(_('created on'), default=timezone.now)
     date_completed = models.DateTimeField(_('completed on'), null=True)
 
     class Meta:
@@ -166,7 +167,7 @@ class Participant(models.Model):
 @python_2_unicode_compatible
 class Entry(models.Model):
     participant = models.ForeignKey(Participant, null=True, related_name='entries')
-    date_saved = models.DateTimeField(_('saved on'), default=datetime.now)
+    date_saved = models.DateTimeField(_('saved on'), default=timezone.now)
     date_completed = models.DateTimeField(_('completed on'), null=True)
 
     class Meta:
@@ -183,7 +184,7 @@ class ParticipantAnswer(models.Model):
     question = models.ForeignKey(QuizQuestion, blank=False, null=True, related_name='+')
     selected_option = models.ForeignKey(QuestionOption, blank=False, null=True, related_name='+')
     date_answered = models.DateTimeField(_('answered on'))
-    date_saved = models.DateTimeField(_('saved on'), default=datetime.now)
+    date_saved = models.DateTimeField(_('saved on'), default=timezone.now)
 
     class Meta:
         verbose_name = _('participant answer')
@@ -199,7 +200,7 @@ class ParticipantPicture(models.Model):
     question = models.ForeignKey(PictureQuestion, blank=False, null=True, related_name='+')
     picture = models.ImageField()
     date_answered = models.DateTimeField(_('answered on'))
-    date_saved = models.DateTimeField(_('saved on'), default=datetime.now)
+    date_saved = models.DateTimeField(_('saved on'), default=timezone.now)
 
     class Meta:
         verbose_name = _('picture answer')
@@ -215,7 +216,7 @@ class ParticipantFreeText(models.Model):
     question = models.ForeignKey(FreeTextQuestion, blank=False, null=True, related_name='+')
     text = models.TextField(_('text'), blank=True)
     date_answered = models.DateTimeField(_('answered on'))
-    date_saved = models.DateTimeField(_('saved on'), default=datetime.now)
+    date_saved = models.DateTimeField(_('saved on'), default=timezone.now)
 
     class Meta:
         verbose_name = _('free-text answer')
