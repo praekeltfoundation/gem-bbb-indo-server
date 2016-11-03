@@ -51,6 +51,17 @@ class GoalViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAdminOrOwner, IsAuthenticated,)
     http_method_names = ('options', 'head', 'get', 'post',)
 
+    def get_user_pk(self, request):
+        user_pk = getattr(request, 'query_params', {}).get(self.PARAM_USER_PK, None)
+
+        if user_pk is None:
+            return None
+        else:
+            try:
+                return int(user_pk)
+            except ValueError:
+                raise InvalidQueryParam("User id was not a valid int")
+
     def get_queryset(self):
         """Optionally filter by User id."""
         queryset = self.queryset
@@ -68,9 +79,10 @@ class GoalViewSet(viewsets.ModelViewSet):
 
     def list(self, request, *args, **kwargs):
         if not request.user.is_staff:
-            if not getattr(request, 'query_params', {}).get(self.PARAM_USER_PK, None):
+            user_pk = self.get_user_pk(request)
+            if user_pk is None:
                 raise PermissionDenied("Required query param %s" % self.PARAM_USER_PK)
-            elif request.query_params.get(self.PARAM_USER_PK, None) != request.user.pk:
+            elif user_pk != request.user.pk:
                 raise PermissionDenied("Restricted from accessing other Goals")
 
         serializer = self.get_serializer(self.get_queryset(), many=True)
