@@ -131,7 +131,7 @@ class GoalTransactionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GoalTransaction
-        exclude = ('goal',)
+        exclude = ('goal', 'id',)
 
 
 class GoalSerializer(serializers.ModelSerializer):
@@ -141,6 +141,7 @@ class GoalSerializer(serializers.ModelSerializer):
     class Meta:
         model = Goal
         fields = '__all__'
+        read_only_fields = ('id',)
 
     def create(self, validated_data):
         transactions = validated_data.pop('transactions', [])
@@ -150,3 +151,24 @@ class GoalSerializer(serializers.ModelSerializer):
             GoalTransaction.objects.create(goal=goal, **trans_data)
 
         return goal
+
+    def update(self, instance, validated_data):
+        transactions_data = validated_data.pop('transactions', [])
+        transactions = instance.transactions.all()
+        trans_lookup = {datum.get('id', None) for datum in transactions_data}
+
+        # Update Goal
+        instance.name = validated_data.get('name', instance.name)
+        instance.start_date = validated_data.get('start_date', instance.start_date)
+        instance.end_date = validated_data.get('validate_date', instance.end_date)
+        instance.value = validated_data.get('value', instance.value)
+        # TODO: Image Field
+        instance.user = validated_data.get('user', instance.user)
+
+        instance.save()
+
+        # Update Transactions
+        # TODO: Transactions
+
+        return instance
+

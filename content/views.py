@@ -82,7 +82,7 @@ class GoalViewSet(viewsets.ModelViewSet):
     queryset = Goal.objects.all()
     serializer_class = GoalSerializer
     permission_classes = (IsAdminOrOwner, IsAuthenticated,)
-    http_method_names = ('options', 'head', 'get', 'post',)
+    http_method_names = ('options', 'head', 'get', 'post', 'put',)
 
     def get_user_pk(self, request):
         user_pk = getattr(request, 'query_params', {}).get(self.PARAM_USER_PK, None)
@@ -135,3 +135,11 @@ class GoalViewSet(viewsets.ModelViewSet):
 
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, pk=None, *args, **kwargs):
+        goal = self.get_object()
+
+        serializer = self.get_serializer(goal, data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(status=status.HTTP_200_OK)
