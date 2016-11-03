@@ -266,7 +266,7 @@ class Tip(wagtail_models.Page):
 
 
 def get_goal_image_filename(instance, filename):
-    return '/'.join(('goals', str(instance.user.pk), filename))
+    return '/'.join(('goal', str(instance.user.pk), filename))
 
 
 @python_2_unicode_compatible
