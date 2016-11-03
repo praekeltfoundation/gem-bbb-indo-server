@@ -1,6 +1,10 @@
+
 from django.contrib.auth.models import User
-from content.models import Challenge, Entry, Participant, ParticipantAnswer, QuestionOption, QuizQuestion, Tip
 from rest_framework import serializers
+
+from content.models import Tip
+from content.models import Goal, GoalTransaction
+from content.models import Challenge, Entry, Participant, ParticipantAnswer, QuestionOption, QuizQuestion
 
 
 class QuestionOptionSerializer(serializers.ModelSerializer):
@@ -121,3 +125,28 @@ class TipSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tip
         fields = ('id', 'title', 'article_url', 'cover_image_url', 'tags')
+
+
+class GoalTransactionSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = GoalTransaction
+        exclude = ('goal',)
+
+
+class GoalSerializer(serializers.ModelSerializer):
+    transactions = GoalTransactionSerializer(required=False, many=True)
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+
+    class Meta:
+        model = Goal
+        fields = '__all__'
+
+    def create(self, validated_data):
+        transactions = validated_data.pop('transactions', [])
+        goal = Goal.objects.create(**validated_data)
+
+        for trans_data in transactions:
+            GoalTransaction.objects.create(goal=goal, **trans_data)
+
+        return goal
