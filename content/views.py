@@ -3,10 +3,13 @@ from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
+from rest_framework.parsers import FileUploadParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.generics import GenericAPIView
+from sendfile import sendfile
 
-from .exceptions import InvalidQueryParam
+from .exceptions import InvalidQueryParam, ImageNotFound
 from .models import Challenge, Entry, ParticipantAnswer, Tip, Goal
 from .permissions import IsAdminOrOwner
 from .serializers import ChallengeSerializer, EntrySerializer, ParticipantAnswerSerializer, TipSerializer, GoalSerializer
@@ -82,7 +85,7 @@ class GoalViewSet(viewsets.ModelViewSet):
     queryset = Goal.objects.all()
     serializer_class = GoalSerializer
     permission_classes = (IsAdminOrOwner, IsAuthenticated,)
-    http_method_names = ('options', 'head', 'get', 'post',)
+    http_method_names = ('options', 'head', 'get', 'post', 'put',)
 
     def get_user_pk(self, request):
         user_pk = getattr(request, 'query_params', {}).get(self.PARAM_USER_PK, None)
@@ -135,3 +138,36 @@ class GoalViewSet(viewsets.ModelViewSet):
 
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    def update(self, request, pk=None, *args, **kwargs):
+        goal = self.get_object()
+
+        serializer = self.get_serializer(goal, data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(status=status.HTTP_200_OK)
+
+
+class GoalImageView(GenericAPIView):
+    parser_classes = (FileUploadParser,)
+    permission_classes = (IsAuthenticated,)
+    serializer_class = GoalSerializer
+
+    def check_object_permissions(self, request, obj):
+        if not IsAdminOrOwner().has_object_permission(request, self, obj):
+            raise PermissionDenied("Users can only access their own goal images.")
+
+    def post(self, request, goal_pk):
+        goal = get_object_or_404(Goal, pk=goal_pk)
+        self.check_object_permissions(request, goal)
+        goal.image = request.FILES['file']
+        goal.save()
+        serializer = self.get_serializer(get_object_or_404(Goal, pk=goal.pk))
+        return Response(serializer.data, status.HTTP_201_CREATED)
+
+    def get(self, request, goal_pk):
+        goal = get_object_or_404(Goal, pk=goal_pk)
+        self.check_object_permissions(request, goal)
+        if not goal.image:
+            raise ImageNotFound()
+        return sendfile(request, goal.image.path)
