@@ -16,6 +16,8 @@ from wagtail.wagtaildocs import urls as wagtaildocs_urls
 
 router = DefaultRouter()
 router.register(r'challenges', content_views.ChallengeViewSet, base_name='challenges')
+router.register(r'entries', content_views.EntryViewSet, base_name='entries')
+router.register(r'participantanswers', content_views.ParticipantAnswerViewSet, base_name='participantanswers')
 router.register(r'tips', content_views.TipViewSet, base_name='tips')
 router.register(r'users', user_views.RegUserViewSet, base_name='users')
 

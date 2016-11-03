@@ -1,5 +1,5 @@
-from content.models import Challenge, QuizQuestion, QuestionOption
-from content.models import Tip
+from django.contrib.auth.models import User
+from content.models import Challenge, Entry, Participant, ParticipantAnswer, QuestionOption, QuizQuestion, Tip
 from rest_framework import serializers
 
 
@@ -37,6 +37,80 @@ class ChallengeSerializer(serializers.ModelSerializer):
         # remove incorrect fields
         for field_name in exclude_set:
             self.fields.pop(field_name)
+
+
+class ParticipantAnswerSerializer(serializers.ModelSerializer):
+    question = serializers.PrimaryKeyRelatedField(queryset=QuizQuestion.objects.all())
+    selected_option = serializers.PrimaryKeyRelatedField(queryset=QuestionOption.objects.all())
+
+    class Meta:
+        model = ParticipantAnswer
+        fields = ('id', 'question', 'selected_option', 'date_answered', 'date_saved')
+        read_only_fields = ('id', 'date_saved')
+
+
+class EntrySerializer(serializers.ModelSerializer):
+    participant = serializers.PrimaryKeyRelatedField(queryset=Participant.objects.all())
+    answers = ParticipantAnswerSerializer(many=True)
+
+    class Meta:
+        model = Entry
+        fields = ('id', 'participant', 'date_saved', 'date_completed', 'answers')
+        read_only_fields = ('id', 'date_saved')
+
+    def to_internal_value(self, data):
+        user = data.pop('user', None)
+        challenge = data.pop('challenge', None)
+
+        if data.get('participant') is None:
+            if user is None or challenge is None:
+                raise serializers.ValidationError(
+                    {'participant': 'Must specify either participant or user and challenge.'})
+
+            try:
+                User.objects.get(id=user)
+            except User.DoesNotExist:
+                raise serializers.ValidationError({'user': 'No such user.'})
+
+            try:
+                Challenge.objects.get(id=challenge)
+            except Challenge.DoesNotExist:
+                raise serializers.ValidationError({'challenge': 'No such challenge.'})
+
+            try:
+                participant = Participant.objects.get(user_id=user, challenge_id=challenge)
+                data['participant'] = participant.id
+            except:
+                try:
+                    participant = Participant.objects.create(challenge_id=challenge, user_id=user)
+                    data['participant'] = participant.id
+                except Participant.DoesNotExist:
+                    raise serializers.ValidationError({'user': 'Could not create participant.'})
+
+        return super(EntrySerializer, self).to_internal_value(data)
+
+    def validate(self, data):
+        participant = Participant.objects.get(id=data.get('participant').id)
+        answers = data.get('answers')
+        if answers is None or not isinstance(answers, list):
+            raise serializers.ValidationError('Should be a list of answers.')
+        question_ids = [answer['question'].id for answer in data['answers']]
+        required_questions = QuizQuestion.objects\
+            .filter(challenge_id=participant.challenge_id)\
+            .values_list('id', flat=True)
+        if not set(required_questions).issubset(question_ids):
+            raise serializers.ValidationError('Not all questions answered.')
+        return data
+
+    def create(self, validated_data):
+        entry = Entry.objects.create(participant=validated_data.get('participant'),
+                                     date_completed=validated_data.get('date_completed'))
+        answers = validated_data.get('answers')
+        for answer in answers:
+            answer['entry'] = entry
+            ParticipantAnswer.objects.create(**answer)
+
+        return entry
 
 
 class TipSerializer(serializers.ModelSerializer):
