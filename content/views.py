@@ -5,6 +5,8 @@ from rest_framework import status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.generics import GenericAPIView
+from sendfile import sendfile
 
 from .exceptions import InvalidQueryParam
 from .models import Challenge, Entry, ParticipantAnswer, Tip, Goal
@@ -143,3 +145,17 @@ class GoalViewSet(viewsets.ModelViewSet):
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(status=status.HTTP_200_OK)
+
+
+class GoalImageView(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = GoalSerializer
+
+    def check_object_permissions(self, request, obj):
+        if not IsAdminOrOwner().has_object_permission(request, self, obj):
+            raise PermissionDenied("Users can only access their own goal images.")
+
+    def get(self, request, goal_pk):
+        goal = get_object_or_404(Goal, pk=goal_pk)
+        self.check_object_permissions(request, goal)
+        return sendfile(request, goal.image.path)

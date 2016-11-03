@@ -1,5 +1,6 @@
 
 from django.contrib.auth.models import User
+from django.shortcuts import reverse
 from rest_framework import serializers
 
 from content.models import Tip
@@ -137,12 +138,16 @@ class GoalTransactionSerializer(serializers.ModelSerializer):
 class GoalSerializer(serializers.ModelSerializer):
     transactions = GoalTransactionSerializer(required=False, many=True)
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Goal
         fields = '__all__'
         read_only_fields = ('id',)
         extra_kwargs = {'image': {'write_only': True}}
+
+    def get_image_url(self, obj):
+        return reverse('goal-image', kwargs={'goal_pk': obj.pk})
 
     def create(self, validated_data):
         transactions = validated_data.pop('transactions', [])
