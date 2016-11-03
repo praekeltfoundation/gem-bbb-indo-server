@@ -1,8 +1,9 @@
 from django.db import models
 from django.contrib.auth.models import User
 from datetime import datetime
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils import timezone
+from django.utils.encoding import python_2_unicode_compatible
+from django.utils.translation import ugettext as _
 from modelcluster import fields as modelcluster_fields
 from modelcluster.contrib.taggit import ClusterTaggableManager
 from taggit.models import TaggedItemBase
@@ -26,31 +27,31 @@ class Challenge(models.Model):
     CTP_PICTURE = 2
     CTP_FREEFORM = 3
 
-    name = models.CharField('challenge name', max_length=30, null=False, blank=False)
-    activation_date = models.DateTimeField('activate on')
-    deactivation_date = models.DateTimeField('deactivate on')
+    name = models.CharField(_('challenge name'), max_length=30, null=False, blank=False)
+    activation_date = models.DateTimeField(_('activate on'))
+    deactivation_date = models.DateTimeField(_('deactivate on'))
     # questions = models.ManyToManyField('Questions')
     # challenge_badge = models.ForeignKey('', null=True, blank=True)
     state = models.PositiveIntegerField(
         'state', choices=(
-            (CST_INCOMPLETE, 'Incomplete'),
-            (CST_REVIEW_READY, 'Ready for review'),
-            (CST_PUBLISHED, 'Published'),
-            (CST_DONE, 'Done'),
+            (CST_INCOMPLETE, _('Incomplete')),
+            (CST_REVIEW_READY, _('Ready for review')),
+            (CST_PUBLISHED, _('Published')),
+            (CST_DONE, _('Done')),
         ),
         default=CST_INCOMPLETE)
     type = models.PositiveIntegerField(
         'type', choices=(
-            (CTP_QUIZ, 'Quiz'),
-            (CTP_PICTURE, 'Picture'),
-            (CTP_FREEFORM, 'Free text'),
+            (CTP_QUIZ, _('Quiz')),
+            (CTP_PICTURE, _('Picture')),
+            (CTP_FREEFORM, _('Free text')),
         ),
         default=CTP_QUIZ)
-    end_processed = models.BooleanField('processed', default=False)
+    end_processed = models.BooleanField(_('processed'), default=False)
 
     class Meta:
-        verbose_name = 'challenge'
-        verbose_name_plural = 'challenges'
+        verbose_name = _('challenge')
+        verbose_name_plural = _('challenges')
 
     def __str__(self):
         return self.name
@@ -67,18 +68,18 @@ class Challenge(models.Model):
         return QuizQuestion.objects.filter(challenge=self.pk)
 
     def is_active(self):
-        return (self.state == 'published') and (self.activation_date < datetime.now() < self.deactivation_date)
+        return (self.state == 'published') and (self.activation_date < timezone.now() < self.deactivation_date)
 
 
 @python_2_unicode_compatible
 class QuizQuestion(models.Model):
-    order = models.PositiveIntegerField('order', default=0)
+    order = models.PositiveIntegerField(_('order'), default=0)
     challenge = models.ForeignKey('Challenge', related_name='questions', blank=False, null=True)
-    text = models.TextField('text', blank=True)
+    text = models.TextField(_('text'), blank=True)
 
     class Meta:
-        verbose_name = 'question'
-        verbose_name_plural = 'questions'
+        verbose_name = _('question')
+        verbose_name_plural = _('questions')
 
     def __str__(self):
         return self.text
@@ -109,13 +110,13 @@ class QuizQuestion(models.Model):
 @python_2_unicode_compatible
 class QuestionOption(models.Model):
     question = models.ForeignKey('QuizQuestion', related_name='options', blank=False, null=True)
-    picture = models.URLField('picture URL', blank=True, null=True)
-    text = models.TextField('text', blank=True)
-    correct = models.BooleanField('correct', default=False)
+    picture = models.URLField(_('picture URL'), blank=True, null=True)
+    text = models.TextField(_('text'), blank=True)
+    correct = models.BooleanField(_('correct'), default=False)
 
     class Meta:
-        verbose_name = 'question option'
-        verbose_name_plural = 'question options'
+        verbose_name = _('question option')
+        verbose_name_plural = _('question options')
 
     def __str__(self):
         return self.text
@@ -124,11 +125,11 @@ class QuestionOption(models.Model):
 @python_2_unicode_compatible
 class PictureQuestion(models.Model):
     challenge = models.OneToOneField(Challenge, related_name='picture_question', blank=False, null=True)
-    text = models.TextField('text', blank=True)
+    text = models.TextField(_('text'), blank=True)
 
     class Meta:
-        verbose_name = 'picture question'
-        verbose_name_plural = 'picture questions'
+        verbose_name = _('picture question')
+        verbose_name_plural = _('picture questions')
 
     def __str__(self):
         return self.text
@@ -137,11 +138,11 @@ class PictureQuestion(models.Model):
 @python_2_unicode_compatible
 class FreeTextQuestion(models.Model):
     challenge = models.OneToOneField(Challenge, related_name='freetext_question', blank=False, null=True)
-    text = models.TextField('text', blank=True)
+    text = models.TextField(_('text'), blank=True)
 
     class Meta:
-        verbose_name = 'free text question'
-        verbose_name_plural = 'free text questions'
+        verbose_name = _('free text question')
+        verbose_name_plural = _('free text questions')
 
     def __str__(self):
         return self.text
@@ -151,13 +152,13 @@ class FreeTextQuestion(models.Model):
 class Participant(models.Model):
     user = models.ForeignKey(User, related_name='users', blank=False, null=True)
     challenge = models.ForeignKey(Challenge, related_name='challenges', blank=False, null=True)
-    completed = models.BooleanField('completed', default=False)
-    date_created = models.DateTimeField('created on', default=datetime.now)
-    date_completed = models.DateTimeField('completed on', null=True)
+    completed = models.BooleanField(_('completed'), default=False)
+    date_created = models.DateTimeField(_('created on'), default=timezone.now)
+    date_completed = models.DateTimeField(_('completed on'), null=True)
 
     class Meta:
-        verbose_name = 'participant'
-        verbose_name_plural = 'participants'
+        verbose_name = _('participant')
+        verbose_name_plural = _('participants')
 
     def __str__(self):
         return str(self.user) + ": " + str(self.challenge)
@@ -166,12 +167,12 @@ class Participant(models.Model):
 @python_2_unicode_compatible
 class Entry(models.Model):
     participant = models.ForeignKey(Participant, null=True, related_name='entries')
-    date_saved = models.DateTimeField('saved on', default=datetime.now)
-    date_completed = models.DateTimeField('completed on', null=True)
+    date_saved = models.DateTimeField(_('saved on'), default=timezone.now)
+    date_completed = models.DateTimeField(_('completed on'), null=True)
 
     class Meta:
-        verbose_name = 'entry'
-        verbose_name_plural = 'entries'
+        verbose_name = _('entry')
+        verbose_name_plural = _('entries')
 
     def __str__(self):
         return str(self.participant.user.username) + ": " + str(self.participant.challenge.name)
@@ -182,12 +183,12 @@ class ParticipantAnswer(models.Model):
     entry = models.ForeignKey(Entry, null=True, related_name='answers')
     question = models.ForeignKey(QuizQuestion, blank=False, null=True, related_name='+')
     selected_option = models.ForeignKey(QuestionOption, blank=False, null=True, related_name='+')
-    date_answered = models.DateTimeField('answered on')
-    date_saved = models.DateTimeField('saved on', default=datetime.now)
+    date_answered = models.DateTimeField(_('answered on'))
+    date_saved = models.DateTimeField(_('saved on'), default=timezone.now)
 
     class Meta:
-        verbose_name = 'participant answer'
-        verbose_name_plural = 'participant answers'
+        verbose_name = _('participant answer')
+        verbose_name_plural = _('participant answers')
 
     def __str__(self):
         return str(self.participant.user.username)[:8] + str(self.question.text[:8]) + str(self.selected_option.text[:8])
@@ -198,12 +199,12 @@ class ParticipantPicture(models.Model):
     participant = models.ForeignKey(Participant, null=True, related_name='picture_answer')
     question = models.ForeignKey(PictureQuestion, blank=False, null=True, related_name='+')
     picture = models.ImageField()
-    date_answered = models.DateTimeField('answered on')
-    date_saved = models.DateTimeField('saved on', default=datetime.now)
+    date_answered = models.DateTimeField(_('answered on'))
+    date_saved = models.DateTimeField(_('saved on'), default=timezone.now)
 
     class Meta:
-        verbose_name = 'picture answer'
-        verbose_name_plural = 'picture answers'
+        verbose_name = _('picture answer')
+        verbose_name_plural = _('picture answers')
 
     def __str__(self):
         return str(self.user.username)[:8] + ': Pic'
@@ -213,13 +214,13 @@ class ParticipantPicture(models.Model):
 class ParticipantFreeText(models.Model):
     participant = models.ForeignKey(Participant, null=True, related_name='freetext_answer')
     question = models.ForeignKey(FreeTextQuestion, blank=False, null=True, related_name='+')
-    text = models.TextField('text', blank=True)
-    date_answered = models.DateTimeField('answered on')
-    date_saved = models.DateTimeField('saved on', default=datetime.now)
+    text = models.TextField(_('text'), blank=True)
+    date_answered = models.DateTimeField(_('answered on'))
+    date_saved = models.DateTimeField(_('saved on'), default=timezone.now)
 
     class Meta:
-        verbose_name = 'free-text answer'
-        verbose_name_plural = 'free-text answers'
+        verbose_name = _('free-text answer')
+        verbose_name_plural = _('free-text answers')
 
     def __str__(self):
         return str(self.user.username)[:8] + ': Free'
@@ -255,8 +256,8 @@ class Tip(wagtail_models.Page):
         return [tag.name for tag in self.tags.all()]
 
     class Meta:
-        verbose_name = 'tip'
-        verbose_name_plural = 'tips'
+        verbose_name = _('tip')
+        verbose_name_plural = _('tips')
 
     def __str__(self):
         return self.title

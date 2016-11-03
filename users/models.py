@@ -1,4 +1,4 @@
-from django.conf import settings
+from django.utils.translation import ugettext as _
 from django.contrib.auth.models import User
 from django.core.validators import RegexValidator
 from django.db import models
@@ -35,8 +35,8 @@ class RegUser(User):
 
     class Meta:
         proxy = True
-        verbose_name = 'Regular user'
-        verbose_name_plural = 'Regular users'
+        verbose_name = _('regular user')
+        verbose_name_plural = _('regular users')
 
 
 # System administrators
@@ -45,8 +45,8 @@ class SysAdminUser(User):
 
     class Meta:
         proxy = True
-        verbose_name = 'System administrator'
-        verbose_name_plural = 'System administrators'
+        verbose_name = _('system administrator')
+        verbose_name_plural = _('system administrators')
 
 
 def get_profile_image_filename(instance, filename):
@@ -59,7 +59,7 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     mobile_regex = RegexValidator(
         regex=r'^\+?1?\d{9,15}$',
-        message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed.")
+        message=_("Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed."))
     mobile = models.CharField(validators=[mobile_regex], max_length=15, blank=True)
     profile_image = models.ImageField(upload_to=get_profile_image_filename,
                                       storage=ProfileImgStorage(),
@@ -67,8 +67,8 @@ class Profile(models.Model):
                                       blank=True)
 
     class Meta:
-        verbose_name = 'Profile'
-        verbose_name_plural = 'Profiles'
+        verbose_name = _('profile')
+        verbose_name_plural = _('profiles')
 
     def __str__(self):
         return self.mobile
