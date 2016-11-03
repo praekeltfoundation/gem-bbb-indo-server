@@ -236,8 +236,8 @@ class TestGoalAPI(APITestCase):
             "image": None,
             "user": user.pk
         }
-        print(data)
+
         self.client.force_authenticate(user=user)
         response = self.client.post(reverse('api:goals-list'), data, format='json')
-        print(response.data)
+        
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
