@@ -9,8 +9,6 @@ import django.db.models.deletion
 
 class Migration(migrations.Migration):
 
-    replaces = [('content', '0009_goal'), ('content', '0010_goal_user'), ('content', '0011_auto_20161031_1506'), ('content', '0012_auto_20161102_1519')]
-
     dependencies = [
         ('content', '0008_auto_20161028_1115'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
