@@ -177,4 +177,4 @@ class GoalImageView(GenericAPIView):
 class ParticipantFreeTextViewSet(viewsets.ModelViewSet):
     queryset = ParticipantFreeText.objects.all()
     serializer_class = ParticipantFreeTextSerializer
-    http_method_names = ('options', 'head', 'get',)
+    http_method_names = ('options', 'head', 'get', 'post', 'put')
