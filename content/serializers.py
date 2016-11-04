@@ -221,7 +221,7 @@ class ParticipantFreeTextSerializer(serializers.ModelSerializer):
         return super(ParticipantFreeTextSerializer, self).to_internal_value(data=data)
 
     def create(self, validated_data):
-        pass
+        return ParticipantFreeText(**validated_data)
 
     def update(self, instance, validated_data):
         pass
