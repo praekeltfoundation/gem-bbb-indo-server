@@ -7,9 +7,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .exceptions import InvalidQueryParam
-from .models import Challenge, Entry, ParticipantAnswer, Tip, Goal
+from .models import Challenge, Entry, Goal, ParticipantAnswer, ParticipantPicture, Tip
 from .permissions import IsAdminOrOwner
-from .serializers import ChallengeSerializer, EntrySerializer, ParticipantAnswerSerializer, TipSerializer, GoalSerializer
+from .serializers import ChallengeSerializer, EntrySerializer, GoalSerializer, ParticipantAnswerSerializer, \
+    ParticipantPictureSerializer, TipSerializer
 
 
 class ChallengeViewSet(viewsets.ModelViewSet):
@@ -135,3 +136,14 @@ class GoalViewSet(viewsets.ModelViewSet):
 
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+
+class ParticipantPictureViewset(viewsets.ModelViewSet):
+    #PARAM_USER_PK = 'user_pk'
+    queryset = ParticipantPicture.objects.all()
+    serializer_class = ParticipantPictureSerializer
+    #permission_classes = (IsAdminOrOwner, IsAuthenticated,)
+    http_method_names = ('options', 'head', 'get', 'post',)
+
+    def create(self, request, *args, **kwargs):
+        serial = self.get_serializer(data=request.data, files=request.files)
