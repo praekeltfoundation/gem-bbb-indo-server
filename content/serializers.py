@@ -1,6 +1,7 @@
 
 from django.contrib.auth.models import User
 from django.shortcuts import reverse
+from django.utils import timezone
 from rest_framework import serializers
 
 from content.models import Tip
@@ -221,7 +222,11 @@ class ParticipantFreeTextSerializer(serializers.ModelSerializer):
         return super(ParticipantFreeTextSerializer, self).to_internal_value(data=data)
 
     def create(self, validated_data):
-        return ParticipantFreeText(**validated_data)
+        return ParticipantFreeText.objects.create(**validated_data)
 
     def update(self, instance, validated_data):
-        pass
+        instance.date_saved = timezone.now()
+        if validated_data.get('text') is not None:
+            instance.text = validated_data.get('text')
+        instance.save()
+        return instance
