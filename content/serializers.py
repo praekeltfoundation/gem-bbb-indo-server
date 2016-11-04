@@ -242,6 +242,8 @@ class ParticipantFreeTextSerializer(serializers.ModelSerializer):
 
         if participant is None:
             raise serializers.ValidationError(errors)
+        else:
+            data['participant'] = participant.id
 
         question_id = data.get('question', None)
         if question_id is not None:
