@@ -225,7 +225,7 @@ class ParticipantFreeText(models.Model):
         verbose_name_plural = _('free-text answers')
 
     def __str__(self):
-        return str(self.user.username)[:8] + ': Free'
+        return str(self.participant) + ': Free'
 
 
 class TipTag(TaggedItemBase):
