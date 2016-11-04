@@ -5,7 +5,8 @@ from rest_framework import serializers
 
 from content.models import Tip
 from content.models import Goal, GoalTransaction
-from content.models import Challenge, Entry, Participant, ParticipantAnswer, QuestionOption, QuizQuestion
+from content.models import Challenge, Entry, FreeTextQuestion, Participant, ParticipantAnswer, ParticipantFreeText, \
+    QuestionOption, QuizQuestion
 
 
 class QuestionOptionSerializer(serializers.ModelSerializer):
@@ -178,3 +179,21 @@ class GoalSerializer(serializers.ModelSerializer):
 
         return instance
 
+
+class ParticipantFreeTextSerializer(serializers.ModelSerializer):
+    participant = serializers.PrimaryKeyRelatedField(queryset=Participant.objects.all(), required=False)
+    question = serializers.PrimaryKeyRelatedField(queryset=FreeTextQuestion.objects.all(), required=False)
+
+    class Meta:
+        model = ParticipantFreeText
+        fields = ('id', 'participant', 'question', 'answered_date', 'saved_date', 'text')
+        read_only_fields = ('id', 'saved_date')
+
+    def to_internal_value(self, data):
+        pass
+
+    def create(self, validated_data):
+        pass
+
+    def update(self, instance, validated_data):
+        pass
