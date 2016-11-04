@@ -10,9 +10,10 @@ from rest_framework.generics import GenericAPIView
 from sendfile import sendfile
 
 from .exceptions import InvalidQueryParam, ImageNotFound
-from .models import Challenge, Entry, ParticipantAnswer, Tip, Goal
+from .models import Challenge, Entry, ParticipantAnswer, ParticipantFreeText, Tip, Goal
 from .permissions import IsAdminOrOwner
-from .serializers import ChallengeSerializer, EntrySerializer, ParticipantAnswerSerializer, TipSerializer, GoalSerializer
+from .serializers import ChallengeSerializer, EntrySerializer, ParticipantAnswerSerializer, \
+    ParticipantFreeTextSerializer, TipSerializer, GoalSerializer
 
 
 class ChallengeViewSet(viewsets.ModelViewSet):
@@ -171,3 +172,9 @@ class GoalImageView(GenericAPIView):
         if not goal.image:
             raise ImageNotFound()
         return sendfile(request, goal.image.path)
+
+
+class ParticipantFreeTextViewSet(viewsets.ModelViewSet):
+    queryset = ParticipantFreeText.objects.all()
+    serializer_class = ParticipantFreeTextSerializer
+    http_method_names = ('options', 'head', 'get',)
