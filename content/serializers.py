@@ -190,7 +190,35 @@ class ParticipantFreeTextSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'saved_date')
 
     def to_internal_value(self, data):
-        pass
+        user = data.pop('user')
+        challenge = data.pop('challenge')
+        errors = {}
+
+        if data.get('participant') is None and data.get('question') is None:
+            try:
+                challenge = Challenge.objects.get(challenge)
+            except Challenge.DoesNotExist:
+                errors.update({'challenge': 'Challenge does not exist'})
+
+            try:
+                user = User.objects.get(user)
+            except User.DoesNotExist:
+                errors.update({'user': 'User does not exist'})
+
+            if len(errors) <= 0:
+                try:
+                    data['participant'] = Participant.objects.get(challenge_id=challenge, user_id=user)
+                except Participant.DoesNotExist:
+                    try:
+                        data['participant'] = Participant.objects.create(user=user, challenge=challenge)
+                        data['question'] = challenge.freetext_question
+                    except:
+                        errors.update({'participant': 'Participant could not be created'})
+
+        if len(errors) > 0:
+            raise serializers.ValidationError(errors)
+
+        return super(ParticipantFreeTextSerializer, self).to_internal_value(data=data)
 
     def create(self, validated_data):
         pass
