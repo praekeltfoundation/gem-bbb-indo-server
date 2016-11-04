@@ -178,3 +178,10 @@ class ParticipantFreeTextViewSet(viewsets.ModelViewSet):
     queryset = ParticipantFreeText.objects.all()
     serializer_class = ParticipantFreeTextSerializer
     http_method_names = ('options', 'head', 'get', 'post', 'put')
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
