@@ -63,7 +63,7 @@ class RegUserViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            return Response({'success': True, 'id': serializer.instance.pk})
+            return Response(serializer.data, status.HTTP_201_CREATED)
 
 
 class ObtainUserAuthTokenView(ObtainAuthToken):
