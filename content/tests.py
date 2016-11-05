@@ -162,6 +162,23 @@ class TipFavouriteAPI(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, "Tip was not unfavourited.")
 
+    def test_unfavourite_status(self):
+        """Favourite should not be deleted, but set to inactive."""
+        user = self.create_regular_user()
+        tip = create_tip('Tip 1')
+        fav = TipFavourite.objects.create(
+            user=user,
+            tip=tip,
+            date_favourited=timezone.now()
+        )
+
+        self.client.force_authenticate(user=user)
+        response = self.client.delete(reverse('api:tip-favourites-detail', kwargs={'pk': fav.id}))
+
+        update_fav = TipFavourite.objects.get(id=fav.id)
+
+        self.assertFalse(update_fav.is_active, "Tip state was not set.")
+
 
 class TestGoalAPI(APITestCase):
 
