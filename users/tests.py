@@ -142,8 +142,7 @@ class TestProfileImage(APITestCase):
         response = self.client.post(reverse('profile-image', kwargs={'user_pk': user.pk}),
                                     data={'file': tmp_file}, **headers)
 
-        data = json.loads(response.content.decode('utf-8'))
-        self.assertIsNotNone(data['profile'].get('profile_image_url', None), 'Returned user has no profile image')
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_upload_restricted(self):
         user = self.create_user('anon')

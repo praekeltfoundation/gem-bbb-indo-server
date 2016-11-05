@@ -37,8 +37,7 @@ class ProfileImageView(GenericAPIView):
         self.check_object_permissions(request, user)
         user.profile.profile_image = request.FILES['file']
         user.profile.save()
-        serializer = self.get_serializer(RegUser.objects.get(pk=user.pk))
-        return Response(serializer.data, status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get(self, request, user_pk):
         user = get_object_or_404(RegUser, pk=user_pk)

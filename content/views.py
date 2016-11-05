@@ -220,8 +220,7 @@ class GoalImageView(GenericAPIView):
         self.check_object_permissions(request, goal)
         goal.image = request.FILES['file']
         goal.save()
-        serializer = self.get_serializer(get_object_or_404(Goal, pk=goal.pk))
-        return Response(serializer.data, status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get(self, request, goal_pk):
         goal = get_object_or_404(Goal, pk=goal_pk)
