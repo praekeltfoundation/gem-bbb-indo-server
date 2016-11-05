@@ -2,6 +2,7 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework import status
+from rest_framework.decorators import detail_route
 from rest_framework.exceptions import PermissionDenied, NotFound
 from rest_framework.parsers import FileUploadParser
 from rest_framework.permissions import IsAuthenticated
@@ -71,7 +72,7 @@ class TipViewSet(viewsets.ModelViewSet):
     queryset = Tip.objects.all()
     serializer_class = TipSerializer
     permission_classes = (IsAuthenticated,)
-    http_method_names = ('options', 'head', 'get',)
+    http_method_names = ('options', 'head', 'get', 'post')
 
     def list(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_queryset().filter(live=True), many=True)
@@ -80,6 +81,27 @@ class TipViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, pk=None, *args, **kwargs):
         serializer = self.get_serializer(get_object_or_404(self.get_queryset(), pk=pk))
         return Response(serializer.data)
+
+    @detail_route(methods=['post'])
+    def favourite(self, request, pk=None, *args, **kwargs):
+        tip = self.get_object()
+        fav = TipFavourite.objects.create(
+            user=request.user,
+            tip=tip
+        )
+        fav.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @detail_route(methods=['post'])
+    def unfavourite(self, request, pk=None, *args, **kwargs):
+        tip = self.get_object()
+        try:
+            fav = TipFavourite.objects.get(tip_id=tip.id)
+            fav.unfavourite()
+            fav.save()
+        except TipFavourite.DoesNotExist:
+            pass
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class TipFavouriteViewSet(viewsets.ModelViewSet):

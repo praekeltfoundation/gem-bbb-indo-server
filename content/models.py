@@ -277,7 +277,6 @@ class TipFavourite(models.Model):
         (TFST_INACTIVE, _('Disabled')),
         (TFST_ACTIVE, _('Enabled')),
     ), default=TFST_ACTIVE)
-    date_favourited = models.DateTimeField(_('favourited on'))
     date_saved = models.DateTimeField(_('saved on'), default=timezone.now)
 
     class Meta:

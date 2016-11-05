@@ -111,11 +111,7 @@ class TipFavouriteAPI(APITestCase):
         user = self.create_regular_user()
         tip = create_tip()
 
-        data = {
-            "tip": tip.id,
-            "date_favourited": datetime.utcnow().isoformat(),
-            "date_saved": datetime.utcnow().isoformat()
-        }
+        data = {"tip": tip.id}
 
         self.client.force_authenticate(user=user)
         response = self.client.post(reverse('api:tip-favourites-list'), data, format='json')
@@ -128,18 +124,7 @@ class TipFavouriteAPI(APITestCase):
         tip = create_tip('Tip 1')
         tip2 = create_tip('Tip 2')
 
-        data = [
-            {
-                "tip": tip.id,
-                "date_favourited": datetime.utcnow().isoformat(),
-                "date_saved": datetime.utcnow().isoformat()
-            },
-            {
-                "tip": tip2.id,
-                "date_favourited": datetime.utcnow().isoformat(),
-                "date_saved": datetime.utcnow().isoformat()
-            }
-        ]
+        data = [{"tip": tip.id}, {"tip": tip2.id}]
 
         self.client.force_authenticate(user=user)
         response = self.client.post(reverse('api:tip-favourites-list'), data, format='json')
@@ -151,11 +136,7 @@ class TipFavouriteAPI(APITestCase):
     def test_unfavourite(self):
         user = self.create_regular_user()
         tip = create_tip('Tip 1')
-        fav = TipFavourite.objects.create(
-            user=user,
-            tip=tip,
-            date_favourited=timezone.now()
-        )
+        fav = TipFavourite.objects.create(user=user, tip=tip)
 
         self.client.force_authenticate(user=user)
         response = self.client.delete(reverse('api:tip-favourites-detail', kwargs={'pk': fav.id}))
@@ -168,8 +149,7 @@ class TipFavouriteAPI(APITestCase):
         tip = create_tip('Tip 1')
         fav = TipFavourite.objects.create(
             user=user,
-            tip=tip,
-            date_favourited=timezone.now()
+            tip=tip
         )
 
         self.client.force_authenticate(user=user)
@@ -178,6 +158,39 @@ class TipFavouriteAPI(APITestCase):
         update_fav = TipFavourite.objects.get(id=fav.id)
 
         self.assertFalse(update_fav.is_active, "Tip state was not set.")
+
+
+class TipFavouriteSubRoutesTest(APITestCase):
+    """Testing favouriting functionality via Tip sub routes."""
+
+    @staticmethod
+    def create_regular_user(username='AnonReg'):
+        return RegUser.objects.create(username=username, email='anon-reg@ymous.org', password='Blarg',
+                                      is_staff=False, is_superuser=False)
+
+    def test_favouriting(self):
+        user = self.create_regular_user()
+        tip = create_tip('Tip 1')
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:tips-favourite', kwargs={'pk': tip.id}))
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_unfavouriting(self):
+        user = self.create_regular_user()
+        tip = create_tip('Tip 1')
+        fav = TipFavourite.objects.create(
+            user=user,
+            tip=tip
+        )
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:tips-unfavourite', kwargs={'pk': tip.id}))
+        updated_fav = TipFavourite.objects.get(id=fav.id)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(updated_fav.is_active)
 
 
 class TestGoalAPI(APITestCase):

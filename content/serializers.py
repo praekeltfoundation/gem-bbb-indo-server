@@ -136,7 +136,7 @@ class TipFavouriteSerializer(serializers.ModelSerializer):
     class Meta:
         model = TipFavourite
         exclude = ('state',)
-        read_only_fields = ('id',)
+        read_only_fields = ('id', 'date_saved')
 
 
 class GoalTransactionSerializer(serializers.ModelSerializer):
