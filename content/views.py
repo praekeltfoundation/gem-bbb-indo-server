@@ -10,9 +10,11 @@ from rest_framework.generics import GenericAPIView
 from sendfile import sendfile
 
 from .exceptions import InvalidQueryParam, ImageNotFound
-from .models import Challenge, Entry, ParticipantAnswer, Tip, Goal
+from .models import Challenge, Entry, ParticipantAnswer, Tip, TipFavourite, Goal
 from .permissions import IsAdminOrOwner
-from .serializers import ChallengeSerializer, EntrySerializer, ParticipantAnswerSerializer, TipSerializer, GoalSerializer
+from .serializers import ChallengeSerializer, EntrySerializer, ParticipantAnswerSerializer
+from .serializers import TipSerializer, TipFavouriteSerializer
+from .serializers import GoalSerializer
 
 
 class ChallengeViewSet(viewsets.ModelViewSet):
@@ -78,6 +80,28 @@ class TipViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, pk=None, *args, **kwargs):
         serializer = self.get_serializer(get_object_or_404(self.get_queryset(), pk=pk))
         return Response(serializer.data)
+
+
+class TipFavouriteViewSet(viewsets.ModelViewSet):
+    queryset = TipFavourite.objects.all()
+    serializer_class = TipFavouriteSerializer
+    permission_classes = (IsAdminOrOwner, IsAuthenticated,)
+    http_method_names = ('options', 'head', 'get', 'post',)
+
+    def list(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_queryset().filter(user_id=request.user.id, state=TipFavourite.TFST_ACTIVE),
+                                         many=True)
+        return Response(serializer.data)
+
+    def retrieve(self, request, pk=None, *args, **kwargs):
+        serializer = self.get_serializer(self.get_object())
+        return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data, many=isinstance(request.data, list))
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
 
 class GoalViewSet(viewsets.ModelViewSet):

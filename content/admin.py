@@ -62,8 +62,8 @@ class TipAdmin(wagadmin.ModelAdmin):
 
 @admin.register(TipFavourite)
 class TipFavouriteAdmin(admin.ModelAdmin):
-    list_display = ('user', 'tip')
-    list_filter = ('user', 'tip')
+    list_display = ('user', 'tip', 'state', 'date_favourited')
+    list_filter = ('user', 'tip', 'state', 'date_favourited')
 
 
 class GoalTransactionInline(admin.StackedInline):

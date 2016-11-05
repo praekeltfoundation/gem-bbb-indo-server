@@ -6,6 +6,7 @@ from rest_framework import serializers
 from content.models import Tip, TipFavourite
 from content.models import Goal, GoalTransaction
 from content.models import Challenge, Entry, Participant, ParticipantAnswer, QuestionOption, QuizQuestion
+from users.serializers import RegUserDeepSerializer
 
 
 class QuestionOptionSerializer(serializers.ModelSerializer):
@@ -129,12 +130,13 @@ class TipSerializer(serializers.ModelSerializer):
 
 
 class TipFavouriteSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
     tip = serializers.PrimaryKeyRelatedField(queryset=Tip.objects.all())
 
     class Meta:
         model = TipFavourite
-        fields = '__all__'
+        exclude = ('state',)
+        read_only_fields = ('id',)
 
 
 class GoalTransactionSerializer(serializers.ModelSerializer):

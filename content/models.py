@@ -283,6 +283,7 @@ class TipFavourite(models.Model):
     class Meta:
         verbose_name = _('tip favourite')
         verbose_name_plural = _('tip favourites')
+        unique_together = ('user', 'tip')
 
 
 def get_goal_image_filename(instance, filename):
