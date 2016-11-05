@@ -11,7 +11,7 @@ from rest_framework.test import APITestCase
 from wagtail.wagtailcore.models import Page
 from users.models import User, RegUser
 
-from .models import Tip
+from .models import Tip, TipFavourite
 from .models import Goal, GoalTransaction
 from .serializers import GoalSerializer
 
@@ -98,6 +98,99 @@ class TestTipAPI(APITestCase):
         self.assertEqual(Tip.objects.all().count(), 2, 'Test did not set up Tip pages correctly.')
         self.assertEqual(len(data), 1, 'View returned more than one Tip.')
         self.assertEqual(data[0]['title'], 'Live tip', 'The returned Tip was not the expected live page.')
+
+
+class TipFavouriteAPI(APITestCase):
+
+    @staticmethod
+    def create_regular_user(username='AnonReg'):
+        return RegUser.objects.create(username=username, email='anon-reg@ymous.org', password='Blarg',
+                                      is_staff=False, is_superuser=False)
+
+    def test_favourite_create(self):
+        user = self.create_regular_user()
+        tip = create_tip()
+
+        data = {"tip": tip.id}
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:tip-favourites-list'), data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, "Favourite was not created")
+        self.assertEqual(response.data['tip'], tip.id, "Tip favourite was not added")
+
+    def test_favourite_create_multiple(self):
+        user = self.create_regular_user()
+        tip = create_tip('Tip 1')
+        tip2 = create_tip('Tip 2')
+
+        data = [{"tip": tip.id}, {"tip": tip2.id}]
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:tip-favourites-list'), data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, "Favourite was not created")
+        self.assertEqual(response.data[0]['tip'], tip.id, "Tip 1 favourite was not added")
+        self.assertEqual(response.data[1]['tip'], tip2.id, "Tip 2 favourite was not added")
+
+    def test_unfavourite(self):
+        user = self.create_regular_user()
+        tip = create_tip('Tip 1')
+        fav = TipFavourite.objects.create(user=user, tip=tip)
+
+        self.client.force_authenticate(user=user)
+        response = self.client.delete(reverse('api:tip-favourites-detail', kwargs={'pk': fav.id}))
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, "Tip was not unfavourited.")
+
+    def test_unfavourite_status(self):
+        """Favourite should not be deleted, but set to inactive."""
+        user = self.create_regular_user()
+        tip = create_tip('Tip 1')
+        fav = TipFavourite.objects.create(
+            user=user,
+            tip=tip
+        )
+
+        self.client.force_authenticate(user=user)
+        response = self.client.delete(reverse('api:tip-favourites-detail', kwargs={'pk': fav.id}))
+
+        update_fav = TipFavourite.objects.get(id=fav.id)
+
+        self.assertFalse(update_fav.is_active, "Tip state was not set.")
+
+
+class TipFavouriteSubRoutesTest(APITestCase):
+    """Testing favouriting functionality via Tip sub routes."""
+
+    @staticmethod
+    def create_regular_user(username='AnonReg'):
+        return RegUser.objects.create(username=username, email='anon-reg@ymous.org', password='Blarg',
+                                      is_staff=False, is_superuser=False)
+
+    def test_favouriting(self):
+        user = self.create_regular_user()
+        tip = create_tip('Tip 1')
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:tips-favourite', kwargs={'pk': tip.id}))
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_unfavouriting(self):
+        user = self.create_regular_user()
+        tip = create_tip('Tip 1')
+        fav = TipFavourite.objects.create(
+            user=user,
+            tip=tip
+        )
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:tips-unfavourite', kwargs={'pk': tip.id}))
+        updated_fav = TipFavourite.objects.get(id=fav.id)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(updated_fav.is_active)
 
 
 class TestGoalAPI(APITestCase):

@@ -1,7 +1,10 @@
-from django import forms
+
 from django.contrib import admin
+from django import forms
 import wagtail.contrib.modeladmin.options as wagadmin
-from .models import Challenge, FreeTextQuestion, Goal, GoalTransaction, QuizQuestion, QuestionOption, Tip
+from .models import Challenge, FreeTextQuestion, QuizQuestion, QuestionOption, Participant
+from .models import Goal, GoalTransaction
+from .models import Tip, TipFavourite
 
 
 class QuestionOptionInline(admin.StackedInline):
@@ -113,6 +116,12 @@ class TipAdmin(wagadmin.ModelAdmin):
     menu_order = 200
     list_display = ('title', 'live', 'owner', 'first_published_at')
     list_filter = ('title', 'live', 'owner', 'first_published_at')
+
+
+@admin.register(TipFavourite)
+class TipFavouriteAdmin(admin.ModelAdmin):
+    list_display = ('user', 'tip', 'state')
+    list_filter = ('user', 'tip', 'state')
 
 
 class GoalTransactionInline(admin.StackedInline):

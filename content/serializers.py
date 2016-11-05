@@ -4,7 +4,7 @@ from django.shortcuts import reverse
 from django.utils import timezone
 from rest_framework import serializers
 
-from content.models import Tip
+from content.models import Tip, TipFavourite
 from content.models import Goal, GoalTransaction
 from content.models import Challenge, Entry, FreeTextQuestion, Participant, ParticipantAnswer, ParticipantFreeText, \
     QuestionOption, QuizQuestion
@@ -128,6 +128,16 @@ class TipSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tip
         fields = ('id', 'title', 'article_url', 'cover_image_url', 'tags')
+
+
+class TipFavouriteSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
+    tip = serializers.PrimaryKeyRelatedField(queryset=Tip.objects.all())
+
+    class Meta:
+        model = TipFavourite
+        exclude = ('state',)
+        read_only_fields = ('id', 'date_saved')
 
 
 class GoalTransactionSerializer(serializers.ModelSerializer):
