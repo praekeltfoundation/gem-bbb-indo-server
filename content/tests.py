@@ -11,7 +11,7 @@ from rest_framework.test import APITestCase
 from wagtail.wagtailcore.models import Page
 from users.models import User, RegUser
 
-from .models import Tip
+from .models import Tip, TipFavourite
 from .models import Goal, GoalTransaction
 from .serializers import GoalSerializer
 
@@ -147,6 +147,20 @@ class TipFavouriteAPI(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, "Favourite was not created")
         self.assertEqual(response.data[0]['tip'], tip.id, "Tip 1 favourite was not added")
         self.assertEqual(response.data[1]['tip'], tip2.id, "Tip 2 favourite was not added")
+
+    def test_unfavourite(self):
+        user = self.create_regular_user()
+        tip = create_tip('Tip 1')
+        fav = TipFavourite.objects.create(
+            user=user,
+            tip=tip,
+            date_favourited=timezone.now()
+        )
+
+        self.client.force_authenticate(user=user)
+        response = self.client.delete(reverse('api:tip-favourites-detail', kwargs={'pk': fav.id}))
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, "Tip was not unfavourited.")
 
 
 class TestGoalAPI(APITestCase):

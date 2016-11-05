@@ -285,6 +285,13 @@ class TipFavourite(models.Model):
         verbose_name_plural = _('tip favourites')
         unique_together = ('user', 'tip')
 
+    @property
+    def is_active(self):
+        return self.state == self.TFST_ACTIVE
+
+    def unfavourite(self):
+        self.state = self.TFST_INACTIVE
+
 
 def get_goal_image_filename(instance, filename):
     return '/'.join(('goal', str(instance.user.pk), filename))
