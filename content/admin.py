@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib import admin
 import wagtail.contrib.modeladmin.options as wagadmin
-from .models import Challenge, Goal, GoalTransaction, Participant, QuestionOption, QuizQuestion, Tip
+from .models import Challenge, FreeTextQuestion, Goal, GoalTransaction, QuizQuestion, QuestionOption, Tip
 
 
 class QuestionOptionInline(admin.StackedInline):
@@ -44,6 +44,15 @@ class ChallengeAdmin(admin.ModelAdmin):
     list_display = ('name', 'type', 'state', 'activation_date', 'deactivation_date')
     list_filter = ('name', 'type', 'state')
     inlines = [QuestionInline]
+
+@admin.register(FreeTextQuestion)
+class QuestionFreeTextAdmin(admin.ModelAdmin):
+    fieldsets = [
+        (None,
+         {'fields': ['challenge', 'text']})
+    ]
+    list_display = ('challenge', 'text')
+    list_filter = ('challenge', 'text')
 
 
 class QuestionAdminForm(forms.ModelForm):

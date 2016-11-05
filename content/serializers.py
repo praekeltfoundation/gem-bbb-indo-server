@@ -1,10 +1,13 @@
 
 from django.contrib.auth.models import User
+from django.shortcuts import reverse
+from django.utils import timezone
 from rest_framework import serializers
 
 from content.models import Tip
 from content.models import Goal, GoalTransaction
-from content.models import Challenge, Entry, Participant, ParticipantAnswer, QuestionOption, QuizQuestion
+from content.models import Challenge, Entry, FreeTextQuestion, Participant, ParticipantAnswer, ParticipantFreeText, \
+    QuestionOption, QuizQuestion
 
 
 class QuestionOptionSerializer(serializers.ModelSerializer):
@@ -131,16 +134,22 @@ class GoalTransactionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GoalTransaction
-        exclude = ('goal',)
+        exclude = ('goal', 'id',)
 
 
 class GoalSerializer(serializers.ModelSerializer):
     transactions = GoalTransactionSerializer(required=False, many=True)
     user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Goal
         fields = '__all__'
+        read_only_fields = ('id',)
+        extra_kwargs = {'image': {'write_only': True}}
+
+    def get_image_url(self, obj):
+        return reverse('goal-image', kwargs={'goal_pk': obj.pk})
 
     def create(self, validated_data):
         transactions = validated_data.pop('transactions', [])
@@ -150,3 +159,131 @@ class GoalSerializer(serializers.ModelSerializer):
             GoalTransaction.objects.create(goal=goal, **trans_data)
 
         return goal
+
+    def update(self, instance, validated_data):
+        transactions_data = validated_data.pop('transactions', [])
+        transactions = instance.transactions.all()
+        trans_lookup = {datum.get('id', None) for datum in transactions_data}
+
+        # Update Goal
+        instance.name = validated_data.get('name', instance.name)
+        instance.start_date = validated_data.get('start_date', instance.start_date)
+        instance.end_date = validated_data.get('validate_date', instance.end_date)
+        instance.value = validated_data.get('value', instance.value)
+        # TODO: Image Field
+        instance.user = validated_data.get('user', instance.user)
+
+        instance.save()
+
+        # Update Transactions
+        # TODO: Transactions
+
+        return instance
+
+
+def validate_participant(data, errors):
+    user = data.pop('user', None)
+    challenge = data.pop('challenge', None)
+
+    if data.get('participant', None) is not None:
+        try:
+            participant = Participant.objects.get(id=data.get('participant'))
+            return participant
+        except Participant.MultipleObjectsReturned:
+            errors.update({'participant': 'Multiple participants exist.'})
+        except Participant.DoesNotExist:
+            errors.update({'participant': 'No such participant exists.'})
+    else:
+        if challenge is None:
+            errors.update({'challenge': 'Must specify either participant or challenge.'})
+        else:
+            try:
+                challenge = Challenge.objects.get(id=challenge)
+            except Challenge.DoesNotExist:
+                errors.update({'challenge': 'Challenge does not exist'})
+
+        if user is None:
+            errors.update({'user': 'Must specify either participant or user'})
+        else:
+            try:
+                user = User.objects.get(id=user)
+            except User.DoesNotExist:
+                errors.update({'user': 'User does not exist'})
+
+        if len(errors) <= 0:
+            try:
+                participant = Participant.objects.get(challenge_id=challenge.id, user_id=user.id)
+                return participant
+            except Participant.MultipleObjectsReturned:
+                errors.update({'participant': 'Multiple participants exist.'})
+            except Participant.DoesNotExist:
+                try:
+                    participant = Participant.objects.create(user_id=user.id, challenge_id=challenge.id)
+                    return participant
+                except:
+                    errors.update({'participant': 'Participant could not be created'})
+
+    return None
+
+
+class ParticipantFreeTextSerializer(serializers.ModelSerializer):
+    participant = serializers.PrimaryKeyRelatedField(queryset=Participant.objects.all(), required=False)
+    question = serializers.PrimaryKeyRelatedField(queryset=FreeTextQuestion.objects.all(), required=False)
+
+    class Meta:
+        model = ParticipantFreeText
+        fields = ('id', 'participant', 'question', 'date_answered', 'date_saved', 'text')
+        read_only_fields = ('id', 'saved_date')
+
+    def to_internal_value(self, data):
+        errors = {}
+
+        participant = validate_participant(data, errors)
+
+        if participant is None:
+            raise serializers.ValidationError(errors)
+        else:
+            data['participant'] = participant.id
+
+        question_id = data.get('question', None)
+        if question_id is not None:
+            try:
+                FreeTextQuestion.objects.get(id=data.get('question', None))
+            except FreeTextQuestion.MultipleObjectsReturned:
+                errors.update({'question': 'Multiple questions exist.'})
+            except FreeTextQuestion.DoesNotExist:
+                errors.update({'question': 'No such question exists.'})
+            except:
+                errors.update({'question': 'Unknown error with question.'})
+        else:
+            try:
+                question = participant.challenge.freetext_question
+                data['question'] = question.id
+            except:
+                errors.update({'question': 'Question does not exist.'})
+
+        if len(errors) > 0:
+            raise serializers.ValidationError(errors)
+
+        return super(ParticipantFreeTextSerializer, self).to_internal_value(data=data)
+
+    def save(self, **kwargs):
+        try:
+            answer = ParticipantFreeText.objects.get(participant_id=self.validated_data.get('participant'),
+                                                     question_id=self.validated_data.get('question'))
+            answer.text = self.validated_data.get('text')
+        except ParticipantFreeText.DoesNotExist:
+            answer = ParticipantFreeText(**self.validated_data)
+        except ParticipantFreeText.MultipleObjectsReturned:
+            raise serializers.DjangoValidationError('Multiple answers for this participant.', code='multi_answer')
+        return answer.save()
+
+    def create(self, validated_data):
+        return ParticipantFreeText.objects.create(**validated_data)
+
+    def update(self, instance, validated_data):
+        instance.date_saved = timezone.now()
+        if validated_data.get('text') is not None:
+            instance.text = validated_data.get('text')
+        instance.save()
+        return instance

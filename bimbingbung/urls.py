@@ -18,6 +18,7 @@ router = DefaultRouter()
 router.register(r'challenges', content_views.ChallengeViewSet, base_name='challenges')
 router.register(r'entries', content_views.EntryViewSet, base_name='entries')
 router.register(r'participantanswers', content_views.ParticipantAnswerViewSet, base_name='participantanswers')
+router.register(r'participantfreetext', content_views.ParticipantFreeTextViewSet, base_name='participantfreetext')
 router.register(r'tips', content_views.TipViewSet, base_name='tips')
 router.register(r'goals', content_views.GoalViewSet, base_name='goals')
 router.register(r'users', user_views.RegUserViewSet, base_name='users')
@@ -32,6 +33,7 @@ urlpatterns = [
 
     url(r'^api/token/', user_views.ObtainUserAuthTokenView.as_view(), name='token'),
     url(r'^api/profile-image/(?P<user_pk>\d+)/$', user_views.ProfileImageView.as_view(), name='profile-image'),
+    url(r'^api/goal-image/(?P<goal_pk>\d+)/$', content_views.GoalImageView.as_view(), name='goal-image'),
     url(r'^api/', include(router.urls, namespace='api')),
 
     url(r'', include(wagtail_urls)),
