@@ -265,6 +265,26 @@ class Tip(wagtail_models.Page):
         return self.title
 
 
+class TipFavourite(models.Model):
+
+    # Tip Favourite State
+    TFST_INACTIVE = 0
+    TFST_ACTIVE = 1
+
+    user = models.ForeignKey(User, related_name='+')
+    tip = models.ForeignKey(Tip, related_name='+')
+    state = models.IntegerField(choices=(
+        (TFST_INACTIVE, _('Disabled')),
+        (TFST_ACTIVE, _('Enabled')),
+    ), default=TFST_ACTIVE)
+    date_favourited = models.DateTimeField(_('favourited on'))
+    date_saved = models.DateTimeField(_('saved on'), default=timezone.now)
+
+    class Meta:
+        verbose_name = _('tip favourite')
+        verbose_name_plural = _('tip favourites')
+
+
 def get_goal_image_filename(instance, filename):
     return '/'.join(('goal', str(instance.user.pk), filename))
 

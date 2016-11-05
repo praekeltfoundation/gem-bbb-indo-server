@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.shortcuts import reverse
 from rest_framework import serializers
 
-from content.models import Tip
+from content.models import Tip, TipFavourite
 from content.models import Goal, GoalTransaction
 from content.models import Challenge, Entry, Participant, ParticipantAnswer, QuestionOption, QuizQuestion
 
@@ -126,6 +126,15 @@ class TipSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tip
         fields = ('id', 'title', 'article_url', 'cover_image_url', 'tags')
+
+
+class TipFavouriteSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    tip = serializers.PrimaryKeyRelatedField(queryset=Tip.objects.all())
+
+    class Meta:
+        model = TipFavourite
+        fields = '__all__'
 
 
 class GoalTransactionSerializer(serializers.ModelSerializer):
