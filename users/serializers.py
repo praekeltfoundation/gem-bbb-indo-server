@@ -57,7 +57,8 @@ class RegUserDeepSerializer(serializers.ModelSerializer):
     class Meta:
         model = RegUser
         depth = 1
-        fields = '__all__'
+        fields = ('id', 'username', 'password', 'profile', 'email')
+        read_only_fields = ('id',)
         extra_kwargs = {'password': {'write_only': True}}
 
     def __init__(self, *args, **kwargs):

@@ -1,3 +1,4 @@
+
 import json
 from io import BytesIO
 
@@ -11,10 +12,13 @@ from .serializers import RegUserDeepSerializer
 
 
 class TestUserModel(APITestCase):
-    def create_regular_user(self, username='anonymous', **kwargs):
+
+    @staticmethod
+    def create_regular_user(username='anonymous', **kwargs):
         return RegUser.objects.create(username=username, **kwargs)
 
-    def create_sysadmin(self, username='admin', **kwargs):
+    @staticmethod
+    def create_sysadmin(username='admin', **kwargs):
         return SysAdminUser.objects.create(username=username, **kwargs)
 
     def setUp(self):
@@ -52,6 +56,30 @@ class TestUserModel(APITestCase):
         self.assertNotEqual(password, u.password, 'Password was stored as plain text.')
         self.assertNotEqual(u.password, '', 'Password was excluded.')
         self.assertIsNotNone(u.password, 'Password was excluded.')
+
+
+class TestUserAPI(APITestCase):
+
+    def test_user_registration(self):
+        data = {
+            'username': 'anon',
+            'password': 'blargh',
+            'profile': {
+                'mobile': '1112223334',
+                'age': 18,
+                'gender': Profile.GENDER_FEMALE
+            }
+        }
+        response = self.client.post(reverse('api:users-list'), data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, "User was not registered.")
+
+        user = User.objects.get(pk=response.data['id'])
+        # Verify profile data
+        self.assertFalse(bool(user.profile.profile_image), "Profile image unexpectedly exists.")
+        self.assertEqual(user.profile.mobile, '1112223334', "Unexpected mobile number.")
+        self.assertEqual(user.profile.age, 18, "Unexpected age.")
+        self.assertEqual(user.profile.gender, Profile.GENDER_FEMALE, "Unexpected gender.")
 
 
 class TestToken(test.TestCase):
