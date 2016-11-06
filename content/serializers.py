@@ -139,12 +139,11 @@ class GoalTransactionSerializer(serializers.ModelSerializer):
 
 class GoalSerializer(serializers.ModelSerializer):
     transactions = GoalTransactionSerializer(required=False, many=True)
-    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
     image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Goal
-        fields = '__all__'
         read_only_fields = ('id',)
         extra_kwargs = {'image': {'write_only': True}}
 

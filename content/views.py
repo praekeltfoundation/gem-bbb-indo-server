@@ -114,47 +114,13 @@ class TipViewSet(viewsets.ModelViewSet):
 
 
 class GoalViewSet(viewsets.ModelViewSet):
-    PARAM_USER_PK = 'user_pk'
     queryset = Goal.objects.all()
     serializer_class = GoalSerializer
     permission_classes = (IsAdminOrOwner, IsAuthenticated,)
     http_method_names = ('options', 'head', 'get', 'post', 'put',)
 
-    def get_user_pk(self, request):
-        user_pk = getattr(request, 'query_params', {}).get(self.PARAM_USER_PK, None)
-
-        if user_pk is None:
-            return None
-        else:
-            try:
-                return int(user_pk)
-            except ValueError:
-                raise InvalidQueryParam("User id was not a valid int")
-
-    def get_queryset(self):
-        """Optionally filter by User id."""
-        queryset = self.queryset
-        user_pk = self.request.query_params.get(self.PARAM_USER_PK, None)
-
-        if not user_pk:
-            return queryset
-
-        try:
-            user_pk = int(user_pk)
-        except ValueError:
-            raise InvalidQueryParam("User id was not a valid int")
-
-        return queryset.filter(user__pk=user_pk)
-
     def list(self, request, *args, **kwargs):
-        if not request.user.is_staff:
-            user_pk = self.get_user_pk(request)
-            if user_pk is None:
-                raise PermissionDenied("Required query param %s" % self.PARAM_USER_PK)
-            elif user_pk != request.user.pk:
-                raise PermissionDenied("Restricted from accessing other Goals")
-
-        serializer = self.get_serializer(self.get_queryset(), many=True)
+        serializer = self.get_serializer(self.get_queryset().filter(user_id=request.user.id), many=True)
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None, *args, **kwargs):
@@ -162,19 +128,13 @@ class GoalViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        # TODO: Stricter permissions on User Ownership
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-
-            if serializer.validated_data.get('user', None) != request.user:
-                raise PermissionError('Cannot create a goal for another user.')
-
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, pk=None, *args, **kwargs):
         goal = self.get_object()
-
         serializer = self.get_serializer(goal, data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()

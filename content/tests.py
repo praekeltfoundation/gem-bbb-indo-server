@@ -2,7 +2,6 @@
 from datetime import datetime
 import json
 
-from django.http import QueryDict
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -198,81 +197,19 @@ class TestGoalAPI(APITestCase):
     def create_goal(name, user, value):
         return Goal.objects.create(name=name, user=user, value=value, start_date=timezone.now(), end_date=timezone.now())
 
-    def test_require_param_for_regular_user(self):
-        """When a regular user attempts to list all goals, they should be restricted by a permission denied error."""
-        user = self.create_regular_user()
-        self.client.force_authenticate(user=user)
-        response = self.client.get(reverse('api:goals-list'))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-    def test_admin_list_all(self):
-        """A staff member must be able to see all goals."""
-
-        # Model instances
-        user_1 = self.create_regular_user('User1')
-        user_2 = self.create_regular_user('User2')
-        user_admin = self.create_staff_user('AdminUser')
-
-        goal_1_name = 'Goal 1'
-        goal_2_name = 'Goal 2'
-
-        # TODO: Refactor Goal creation into helper function
-        goal_1 = Goal.objects.create(name=goal_1_name, user=user_1, value=1000, start_date=timezone.now(), end_date=timezone.now())
-        goal_2 = Goal.objects.create(name=goal_2_name, user=user_2, value=1000, start_date=timezone.now(), end_date=timezone.now())
-
-        # Test restricted view
-        self.client.force_authenticate(user=user_admin)
-        response = self.client.get(reverse('api:goals-list'))
-        data = response.data
-
-        # Find goals by name
-        goal_1_data = self.find_by_attr(data, 'name', goal_1_name, {})
-        goal_2_data = self.find_by_attr(data, 'name', goal_2_name, {})
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK, "Admin user was blocked from accessing Goals.")
-        self.assertEqual(goal_1_data.get('id', None), goal_1.id, "Admin user can't see Goal for User 1.")
-        self.assertEqual(goal_2_data.get('id', None), goal_2.id, "Admin user can't see Goal for User 2.")
-
-    def test_admin_filter_by_user(self):
-        """A staff member must be able to filter any user."""
-        # Model instances
-        user_1 = self.create_regular_user('User1')
-        user_2 = self.create_regular_user('User2')
-        user_admin = self.create_staff_user('AdminUser')
-
-        goal_1_name = 'Goal 1'
-        goal_2_name = 'Goal 2'
-
-        goal_1 = self.create_goal(goal_1_name, user_1, 1000)
-        goal_2 = self.create_goal(goal_2_name, user_2, 1000)
-
-        # Test restricted view
-        self.client.force_authenticate(user=user_admin)
-        q = QueryDict(mutable=True)
-        q['user_pk'] = user_1.pk
-        response = self.client.get('%s?%s' % (reverse('api:goals-list'), q.urlencode()))
-        data = response.data
-
-        # Find goals by name
-        goal_1_data = self.find_by_attr(data, 'name', goal_1_name, {})
-        goal_2_data = self.find_by_attr(data, 'name', goal_2_name, None)
-
-        self.assertIsNone(goal_2_data, "Goal 2 found despite applied filter.")
-        self.assertEqual(goal_1_data.get('id', None), goal_1.id, "Goal 1 was not retrieved.")
-
     def test_user_list_all_restriction(self):
         """A user must not see other user's Goals when listing all.
         """
         user_1 = self.create_regular_user('User 1')
         user_2 = self.create_regular_user('User 2')
 
+        goal_1 = self.create_goal('Goal 1', user_1, 900)
+        goal_2 = self.create_goal('Goal 2', user_2, 900)
+
         # Authenticate User 1, request Goals for User 2
         self.client.force_authenticate(user=user_1)
-        q = QueryDict(mutable=True)
-        q['user_pk'] = user_2.pk
+        response = self.client.get(reverse('api:goals-detail', kwargs={'pk': goal_2.id}), format='json')
 
-        response = self.client.get('%s?%s' % (reverse('api:goals-list'), q.urlencode()))
-        # FIXME: Response is HTTP 200
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_user_filter_by_owned(self):
@@ -281,9 +218,7 @@ class TestGoalAPI(APITestCase):
         goal = self.create_goal('Goal 1', user, 1000)
 
         self.client.force_authenticate(user=user)
-        q = QueryDict(mutable=True)
-        q['user_pk'] = user.pk
-        response = self.client.get('%s?%s' % (reverse('api:goals-list'), q.urlencode()))
+        response = self.client.get(reverse('api:goals-list'))
 
         goal_data = self.find_by_attr(response.data, 'name', 'Goal 1', {})
 
@@ -300,32 +235,13 @@ class TestGoalAPI(APITestCase):
             "start_date": datetime.utcnow().strftime('%Y-%m-%d'),
             "end_date": datetime.utcnow().strftime('%Y-%m-%d'),
             "value": 1000,
-            "image": None,
-            "user": user.pk
+            "image": None
         }
 
         self.client.force_authenticate(user=user)
         response = self.client.post(reverse('api:goals-list'), data, format='json')
         
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-    def test_user_goal_create_user_pk_required(self):
-        """A user must provide their user_pk when creating a goal"""
-        user = self.create_regular_user('User 1')
-
-        data = {
-            "name": "Goal 1",
-            "transactions": [],
-            "start_date": datetime.utcnow().strftime('%Y-%m-%d'),
-            "end_date": datetime.utcnow().strftime('%Y-%m-%d'),
-            "value": 1000,
-            "image": None
-        }
-
-        self.client.force_authenticate(user=user)
-        response = self.client.post(reverse('api:goals-list'), data, format='json')
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_user_goal_update(self):
         """User must be able to update their own goals."""
@@ -340,8 +256,7 @@ class TestGoalAPI(APITestCase):
             "start_date": datetime.utcnow().strftime('%Y-%m-%d'),
             "end_date": datetime.utcnow().strftime('%Y-%m-%d'),
             "value": 9000,
-            "image": None,
-            "user": user.pk
+            "image": None
         }
 
         self.client.force_authenticate(user=user)
@@ -353,3 +268,27 @@ class TestGoalAPI(APITestCase):
         self.assertEqual(goal.pk, updated_goal.pk, "Returned Goal was not the same instance as the sent goal.")
         self.assertEqual("Goal 2", updated_goal.name, "Name was not updated.")
         self.assertEqual(9000, updated_goal.value, "Value was not updated.")
+
+    def test_user_goal_create_for_other_restricted(self):
+        """A User must not be able to create a Goal for another user."""
+
+        user_1 = self.create_regular_user('User 1')
+        user_2 = self.create_regular_user('User 2')
+
+        data = {
+            "name": "Goal 1",
+            "transactions": [],
+            "start_date": datetime.utcnow().strftime('%Y-%m-%d'),
+            "end_date": datetime.utcnow().strftime('%Y-%m-%d'),
+            "value": 1000,
+            "image": None,
+            "user": user_2.id  # Different user
+        }
+
+        self.client.force_authenticate(user=user_1)
+        response = self.client.post(reverse('api:goals-list'), data, format='json')
+
+        goal = Goal.objects.get(id=response.data['id'])
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, "Creating Goal failed.")
+        self.assertEqual(user_1, goal.user, "User managed to create Goal for someone else.")
