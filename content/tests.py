@@ -100,7 +100,7 @@ class TestTipAPI(APITestCase):
         self.assertEqual(data[0]['title'], 'Live tip', 'The returned Tip was not the expected live page.')
 
 
-class TipFavouriteSubRoutesTest(APITestCase):
+class TestFavouriteAPI(APITestCase):
     """Testing favouriting functionality via Tip sub routes."""
 
     @staticmethod
