@@ -315,7 +315,7 @@ class Goal(models.Model):
 
 @python_2_unicode_compatible
 class GoalTransaction(models.Model):
-    date = models.DateField()
+    date = models.DateTimeField()
     value = models.DecimalField(max_digits=12, decimal_places=2)
     goal = models.ForeignKey(Goal, related_name='transactions')
 
