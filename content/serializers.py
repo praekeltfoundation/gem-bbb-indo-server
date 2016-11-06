@@ -130,16 +130,6 @@ class TipSerializer(serializers.ModelSerializer):
         fields = ('id', 'title', 'article_url', 'cover_image_url', 'tags')
 
 
-class TipFavouriteSerializer(serializers.ModelSerializer):
-    user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
-    tip = serializers.PrimaryKeyRelatedField(queryset=Tip.objects.all())
-
-    class Meta:
-        model = TipFavourite
-        exclude = ('state',)
-        read_only_fields = ('id', 'date_saved')
-
-
 class GoalTransactionSerializer(serializers.ModelSerializer):
 
     class Meta:
