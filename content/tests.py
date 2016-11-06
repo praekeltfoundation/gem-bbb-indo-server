@@ -16,9 +16,9 @@ from .models import Goal, GoalTransaction
 from .serializers import GoalSerializer
 
 
-def create_test_user():
+def create_test_admin_user(username='Anon'):
     """Creates a staff user."""
-    return User.objects.create(username='Anon', email='anon@ymous.org', password='Blarg',
+    return User.objects.create(username=username, email='anon@ymous.org', password='Blarg',
                                is_staff=True, is_superuser=False)
 
 
@@ -46,7 +46,7 @@ def publish_page(user, page):
 class TestTipModel(TestCase):
 
     def setUp(self):
-        self.user = create_test_user()
+        self.user = create_test_admin_user()
 
     def tearDown(self):
         self.user.delete()
@@ -79,7 +79,7 @@ class TestTipModel(TestCase):
 class TestTipAPI(APITestCase):
 
     def setUp(self):
-        self.user = create_test_user()
+        self.user = create_test_admin_user()
         self.client.force_authenticate(user=self.user)
 
     def tearDown(self):
@@ -191,6 +191,40 @@ class TipFavouriteSubRoutesTest(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(updated_fav.is_active)
+
+    def test_favourite_list(self):
+        user = self.create_regular_user()
+        tip1 = create_tip('Tip 1')
+        tip2 = create_tip('Tip 2')
+        publish_page(user, tip1)
+        publish_page(user, tip2)
+        TipFavourite.objects.create(user=user, tip=tip2)
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:tips-favourites'))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Listing favourite tips failed.")
+        self.assertEqual(len(response.data), 1, "Unexpected number of favourite tips returned.")
+        self.assertEqual(response.data[0].get('id', None), tip2.id, "Returned unexpected favourite tip.")
+
+    def test_favourite_user_access(self):
+        admin = create_test_admin_user('Admin User')
+
+        tip1 = create_tip('Tip 1')
+        tip2 = create_tip('Tip 2')
+        publish_page(admin, tip1)
+        publish_page(admin, tip2)
+
+        user1 = self.create_regular_user('User 1')
+        user2 = self.create_regular_user('User 2')
+        TipFavourite.objects.create(user=user1, tip=tip1)
+        TipFavourite.objects.create(user=user2, tip=tip2)
+
+        self.client.force_authenticate(user=user2)
+        response = self.client.get(reverse('api:tips-favourites'), format='json')
+
+        self.assertEqual(len(response.data), 1, "Unexpected number of favourite tips returned.")
+        self.assertEqual(response.data[0].get('id', None), tip2.id)
 
 
 class TestGoalAPI(APITestCase):

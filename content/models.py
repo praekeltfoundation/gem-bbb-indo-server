@@ -272,7 +272,7 @@ class TipFavourite(models.Model):
     TFST_ACTIVE = 1
 
     user = models.ForeignKey(User, related_name='+')
-    tip = models.ForeignKey(Tip, related_name='+')
+    tip = models.ForeignKey(Tip, related_name='favourites', on_delete=models.CASCADE)
     state = models.IntegerField(choices=(
         (TFST_INACTIVE, _('Disabled')),
         (TFST_ACTIVE, _('Enabled')),

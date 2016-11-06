@@ -2,7 +2,7 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework import status
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import list_route, detail_route
 from rest_framework.exceptions import PermissionDenied, NotFound
 from rest_framework.parsers import FileUploadParser
 from rest_framework.permissions import IsAuthenticated
@@ -82,6 +82,14 @@ class TipViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, pk=None, *args, **kwargs):
         serializer = self.get_serializer(get_object_or_404(self.get_queryset(), pk=pk))
         return Response(serializer.data)
+
+    @list_route(methods=['get'])
+    def favourites(self, request, *args, **kwargs):
+        tips = self.get_queryset().filter(favourites__user_id=request.user.id,
+                                          favourites__state=TipFavourite.TFST_ACTIVE,
+                                          live=True)
+        serializer = self.get_serializer(tips, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
     @detail_route(methods=['post'])
     def favourite(self, request, pk=None, *args, **kwargs):
