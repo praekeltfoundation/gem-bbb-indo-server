@@ -48,7 +48,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        exclude = ('user', 'profile_image')
+        exclude = ('id', 'user', 'profile_image')
 
 
 class RegUserDeepSerializer(serializers.ModelSerializer):
