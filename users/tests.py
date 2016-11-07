@@ -157,8 +157,29 @@ class TestProfileImage(APITestCase):
         Profile.objects.create(user=user, mobile='1112223334')
         return user
 
-    def test_file_uploads(self):
+    @staticmethod
+    def create_admin_user(username='anon admin'):
+        user = User.objects.create(username=username, is_staff=True)
+        user.profile.mobile = '1112223334'
+        return user
+
+    def test_profile_image_upload(self):
         user = self.create_user()
+
+        headers = {
+            'HTTP_CONTENT_TYPE': 'image/png',
+            'HTTP_CONTENT_DISPOSITION': 'attachment;filename="profile.png"'
+        }
+
+        self.client.force_login(user=user)
+        tmp_file = BytesIO(b'foobar')
+        response = self.client.post(reverse('profile-image', kwargs={'user_pk': user.pk}),
+                                    data={'file': tmp_file}, **headers)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_profile_image_upload_for_admin(self):
+        user = self.create_admin_user()
 
         headers = {
             'HTTP_CONTENT_TYPE': 'image/png',
