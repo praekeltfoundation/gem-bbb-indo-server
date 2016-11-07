@@ -24,26 +24,33 @@ class QuestionSerializer(serializers.ModelSerializer):
         fields = ('id', 'text', 'options')
 
 
+class FreeTextSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FreeTextQuestion
+        fields = ('id', 'text')
+
+
 class ChallengeSerializer(serializers.ModelSerializer):
-    questions = QuestionSerializer(many=True, read_only=True)
+    questions = QuestionSerializer(many=True, read_only=True, required=False)
+    freetext_question = FreeTextSerializer(read_only=True, required=False)
 
     class Meta:
         model = Challenge
-        fields = ('id', 'name', 'type', 'activation_date', 'deactivation_date', 'questions')
+        fields = ('id', 'name', 'type', 'activation_date', 'deactivation_date', 'questions', 'freetext_question')
 
     def __init__(self, *args, **kwargs):
+        summary = kwargs.pop('summary', False)
         super(ChallengeSerializer, self).__init__(*args, **kwargs)
 
         # get fields to remove
-        exclude_set = set()
-        if len(args) > 0 and isinstance(args[0], Challenge):
-            self.Meta.fields = list(self.Meta.fields)
-            if args[0].type != Challenge.CTP_QUIZ:
-                exclude_set.add('questions')
-
-        # remove incorrect fields
-        for field_name in exclude_set:
-            self.fields.pop(field_name)
+        if summary:
+            self.fields.pop('questions', None)
+            self.fields.pop('freetext_question', None)
+        elif self.instance and isinstance(self.instance, Challenge):
+            if self.instance.type != Challenge.CTP_QUIZ:
+                self.fields.pop('questions', None)
+            if self.instance.type != Challenge.CTP_FREEFORM:
+                self.fields.pop('freetext_question', None)
 
 
 class ParticipantAnswerSerializer(serializers.ModelSerializer):
