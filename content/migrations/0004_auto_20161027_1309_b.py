@@ -8,13 +8,9 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('content', '0004_auto_20161027_1309_b'),
+        ('content', '0004_auto_20161027_1309'),
     ]
 
     operations = [
-        migrations.AddField(
-            model_name='questionoption',
-            name='correct',
-            field=models.BooleanField(default=False, verbose_name='correct'),
-        ),
+        migrations.RunPython(migrations.RunPython.noop),
     ]
