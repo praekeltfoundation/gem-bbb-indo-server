@@ -1,6 +1,5 @@
 from django.db import models
 from django.contrib.auth.models import User
-from datetime import datetime
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext as _
@@ -13,7 +12,7 @@ from wagtail.wagtailcore import fields as wagtail_fields
 from wagtail.wagtailimages import models as wagtail_image_models
 from wagtail.wagtailimages import edit_handlers as wagtail_image_edit
 
-from users.storage import ParticipantPictureStorage
+from .storage import GoalImgStorage, ParticipantPictureStorage
 
 
 @python_2_unicode_compatible
@@ -233,7 +232,7 @@ class ParticipantFreeText(models.Model):
         verbose_name_plural = _('free-text answers')
 
     def __str__(self):
-        return str(self.user.username)[:8] + ': Free'
+        return str(self.participant) + ': Free'
 
 
 class TipTag(TaggedItemBase):
@@ -273,13 +272,17 @@ class Tip(wagtail_models.Page):
         return self.title
 
 
+def get_goal_image_filename(instance, filename):
+    return '/'.join(('goal', str(instance.user.pk), filename))
+
+
 @python_2_unicode_compatible
 class Goal(models.Model):
     name = models.CharField(max_length=30)
     start_date = models.DateField()
     end_date = models.DateField()
     value = models.DecimalField(max_digits=12, decimal_places=2)
-    image = models.ImageField(null=True, blank=True)
+    image = models.ImageField(upload_to=get_goal_image_filename, storage=GoalImgStorage(), null=True, blank=True)
     user = models.ForeignKey(User, related_name='+')
 
     class Meta:

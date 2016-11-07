@@ -1,4 +1,3 @@
-from os.path import join
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 
@@ -13,13 +12,3 @@ class OverwriteStorage(FileSystemStorage):
 class ProfileImgStorage(OverwriteStorage):
     def __init__(self, location=settings.SENDFILE_ROOT, base_url=settings.SENDFILE_URL, **kwargs):
         super(OverwriteStorage, self).__init__(location=location, base_url=base_url, **kwargs)
-
-
-class ParticipantPictureStorage(OverwriteStorage):
-    def __init__(self, location=None, base_url=None, **kwargs):
-        if location is None:
-            location = join(settings.SENDFILE_ROOT, 'challenge')
-        if location is None:
-            base_url = settings.SENDFILE_URL + 'challenge/'
-        super(OverwriteStorage, self).__init__(location=location, base_url=base_url, **kwargs)
-

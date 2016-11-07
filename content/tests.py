@@ -241,3 +241,48 @@ class TestGoalAPI(APITestCase):
         response = self.client.post(reverse('api:goals-list'), data, format='json')
         
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    def test_user_goal_create_user_pk_required(self):
+        """A user must provide their user_pk when creating a goal"""
+        user = self.create_regular_user('User 1')
+
+        data = {
+            "name": "Goal 1",
+            "transactions": [],
+            "start_date": datetime.utcnow().strftime('%Y-%m-%d'),
+            "end_date": datetime.utcnow().strftime('%Y-%m-%d'),
+            "value": 1000,
+            "image": None
+        }
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:goals-list'), data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_user_goal_update(self):
+        """User must be able to update their own goals."""
+
+        # Create Models
+        user = self.create_regular_user('User 1')
+        goal = self.create_goal('Goal 1', user, 1000)
+
+        # Send updates
+        data = {
+            "name": "Goal 2",
+            "start_date": datetime.utcnow().strftime('%Y-%m-%d'),
+            "end_date": datetime.utcnow().strftime('%Y-%m-%d'),
+            "value": 9000,
+            "image": None,
+            "user": user.pk
+        }
+
+        self.client.force_authenticate(user=user)
+        response = self.client.put(reverse('api:goals-detail', kwargs={'pk': goal.pk}), data, format='json')
+
+        updated_goal = Goal.objects.get(pk=goal.pk)
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Request was unsuccessful.")
+        self.assertEqual(goal.pk, updated_goal.pk, "Returned Goal was not the same instance as the sent goal.")
+        self.assertEqual("Goal 2", updated_goal.name, "Name was not updated.")
+        self.assertEqual(9000, updated_goal.value, "Value was not updated.")
