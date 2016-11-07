@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('content', '0004_auto_20161027_1309_b'),
+        ('content', '0003_tag_tip_squashed_0006_auto_20161011_1314'),
     ]
 
     operations = [

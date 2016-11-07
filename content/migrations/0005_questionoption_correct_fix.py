@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
     ]
 
     dependencies = {
-        ('content', '0004_question_to_quizquestion_b'),
+        ('content', '0003_tag_tip_squashed_0006_auto_20161011_1314'),
     }
 
     operations = [
