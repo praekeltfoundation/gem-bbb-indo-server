@@ -4,19 +4,19 @@ from __future__ import unicode_literals
 
 import content.models
 from django.db import migrations, models
-import users.storage
+import content.storage
 
 
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('content', '0014_auto_20161103_0714'),
+        ('content', '0015_auto_20161103_1547'),
     ]
 
     operations = [
         migrations.AlterField(
             model_name='participantpicture',
             name='picture',
-            field=models.ImageField(blank=True, null=True, storage=users.storage.ParticipantPictureStorage(), upload_to=content.models.get_challenge_image_filename, verbose_name='picture'),
+            field=models.ImageField(blank=True, null=True, storage=content.storage.ParticipantPictureStorage(), upload_to=content.models.get_challenge_image_filename, verbose_name='picture'),
         ),
     ]
