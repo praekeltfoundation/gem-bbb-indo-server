@@ -12,11 +12,13 @@ from sendfile import sendfile
 
 from .exceptions import InvalidQueryParam, ImageNotFound
 from .models import Challenge, Entry, ParticipantAnswer, ParticipantFreeText
-from .models import Tip, TipFavourite, Goal
+from .models import Tip, TipFavourite
+from .models import Goal, GoalTransaction
 from .permissions import IsAdminOrOwner
 from .serializers import ChallengeSerializer, EntrySerializer, ParticipantAnswerSerializer, \
     ParticipantFreeTextSerializer
-from .serializers import TipSerializer, GoalSerializer
+from .serializers import TipSerializer
+from .serializers import GoalSerializer, GoalTransactionSerializer
 
 
 class ChallengeViewSet(viewsets.ModelViewSet):
@@ -139,6 +141,16 @@ class GoalViewSet(viewsets.ModelViewSet):
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(status=status.HTTP_200_OK)
+
+    @detail_route(methods=['post'])
+    def transactions(self, request, pk=None, *args, **kwargs):
+        goal = self.get_object()
+        #context = self.get_serializer_context()
+        #context['goal'] = goal
+        serializer = GoalTransactionSerializer(data=request.data, many=True)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save(goal=goal)
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class GoalImageView(GenericAPIView):

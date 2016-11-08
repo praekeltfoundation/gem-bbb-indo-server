@@ -130,11 +130,26 @@ class TipSerializer(serializers.ModelSerializer):
         fields = ('id', 'title', 'article_url', 'cover_image_url', 'tags')
 
 
+class CurrentUserDefault(object):
+    def set_context(self, serializer_field):
+        self.goal = Goal.objects.get(serializer_field.context['goal'])
+
+    def __call__(self):
+        return self.goal
+
+
+class GoalTransactionListSerializer(serializers.ListSerializer):
+    def create(self, validated_data):
+        return [GoalTransaction(**t) for t in validated_data]
+
+
 class GoalTransactionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GoalTransaction
         exclude = ('goal', 'id',)
+        # TODO
+        #list_serializer_class = GoalTransactionListSerializer
 
 
 class GoalSerializer(serializers.ModelSerializer):

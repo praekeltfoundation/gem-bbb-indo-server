@@ -15,6 +15,11 @@ from .models import Goal, GoalTransaction
 from .serializers import GoalSerializer
 
 
+def create_test_regular_user(username='AnonReg'):
+    return RegUser.objects.create(username=username, email='anon-reg@ymous.org', password='Blarg',
+                                  is_staff=False, is_superuser=False)
+
+
 def create_test_admin_user(username='Anon'):
     """Creates a staff user."""
     return User.objects.create(username=username, email='anon@ymous.org', password='Blarg',
@@ -292,3 +297,30 @@ class TestGoalAPI(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, "Creating Goal failed.")
         self.assertEqual(user_1, goal.user, "User managed to create Goal for someone else.")
+
+
+class TestGoalTransactionAPI(APITestCase):
+
+    @staticmethod
+    def create_goal(name, user, value):
+        return Goal.objects.create(name=name, user=user, value=value, start_date=timezone.now(), end_date=timezone.now())
+
+    def test_create_transactions(self):
+        user = create_test_regular_user()
+        goal = self.create_goal('Goal 1', user, 1000)
+
+        data = [{
+            "date": datetime.utcnow().isoformat(),
+            "value": 100
+        }]
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}),
+                                    data, format='json')
+        transactions = goal.transactions.all()
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, "Creating Transactions request failed")
+        self.assertEqual(transactions[0].value, 100, "Transaction value was not the same")
+
+    def test_create_avoid_duplicates(self):
+        self.skipTest("TODO")
