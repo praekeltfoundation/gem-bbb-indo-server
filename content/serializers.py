@@ -123,34 +123,12 @@ class EntrySerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'date_saved')
 
     def to_internal_value(self, data):
-        user = data.pop('user', None)
-        challenge = data.pop('challenge', None)
+        errors = {}
 
-        if data.get('participant') is None:
-            if user is None or challenge is None:
-                raise serializers.ValidationError(
-                    {'participant': 'Must specify either participant or user and challenge.'})
+        participant = validate_participant(data, errors)
 
-            try:
-                User.objects.get(id=user)
-            except User.DoesNotExist:
-                raise serializers.ValidationError({'user': 'No such user.'})
-
-            try:
-                Challenge.objects.get(id=challenge)
-            except Challenge.DoesNotExist:
-                raise serializers.ValidationError({'challenge': 'No such challenge.'})
-
-            try:
-                participant = Participant.objects.get(user_id=user, challenge_id=challenge)
-                data['participant'] = participant.id
-            except:
-                try:
-                    participant = Participant.objects.create(challenge_id=challenge, user_id=user)
-                    data['participant'] = participant.id
-                except Participant.DoesNotExist:
-                    raise serializers.ValidationError({'user': 'Could not create participant.'})
-
+        if participant is None or len(errors) > 0:
+            raise serializers.ValidationError(errors)
         return super(EntrySerializer, self).to_internal_value(data)
 
     def validate(self, data):
@@ -247,31 +225,12 @@ class ParticipantPictureSerializer(serializers.ModelSerializer):
         read_only_fields = ('date_saved',)
 
     def to_internal_value(self, data):
-        user = data.pop('user')
-        challenge = data.pop('challenge')
         errors = {}
 
-        if data.get('participant') is None and data.get('question') is None:
-            try:
-                challenge = Challenge.objects.get(challenge)
-            except Challenge.DoesNotExist:
-                errors.update({'challenge': 'Challenge does not exist'})
+        participant = validate_participant(data, errors)
 
-            try:
-                user = User.objects.get(user)
-            except User.DoesNotExist:
-                errors.update({'user': 'User does not exist'})
-
-            if len(errors) <= 0:
-                try:
-                    data['participant'] = Participant.objects.get(challenge_id=challenge, user_id=user)
-                except Participant.DoesNotExist:
-                    try:
-                        data['participant'] = Participant.objects.create(user=user, challenge=challenge)
-                        data['question'] = challenge.picture_question
-                    except:
-                        errors.update({'participant': 'Participant could not be created'})
-
+        if participant is None or len(errors) > 0:
+            raise serializers.ValidationError(errors)
         return super(ParticipantPictureSerializer, self).to_internal_value(data=data)
 
 
