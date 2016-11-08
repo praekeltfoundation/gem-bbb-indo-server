@@ -10,7 +10,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from sendfile import sendfile
 
-from .models import RegUser
+from .models import RegUser, User
 from .permissions import IsUserSelf
 from .serializers import RegUserDeepSerializer
 
@@ -33,12 +33,11 @@ class ProfileImageView(GenericAPIView):
             raise PermissionDenied("Users can only upload their own profile images.")
 
     def post(self, request, user_pk):
-        user = get_object_or_404(RegUser, pk=user_pk)
+        user = get_object_or_404(User, pk=user_pk)
         self.check_object_permissions(request, user)
         user.profile.profile_image = request.FILES['file']
         user.profile.save()
-        serializer = self.get_serializer(RegUser.objects.get(pk=user.pk))
-        return Response(serializer.data, status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get(self, request, user_pk):
         user = get_object_or_404(RegUser, pk=user_pk)
@@ -63,7 +62,7 @@ class RegUserViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            return Response({'success': True, 'id': serializer.instance.pk})
+            return Response(serializer.data, status.HTTP_201_CREATED)
 
 
 class ObtainUserAuthTokenView(ObtainAuthToken):
@@ -86,6 +85,3 @@ class ObtainUserAuthTokenView(ObtainAuthToken):
             'token': {'token': token.key},
             'user': RegUserDeepSerializer(user, context=self.get_serializer_context()).data
         })
-
-
-

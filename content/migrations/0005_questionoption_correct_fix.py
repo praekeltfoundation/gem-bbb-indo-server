@@ -7,9 +7,13 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
 
-    dependencies = [
-        ('content', '0003_tag_tip_squashed_0006_auto_20161011_1314'),
+    replaces = [
+        ('content', '0005_questionoption_correct'),
     ]
+
+    dependencies = {
+        ('content', '0003_tag_tip_squashed_0006_auto_20161011_1314'),
+    }
 
     operations = [
         migrations.AddField(

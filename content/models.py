@@ -272,6 +272,33 @@ class Tip(wagtail_models.Page):
         return self.title
 
 
+class TipFavourite(models.Model):
+
+    # Tip Favourite State
+    TFST_INACTIVE = 0
+    TFST_ACTIVE = 1
+
+    user = models.ForeignKey(User, related_name='+')
+    tip = models.ForeignKey(Tip, related_name='favourites', on_delete=models.CASCADE)
+    state = models.IntegerField(choices=(
+        (TFST_INACTIVE, _('Disabled')),
+        (TFST_ACTIVE, _('Enabled')),
+    ), default=TFST_ACTIVE)
+    date_saved = models.DateTimeField(_('saved on'), default=timezone.now)
+
+    class Meta:
+        verbose_name = _('tip favourite')
+        verbose_name_plural = _('tip favourites')
+        unique_together = ('user', 'tip')
+
+    @property
+    def is_active(self):
+        return self.state == self.TFST_ACTIVE
+
+    def unfavourite(self):
+        self.state = self.TFST_INACTIVE
+
+
 def get_goal_image_filename(instance, filename):
     return '/'.join(('goal', str(instance.user.pk), filename))
 
@@ -295,7 +322,7 @@ class Goal(models.Model):
 
 @python_2_unicode_compatible
 class GoalTransaction(models.Model):
-    date = models.DateField()
+    date = models.DateTimeField()
     value = models.DecimalField(max_digits=12, decimal_places=2)
     goal = models.ForeignKey(Goal, related_name='transactions')
 

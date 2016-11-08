@@ -17,6 +17,8 @@ WORKDIR /deploy/
 RUN pip install --upgrade virtualenv
 RUN virtualenv -p ${PYTHON_VERSION} ${PROJECT_ROOT}/ve
 RUN source ${PROJECT_ROOT}/ve/bin/activate && pip install --upgrade pip
+ADD requirements.txt /deploy/
+RUN source ${PROJECT_ROOT}/ve/bin/activate && pip install -r requirements.txt
 
 COPY bimbingbung /deploy/bimbingbung
 COPY users /deploy/users
@@ -26,11 +28,8 @@ COPY core /deploy/core
 COPY home /deploy/home
 ADD setup.py /deploy/
 ADD manage.py /deploy/
-ADD requirements.txt /deploy/
 ADD README.md /deploy/
 ADD VERSION /deploy/
-
-RUN source ${PROJECT_ROOT}/ve/bin/activate && pip install -r requirements.txt
 
 RUN mkdir -p /etc/supervisor/conf.d/
 RUN mkdir -p /var/log/supervisor

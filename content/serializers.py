@@ -4,7 +4,7 @@ from django.shortcuts import reverse
 from django.utils import timezone
 from rest_framework import serializers
 
-from content.models import Tip
+from content.models import Tip, TipFavourite
 from content.models import Goal, GoalTransaction
 from content.models import Challenge, Entry, FreeTextQuestion, Participant, ParticipantAnswer, ParticipantFreeText, \
     ParticipantPicture, QuestionOption, QuizQuestion
@@ -146,7 +146,7 @@ class GoalTransactionSerializer(serializers.ModelSerializer):
 
 class GoalSerializer(serializers.ModelSerializer):
     transactions = GoalTransactionSerializer(required=False, many=True)
-    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
     image_url = serializers.SerializerMethodField()
 
     class Meta:

@@ -2,7 +2,6 @@
 from datetime import datetime
 import json
 
-from django.http import QueryDict
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -11,14 +10,14 @@ from rest_framework.test import APITestCase
 from wagtail.wagtailcore.models import Page
 from users.models import User, RegUser
 
-from .models import Tip
+from .models import Tip, TipFavourite
 from .models import Goal, GoalTransaction
 from .serializers import GoalSerializer
 
 
-def create_test_user():
+def create_test_admin_user(username='Anon'):
     """Creates a staff user."""
-    return User.objects.create(username='Anon', email='anon@ymous.org', password='Blarg',
+    return User.objects.create(username=username, email='anon@ymous.org', password='Blarg',
                                is_staff=True, is_superuser=False)
 
 
@@ -46,7 +45,7 @@ def publish_page(user, page):
 class TestTipModel(TestCase):
 
     def setUp(self):
-        self.user = create_test_user()
+        self.user = create_test_admin_user()
 
     def tearDown(self):
         self.user.delete()
@@ -79,7 +78,7 @@ class TestTipModel(TestCase):
 class TestTipAPI(APITestCase):
 
     def setUp(self):
-        self.user = create_test_user()
+        self.user = create_test_admin_user()
         self.client.force_authenticate(user=self.user)
 
     def tearDown(self):
@@ -98,6 +97,73 @@ class TestTipAPI(APITestCase):
         self.assertEqual(Tip.objects.all().count(), 2, 'Test did not set up Tip pages correctly.')
         self.assertEqual(len(data), 1, 'View returned more than one Tip.')
         self.assertEqual(data[0]['title'], 'Live tip', 'The returned Tip was not the expected live page.')
+
+
+class TestFavouriteAPI(APITestCase):
+    """Testing favouriting functionality via Tip sub routes."""
+
+    @staticmethod
+    def create_regular_user(username='AnonReg'):
+        return RegUser.objects.create(username=username, email='anon-reg@ymous.org', password='Blarg',
+                                      is_staff=False, is_superuser=False)
+
+    def test_favouriting(self):
+        user = self.create_regular_user()
+        tip = create_tip('Tip 1')
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:tips-favourite', kwargs={'pk': tip.id}))
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_unfavouriting(self):
+        user = self.create_regular_user()
+        tip = create_tip('Tip 1')
+        fav = TipFavourite.objects.create(
+            user=user,
+            tip=tip
+        )
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:tips-unfavourite', kwargs={'pk': tip.id}))
+        updated_fav = TipFavourite.objects.get(id=fav.id)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(updated_fav.is_active)
+
+    def test_favourite_list(self):
+        user = self.create_regular_user()
+        tip1 = create_tip('Tip 1')
+        tip2 = create_tip('Tip 2')
+        publish_page(user, tip1)
+        publish_page(user, tip2)
+        TipFavourite.objects.create(user=user, tip=tip2)
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:tips-favourites'))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Listing favourite tips failed.")
+        self.assertEqual(len(response.data), 1, "Unexpected number of favourite tips returned.")
+        self.assertEqual(response.data[0].get('id', None), tip2.id, "Returned unexpected favourite tip.")
+
+    def test_favourite_user_access(self):
+        admin = create_test_admin_user('Admin User')
+
+        tip1 = create_tip('Tip 1')
+        tip2 = create_tip('Tip 2')
+        publish_page(admin, tip1)
+        publish_page(admin, tip2)
+
+        user1 = self.create_regular_user('User 1')
+        user2 = self.create_regular_user('User 2')
+        TipFavourite.objects.create(user=user1, tip=tip1)
+        TipFavourite.objects.create(user=user2, tip=tip2)
+
+        self.client.force_authenticate(user=user2)
+        response = self.client.get(reverse('api:tips-favourites'), format='json')
+
+        self.assertEqual(len(response.data), 1, "Unexpected number of favourite tips returned.")
+        self.assertEqual(response.data[0].get('id', None), tip2.id)
 
 
 class TestGoalAPI(APITestCase):
@@ -131,81 +197,19 @@ class TestGoalAPI(APITestCase):
     def create_goal(name, user, value):
         return Goal.objects.create(name=name, user=user, value=value, start_date=timezone.now(), end_date=timezone.now())
 
-    def test_require_param_for_regular_user(self):
-        """When a regular user attempts to list all goals, they should be restricted by a permission denied error."""
-        user = self.create_regular_user()
-        self.client.force_authenticate(user=user)
-        response = self.client.get(reverse('api:goals-list'))
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
-
-    def test_admin_list_all(self):
-        """A staff member must be able to see all goals."""
-
-        # Model instances
-        user_1 = self.create_regular_user('User1')
-        user_2 = self.create_regular_user('User2')
-        user_admin = self.create_staff_user('AdminUser')
-
-        goal_1_name = 'Goal 1'
-        goal_2_name = 'Goal 2'
-
-        # TODO: Refactor Goal creation into helper function
-        goal_1 = Goal.objects.create(name=goal_1_name, user=user_1, value=1000, start_date=timezone.now(), end_date=timezone.now())
-        goal_2 = Goal.objects.create(name=goal_2_name, user=user_2, value=1000, start_date=timezone.now(), end_date=timezone.now())
-
-        # Test restricted view
-        self.client.force_authenticate(user=user_admin)
-        response = self.client.get(reverse('api:goals-list'))
-        data = response.data
-
-        # Find goals by name
-        goal_1_data = self.find_by_attr(data, 'name', goal_1_name, {})
-        goal_2_data = self.find_by_attr(data, 'name', goal_2_name, {})
-
-        self.assertEqual(response.status_code, status.HTTP_200_OK, "Admin user was blocked from accessing Goals.")
-        self.assertEqual(goal_1_data.get('id', None), goal_1.id, "Admin user can't see Goal for User 1.")
-        self.assertEqual(goal_2_data.get('id', None), goal_2.id, "Admin user can't see Goal for User 2.")
-
-    def test_admin_filter_by_user(self):
-        """A staff member must be able to filter any user."""
-        # Model instances
-        user_1 = self.create_regular_user('User1')
-        user_2 = self.create_regular_user('User2')
-        user_admin = self.create_staff_user('AdminUser')
-
-        goal_1_name = 'Goal 1'
-        goal_2_name = 'Goal 2'
-
-        goal_1 = self.create_goal(goal_1_name, user_1, 1000)
-        goal_2 = self.create_goal(goal_2_name, user_2, 1000)
-
-        # Test restricted view
-        self.client.force_authenticate(user=user_admin)
-        q = QueryDict(mutable=True)
-        q['user_pk'] = user_1.pk
-        response = self.client.get('%s?%s' % (reverse('api:goals-list'), q.urlencode()))
-        data = response.data
-
-        # Find goals by name
-        goal_1_data = self.find_by_attr(data, 'name', goal_1_name, {})
-        goal_2_data = self.find_by_attr(data, 'name', goal_2_name, None)
-
-        self.assertIsNone(goal_2_data, "Goal 2 found despite applied filter.")
-        self.assertEqual(goal_1_data.get('id', None), goal_1.id, "Goal 1 was not retrieved.")
-
     def test_user_list_all_restriction(self):
         """A user must not see other user's Goals when listing all.
         """
         user_1 = self.create_regular_user('User 1')
         user_2 = self.create_regular_user('User 2')
 
+        goal_1 = self.create_goal('Goal 1', user_1, 900)
+        goal_2 = self.create_goal('Goal 2', user_2, 900)
+
         # Authenticate User 1, request Goals for User 2
         self.client.force_authenticate(user=user_1)
-        q = QueryDict(mutable=True)
-        q['user_pk'] = user_2.pk
+        response = self.client.get(reverse('api:goals-detail', kwargs={'pk': goal_2.id}), format='json')
 
-        response = self.client.get('%s?%s' % (reverse('api:goals-list'), q.urlencode()))
-        # FIXME: Response is HTTP 200
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
     def test_user_filter_by_owned(self):
@@ -214,9 +218,7 @@ class TestGoalAPI(APITestCase):
         goal = self.create_goal('Goal 1', user, 1000)
 
         self.client.force_authenticate(user=user)
-        q = QueryDict(mutable=True)
-        q['user_pk'] = user.pk
-        response = self.client.get('%s?%s' % (reverse('api:goals-list'), q.urlencode()))
+        response = self.client.get(reverse('api:goals-list'))
 
         goal_data = self.find_by_attr(response.data, 'name', 'Goal 1', {})
 
@@ -233,32 +235,13 @@ class TestGoalAPI(APITestCase):
             "start_date": datetime.utcnow().strftime('%Y-%m-%d'),
             "end_date": datetime.utcnow().strftime('%Y-%m-%d'),
             "value": 1000,
-            "image": None,
-            "user": user.pk
+            "image": None
         }
 
         self.client.force_authenticate(user=user)
         response = self.client.post(reverse('api:goals-list'), data, format='json')
         
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-
-    def test_user_goal_create_user_pk_required(self):
-        """A user must provide their user_pk when creating a goal"""
-        user = self.create_regular_user('User 1')
-
-        data = {
-            "name": "Goal 1",
-            "transactions": [],
-            "start_date": datetime.utcnow().strftime('%Y-%m-%d'),
-            "end_date": datetime.utcnow().strftime('%Y-%m-%d'),
-            "value": 1000,
-            "image": None
-        }
-
-        self.client.force_authenticate(user=user)
-        response = self.client.post(reverse('api:goals-list'), data, format='json')
-
-        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_user_goal_update(self):
         """User must be able to update their own goals."""
@@ -273,8 +256,7 @@ class TestGoalAPI(APITestCase):
             "start_date": datetime.utcnow().strftime('%Y-%m-%d'),
             "end_date": datetime.utcnow().strftime('%Y-%m-%d'),
             "value": 9000,
-            "image": None,
-            "user": user.pk
+            "image": None
         }
 
         self.client.force_authenticate(user=user)
@@ -286,3 +268,27 @@ class TestGoalAPI(APITestCase):
         self.assertEqual(goal.pk, updated_goal.pk, "Returned Goal was not the same instance as the sent goal.")
         self.assertEqual("Goal 2", updated_goal.name, "Name was not updated.")
         self.assertEqual(9000, updated_goal.value, "Value was not updated.")
+
+    def test_user_goal_create_for_other_restricted(self):
+        """A User must not be able to create a Goal for another user."""
+
+        user_1 = self.create_regular_user('User 1')
+        user_2 = self.create_regular_user('User 2')
+
+        data = {
+            "name": "Goal 1",
+            "transactions": [],
+            "start_date": datetime.utcnow().strftime('%Y-%m-%d'),
+            "end_date": datetime.utcnow().strftime('%Y-%m-%d'),
+            "value": 1000,
+            "image": None,
+            "user": user_2.id  # Different user
+        }
+
+        self.client.force_authenticate(user=user_1)
+        response = self.client.post(reverse('api:goals-list'), data, format='json')
+
+        goal = Goal.objects.get(id=response.data['id'])
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, "Creating Goal failed.")
+        self.assertEqual(user_1, goal.user, "User managed to create Goal for someone else.")

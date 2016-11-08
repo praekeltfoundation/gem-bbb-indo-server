@@ -56,7 +56,16 @@ def get_profile_image_filename(instance, filename):
 # user profile information
 @python_2_unicode_compatible
 class Profile(models.Model):
+
+    GENDER_MALE = 0
+    GENDER_FEMALE = 1
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
+    age = models.IntegerField(blank=True, null=True)
+    gender = models.IntegerField(choices=(
+        (GENDER_MALE, 'Male'),
+        (GENDER_FEMALE, 'Female'),
+    ), blank=True, null=True)
     mobile_regex = RegexValidator(
         regex=r'^\+?1?\d{9,15}$',
         message=_("Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed."))

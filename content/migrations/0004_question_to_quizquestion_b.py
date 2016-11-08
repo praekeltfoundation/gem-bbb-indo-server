@@ -41,12 +41,12 @@ def to_tmp_new(apps, schema_editor):
 
 class Migration(migrations.Migration):
 
-    run_before = [
-        ('content', '0005_questionoption_correct'),
+    replaces = [
+        ('content', '0004_auto_20161027_1309_b'),
     ]
 
     dependencies = [
-        ('content', '0004_question_to_quizquestion'),
+        ('content', '0004_auto_20161027_1309'),
     ]
 
     operations = [

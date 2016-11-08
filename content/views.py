@@ -2,7 +2,8 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework import status
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.decorators import list_route, detail_route
+from rest_framework.exceptions import PermissionDenied, NotFound
 from rest_framework.parsers import FileUploadParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -10,7 +11,8 @@ from rest_framework.generics import GenericAPIView
 from sendfile import sendfile
 
 from .exceptions import ImageNotFound, InvalidQueryParam
-from .models import Challenge, Entry, Goal, ParticipantAnswer, ParticipantFreeText, ParticipantPicture, Tip
+from .models import Challenge, Entry, Goal, ParticipantAnswer, ParticipantFreeText, ParticipantPicture, Tip, \
+    TipFavourite
 from .permissions import IsAdminOrOwner
 from .serializers import ChallengeSerializer, EntrySerializer, GoalSerializer, ParticipantAnswerSerializer, \
     ParticipantFreeTextSerializer, ParticipantPictureSerializer, TipSerializer
@@ -70,7 +72,7 @@ class TipViewSet(viewsets.ModelViewSet):
     queryset = Tip.objects.all()
     serializer_class = TipSerializer
     permission_classes = (IsAuthenticated,)
-    http_method_names = ('options', 'head', 'get',)
+    http_method_names = ('options', 'head', 'get', 'post')
 
     def list(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_queryset().filter(live=True), many=True)
@@ -80,49 +82,44 @@ class TipViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(get_object_or_404(self.get_queryset(), pk=pk))
         return Response(serializer.data)
 
+    @list_route(methods=['get'])
+    def favourites(self, request, *args, **kwargs):
+        tips = self.get_queryset().filter(favourites__user_id=request.user.id,
+                                          favourites__state=TipFavourite.TFST_ACTIVE,
+                                          live=True)
+        serializer = self.get_serializer(tips, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @detail_route(methods=['post'])
+    def favourite(self, request, pk=None, *args, **kwargs):
+        tip = self.get_object()
+        fav = TipFavourite.objects.create(
+            user=request.user,
+            tip=tip
+        )
+        fav.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @detail_route(methods=['post'])
+    def unfavourite(self, request, pk=None, *args, **kwargs):
+        tip = self.get_object()
+        try:
+            fav = TipFavourite.objects.get(tip_id=tip.id)
+            fav.unfavourite()
+            fav.save()
+        except TipFavourite.DoesNotExist:
+            pass
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 class GoalViewSet(viewsets.ModelViewSet):
-    PARAM_USER_PK = 'user_pk'
     queryset = Goal.objects.all()
     serializer_class = GoalSerializer
     permission_classes = (IsAdminOrOwner, IsAuthenticated,)
     http_method_names = ('options', 'head', 'get', 'post', 'put',)
 
-    def get_user_pk(self, request):
-        user_pk = getattr(request, 'query_params', {}).get(self.PARAM_USER_PK, None)
-
-        if user_pk is None:
-            return None
-        else:
-            try:
-                return int(user_pk)
-            except ValueError:
-                raise InvalidQueryParam("User id was not a valid int")
-
-    def get_queryset(self):
-        """Optionally filter by User id."""
-        queryset = self.queryset
-        user_pk = self.request.query_params.get(self.PARAM_USER_PK, None)
-
-        if not user_pk:
-            return queryset
-
-        try:
-            user_pk = int(user_pk)
-        except ValueError:
-            raise InvalidQueryParam("User id was not a valid int")
-
-        return queryset.filter(user__pk=user_pk)
-
     def list(self, request, *args, **kwargs):
-        if not request.user.is_staff:
-            user_pk = self.get_user_pk(request)
-            if user_pk is None:
-                raise PermissionDenied("Required query param %s" % self.PARAM_USER_PK)
-            elif user_pk != request.user.pk:
-                raise PermissionDenied("Restricted from accessing other Goals")
-
-        serializer = self.get_serializer(self.get_queryset(), many=True)
+        serializer = self.get_serializer(self.get_queryset().filter(user_id=request.user.id), many=True)
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None, *args, **kwargs):
@@ -130,19 +127,13 @@ class GoalViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
-        # TODO: Stricter permissions on User Ownership
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-
-            if serializer.validated_data.get('user', None) != request.user:
-                raise PermissionError('Cannot create a goal for another user.')
-
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     def update(self, request, pk=None, *args, **kwargs):
         goal = self.get_object()
-
         serializer = self.get_serializer(goal, data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
@@ -173,8 +164,7 @@ class GoalImageView(GenericAPIView):
         self.check_object_permissions(request, goal)
         goal.image = request.FILES['file']
         goal.save()
-        serializer = self.get_serializer(get_object_or_404(Goal, pk=goal.pk))
-        return Response(serializer.data, status.HTTP_201_CREATED)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get(self, request, goal_pk):
         goal = get_object_or_404(Goal, pk=goal_pk)
