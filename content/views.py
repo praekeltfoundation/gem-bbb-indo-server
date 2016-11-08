@@ -139,15 +139,37 @@ class GoalViewSet(viewsets.ModelViewSet):
             serializer.save()
             return Response(status=status.HTTP_200_OK)
 
-class ParticipantPictureViewset(viewsets.ModelViewSet):
+
+class ParticipantPictureViewSet(viewsets.ModelViewSet):
     #PARAM_USER_PK = 'user_pk'
     queryset = ParticipantPicture.objects.all()
     serializer_class = ParticipantPictureSerializer
     #permission_classes = (IsAdminOrOwner, IsAuthenticated,)
     http_method_names = ('options', 'head', 'get', 'post',)
 
+    def check_object_permissions(self, request, obj):
+        if not IsAdminOrOwner().has_object_permission(request, self, obj):
+            raise PermissionDenied("Users can only access their own goal images.")
+
+    def get_serializer_context(self):
+        return {'request': self.request}
+
     def create(self, request, *args, **kwargs):
-        serial = self.get_serializer(data=request.data, files=request.files)
+        serial = self.get_serializer(data=request.data)
+        #self.check_object_permissions(request, goal)
+        if serial.is_valid(raise_exception=True):
+            serial.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def get(self, request, pk=None):
+        participantpicture = get_object_or_404(Goal, pk=pk)
+        #self.check_object_permissions(request, participantpicture)
+        if not participantpicture.picture:
+            #raise ImageNotFound()
+            serial = self.get_serializer(participantpicture)
+            if serial.is_valid(raise_exception=True):
+                return serial.data
+        return sendfile(request, participantpicture.picture.path, attachment=True)
 
 
 class GoalImageView(GenericAPIView):

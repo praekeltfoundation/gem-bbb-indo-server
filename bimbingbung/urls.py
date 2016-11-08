@@ -19,6 +19,7 @@ router.register(r'challenges', content_views.ChallengeViewSet, base_name='challe
 router.register(r'entries', content_views.EntryViewSet, base_name='entries')
 router.register(r'participantanswers', content_views.ParticipantAnswerViewSet, base_name='participantanswers')
 router.register(r'participantfreetext', content_views.ParticipantFreeTextViewSet, base_name='participantfreetext')
+router.register(r'participantpicture', content_views.ParticipantPictureViewSet, base_name='participantpicture')
 router.register(r'tips', content_views.TipViewSet, base_name='tips')
 router.register(r'goals', content_views.GoalViewSet, base_name='goals')
 router.register(r'users', user_views.RegUserViewSet, base_name='users')
