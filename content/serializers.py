@@ -223,6 +223,7 @@ class ParticipantPictureSerializer(serializers.ModelSerializer):
         model = ParticipantPicture
         fields = ('participant', 'question', 'picture', 'date_answered', 'date_saved')
         read_only_fields = ('date_saved',)
+        extra_kwargs = {'picture': {'required': False}}
 
     def to_internal_value(self, data):
         errors = {}
@@ -231,6 +232,12 @@ class ParticipantPictureSerializer(serializers.ModelSerializer):
 
         if participant is None or len(errors) > 0:
             raise serializers.ValidationError(errors)
+
+        try:
+            data['picture'] = self.context.get('request').files['file']
+        except:
+            pass
+
         return super(ParticipantPictureSerializer, self).to_internal_value(data=data)
 
 
