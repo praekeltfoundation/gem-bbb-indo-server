@@ -161,15 +161,12 @@ class ParticipantPictureViewSet(viewsets.ModelViewSet):
             serial.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def get(self, request, pk=None):
-        participantpicture = get_object_or_404(Goal, pk=pk)
+    def get(self, request, pk=None, *args, **kwargs):
+        participantpicture = get_object_or_404(self.get_queryset(), pk=pk)
         #self.check_object_permissions(request, participantpicture)
         if not participantpicture.picture:
-            #raise ImageNotFound()
-            serial = self.get_serializer(participantpicture)
-            if serial.is_valid(raise_exception=True):
-                return serial.data
-        return sendfile(request, participantpicture.picture.path, attachment=True)
+            raise ImageNotFound()
+        return sendfile(request, participantpicture.picture.path)
 
 
 class GoalImageView(GenericAPIView):
