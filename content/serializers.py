@@ -10,6 +10,56 @@ from content.models import Challenge, Entry, FreeTextQuestion, Participant, Part
     ParticipantPicture, QuestionOption, QuizQuestion
 
 
+def validate_participant(data, errors):
+    """
+    Takes serializer input data and returns a valid participant if one can be found.
+    Requires keys: participant OR user and challenge
+    Returns: participant OR None
+    """
+    user = data.pop('user', None)
+    challenge = data.pop('challenge', None)
+
+    if data.get('participant', None) is not None:
+        try:
+            participant = Participant.objects.get(id=data.get('participant'))
+            return participant
+        except Participant.MultipleObjectsReturned:
+            errors.update({'participant': 'Multiple participants exist.'})
+        except Participant.DoesNotExist:
+            errors.update({'participant': 'No such participant exists.'})
+    else:
+        if challenge is None:
+            errors.update({'challenge': 'Must specify either participant or challenge.'})
+        else:
+            try:
+                challenge = Challenge.objects.get(id=challenge)
+            except Challenge.DoesNotExist:
+                errors.update({'challenge': 'Challenge does not exist'})
+
+        if user is None:
+            errors.update({'user': 'Must specify either participant or user'})
+        else:
+            try:
+                user = User.objects.get(id=user)
+            except User.DoesNotExist:
+                errors.update({'user': 'User does not exist'})
+
+        if len(errors) <= 0:
+            try:
+                participant = Participant.objects.get(challenge_id=challenge.id, user_id=user.id)
+                return participant
+            except Participant.MultipleObjectsReturned:
+                errors.update({'participant': 'Multiple participants exist.'})
+            except Participant.DoesNotExist:
+                try:
+                    participant = Participant.objects.create(user_id=user.id, challenge_id=challenge.id)
+                    return participant
+                except:
+                    errors.update({'participant': 'Participant could not be created'})
+
+    return None
+
+
 class QuestionOptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuestionOption
@@ -223,51 +273,6 @@ class ParticipantPictureSerializer(serializers.ModelSerializer):
                         errors.update({'participant': 'Participant could not be created'})
 
         return super(ParticipantPictureSerializer, self).to_internal_value(data=data)
-
-
-def validate_participant(data, errors):
-    user = data.pop('user', None)
-    challenge = data.pop('challenge', None)
-
-    if data.get('participant', None) is not None:
-        try:
-            participant = Participant.objects.get(id=data.get('participant'))
-            return participant
-        except Participant.MultipleObjectsReturned:
-            errors.update({'participant': 'Multiple participants exist.'})
-        except Participant.DoesNotExist:
-            errors.update({'participant': 'No such participant exists.'})
-    else:
-        if challenge is None:
-            errors.update({'challenge': 'Must specify either participant or challenge.'})
-        else:
-            try:
-                challenge = Challenge.objects.get(id=challenge)
-            except Challenge.DoesNotExist:
-                errors.update({'challenge': 'Challenge does not exist'})
-
-        if user is None:
-            errors.update({'user': 'Must specify either participant or user'})
-        else:
-            try:
-                user = User.objects.get(id=user)
-            except User.DoesNotExist:
-                errors.update({'user': 'User does not exist'})
-
-        if len(errors) <= 0:
-            try:
-                participant = Participant.objects.get(challenge_id=challenge.id, user_id=user.id)
-                return participant
-            except Participant.MultipleObjectsReturned:
-                errors.update({'participant': 'Multiple participants exist.'})
-            except Participant.DoesNotExist:
-                try:
-                    participant = Participant.objects.create(user_id=user.id, challenge_id=challenge.id)
-                    return participant
-                except:
-                    errors.update({'participant': 'Participant could not be created'})
-
-    return None
 
 
 class ParticipantFreeTextSerializer(serializers.ModelSerializer):
