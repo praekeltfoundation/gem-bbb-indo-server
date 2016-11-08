@@ -10,7 +10,7 @@ import content.storage
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('content', '0015_auto_20161103_1547'),
+        ('content', '0020_transaction_datetime'),
     ]
 
     operations = [
