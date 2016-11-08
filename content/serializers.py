@@ -7,7 +7,57 @@ from rest_framework import serializers
 from content.models import Tip, TipFavourite
 from content.models import Goal, GoalTransaction
 from content.models import Challenge, Entry, FreeTextQuestion, Participant, ParticipantAnswer, ParticipantFreeText, \
-    QuestionOption, QuizQuestion
+    ParticipantPicture, QuestionOption, QuizQuestion
+
+
+def validate_participant(data, errors):
+    """
+    Takes serializer input data and returns a valid participant if one can be found.
+    Requires keys: participant OR user and challenge
+    Returns: participant OR None
+    """
+    user = data.pop('user', None)
+    challenge = data.pop('challenge', None)
+
+    if data.get('participant', None) is not None:
+        try:
+            participant = Participant.objects.get(id=data.get('participant'))
+            return participant
+        except Participant.MultipleObjectsReturned:
+            errors.update({'participant': 'Multiple participants exist.'})
+        except Participant.DoesNotExist:
+            errors.update({'participant': 'No such participant exists.'})
+    else:
+        if challenge is None:
+            errors.update({'challenge': 'Must specify either participant or challenge.'})
+        else:
+            try:
+                challenge = Challenge.objects.get(id=challenge)
+            except Challenge.DoesNotExist:
+                errors.update({'challenge': 'Challenge does not exist'})
+
+        if user is None:
+            errors.update({'user': 'Must specify either participant or user'})
+        else:
+            try:
+                user = User.objects.get(id=user)
+            except User.DoesNotExist:
+                errors.update({'user': 'User does not exist'})
+
+        if len(errors) <= 0:
+            try:
+                participant = Participant.objects.get(challenge_id=challenge.id, user_id=user.id)
+                return participant
+            except Participant.MultipleObjectsReturned:
+                errors.update({'participant': 'Multiple participants exist.'})
+            except Participant.DoesNotExist:
+                try:
+                    participant = Participant.objects.create(user_id=user.id, challenge_id=challenge.id)
+                    return participant
+                except:
+                    errors.update({'participant': 'Participant could not be created'})
+
+    return None
 
 
 class QuestionOptionSerializer(serializers.ModelSerializer):
@@ -24,26 +74,33 @@ class QuestionSerializer(serializers.ModelSerializer):
         fields = ('id', 'text', 'options')
 
 
+class FreeTextSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FreeTextQuestion
+        fields = ('id', 'text')
+
+
 class ChallengeSerializer(serializers.ModelSerializer):
-    questions = QuestionSerializer(many=True, read_only=True)
+    questions = QuestionSerializer(many=True, read_only=True, required=False)
+    freetext_question = FreeTextSerializer(read_only=True, required=False)
 
     class Meta:
         model = Challenge
-        fields = ('id', 'name', 'type', 'activation_date', 'deactivation_date', 'questions')
+        fields = ('id', 'name', 'type', 'activation_date', 'deactivation_date', 'questions', 'freetext_question')
 
     def __init__(self, *args, **kwargs):
+        summary = kwargs.pop('summary', False)
         super(ChallengeSerializer, self).__init__(*args, **kwargs)
 
         # get fields to remove
-        exclude_set = set()
-        if len(args) > 0 and isinstance(args[0], Challenge):
-            self.Meta.fields = list(self.Meta.fields)
-            if args[0].type != Challenge.CTP_QUIZ:
-                exclude_set.add('questions')
-
-        # remove incorrect fields
-        for field_name in exclude_set:
-            self.fields.pop(field_name)
+        if summary:
+            self.fields.pop('questions', None)
+            self.fields.pop('freetext_question', None)
+        elif self.instance and isinstance(self.instance, Challenge):
+            if self.instance.type != Challenge.CTP_QUIZ:
+                self.fields.pop('questions', None)
+            if self.instance.type != Challenge.CTP_FREEFORM:
+                self.fields.pop('freetext_question', None)
 
 
 class ParticipantAnswerSerializer(serializers.ModelSerializer):
@@ -66,34 +123,12 @@ class EntrySerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'date_saved')
 
     def to_internal_value(self, data):
-        user = data.pop('user', None)
-        challenge = data.pop('challenge', None)
+        errors = {}
 
-        if data.get('participant') is None:
-            if user is None or challenge is None:
-                raise serializers.ValidationError(
-                    {'participant': 'Must specify either participant or user and challenge.'})
+        participant = validate_participant(data, errors)
 
-            try:
-                User.objects.get(id=user)
-            except User.DoesNotExist:
-                raise serializers.ValidationError({'user': 'No such user.'})
-
-            try:
-                Challenge.objects.get(id=challenge)
-            except Challenge.DoesNotExist:
-                raise serializers.ValidationError({'challenge': 'No such challenge.'})
-
-            try:
-                participant = Participant.objects.get(user_id=user, challenge_id=challenge)
-                data['participant'] = participant.id
-            except:
-                try:
-                    participant = Participant.objects.create(challenge_id=challenge, user_id=user)
-                    data['participant'] = participant.id
-                except Participant.DoesNotExist:
-                    raise serializers.ValidationError({'user': 'Could not create participant.'})
-
+        if participant is None or len(errors) > 0:
+            raise serializers.ValidationError(errors)
         return super(EntrySerializer, self).to_internal_value(data)
 
     def validate(self, data):
@@ -181,49 +216,29 @@ class GoalSerializer(serializers.ModelSerializer):
         return instance
 
 
-def validate_participant(data, errors):
-    user = data.pop('user', None)
-    challenge = data.pop('challenge', None)
+class ParticipantPictureSerializer(serializers.ModelSerializer):
+    participant = serializers.PrimaryKeyRelatedField(queryset=Participant.objects.all(), required=False)
 
-    if data.get('participant', None) is not None:
+    class Meta:
+        model = ParticipantPicture
+        fields = ('participant', 'question', 'picture', 'date_answered', 'date_saved')
+        read_only_fields = ('date_saved',)
+        extra_kwargs = {'picture': {'required': False}}
+
+    def to_internal_value(self, data):
+        errors = {}
+
+        participant = validate_participant(data, errors)
+
+        if participant is None or len(errors) > 0:
+            raise serializers.ValidationError(errors)
+
         try:
-            participant = Participant.objects.get(id=data.get('participant'))
-            return participant
-        except Participant.MultipleObjectsReturned:
-            errors.update({'participant': 'Multiple participants exist.'})
-        except Participant.DoesNotExist:
-            errors.update({'participant': 'No such participant exists.'})
-    else:
-        if challenge is None:
-            errors.update({'challenge': 'Must specify either participant or challenge.'})
-        else:
-            try:
-                challenge = Challenge.objects.get(id=challenge)
-            except Challenge.DoesNotExist:
-                errors.update({'challenge': 'Challenge does not exist'})
+            data['picture'] = self.context.get('request').files['file']
+        except:
+            pass
 
-        if user is None:
-            errors.update({'user': 'Must specify either participant or user'})
-        else:
-            try:
-                user = User.objects.get(id=user)
-            except User.DoesNotExist:
-                errors.update({'user': 'User does not exist'})
-
-        if len(errors) <= 0:
-            try:
-                participant = Participant.objects.get(challenge_id=challenge.id, user_id=user.id)
-                return participant
-            except Participant.MultipleObjectsReturned:
-                errors.update({'participant': 'Multiple participants exist.'})
-            except Participant.DoesNotExist:
-                try:
-                    participant = Participant.objects.create(user_id=user.id, challenge_id=challenge.id)
-                    return participant
-                except:
-                    errors.update({'participant': 'Participant could not be created'})
-
-    return None
+        return super(ParticipantPictureSerializer, self).to_internal_value(data=data)
 
 
 class ParticipantFreeTextSerializer(serializers.ModelSerializer):
@@ -264,7 +279,6 @@ class ParticipantFreeTextSerializer(serializers.ModelSerializer):
 
         if len(errors) > 0:
             raise serializers.ValidationError(errors)
-
         return super(ParticipantFreeTextSerializer, self).to_internal_value(data=data)
 
     def save(self, **kwargs):
