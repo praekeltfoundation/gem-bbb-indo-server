@@ -159,6 +159,8 @@ class GoalViewSet(viewsets.ModelViewSet):
 
 class GoalImageView(GenericAPIView):
     queryset = Goal.objects.all()
+    lookup_field = 'pk'
+    lookup_url_kwarg = 'goal_pk'
     parser_classes = (FileUploadParser,)
     permission_classes = (IsAuthenticated,)
     serializer_class = GoalSerializer
