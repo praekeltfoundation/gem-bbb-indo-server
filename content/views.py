@@ -146,15 +146,20 @@ class GoalViewSet(viewsets.ModelViewSet):
             serializer.save()
             return Response(status=status.HTTP_200_OK)
 
-    @detail_route(methods=['post'])
+    @detail_route(methods=['post', 'get'])
     def transactions(self, request, pk=None, *args, **kwargs):
         goal = self.get_object()
-        #context = self.get_serializer_context()
-        #context['goal'] = goal
-        serializer = GoalTransactionSerializer(data=request.data, many=True)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save(goal=goal)
-            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        if request.method == 'POST':
+            #context = self.get_serializer_context()
+            #context['goal'] = goal
+            serializer = GoalTransactionSerializer(data=request.data, many=True)
+            if serializer.is_valid(raise_exception=True):
+                serializer.save(goal=goal)
+                return Response(status=status.HTTP_204_NO_CONTENT)
+        elif request.method == 'GET':
+            serializer = GoalTransactionSerializer(goal.transactions.all(), many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class GoalImageView(GenericAPIView):
