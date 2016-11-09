@@ -1,4 +1,6 @@
 
+from functools import reduce
+
 from django.db import models
 from django.contrib.auth.models import User
 from django.utils import timezone
@@ -301,9 +303,13 @@ class Goal(models.Model):
     name = models.CharField(max_length=30)
     start_date = models.DateField()
     end_date = models.DateField()
-    value = models.DecimalField(max_digits=12, decimal_places=2)
+    target = models.DecimalField(max_digits=18, decimal_places=2)
     image = models.ImageField(upload_to=get_goal_image_filename, storage=GoalImgStorage(), null=True, blank=True)
     user = models.ForeignKey(User, related_name='+')
+
+    @property
+    def value(self):
+        return reduce(lambda acc, el: acc+el['value'], self.transactions.all().values('value'), 0)
 
     class Meta:
         verbose_name = 'goal'

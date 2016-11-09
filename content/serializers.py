@@ -160,6 +160,7 @@ class GoalTransactionListSerializer(serializers.ListSerializer):
 
 
 class GoalTransactionSerializer(serializers.ModelSerializer):
+    value = serializers.DecimalField(18, 2, coerce_to_string=False)
 
     class Meta:
         model = GoalTransaction
@@ -169,6 +170,8 @@ class GoalTransactionSerializer(serializers.ModelSerializer):
 
 
 class GoalSerializer(serializers.ModelSerializer):
+    value = serializers.ReadOnlyField()
+    target = serializers.DecimalField(18, 2, coerce_to_string=False)
     transactions = GoalTransactionSerializer(required=False, many=True)
     transactions_url = serializers.HyperlinkedIdentityField('api:goals-transactions')
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
@@ -200,7 +203,7 @@ class GoalSerializer(serializers.ModelSerializer):
         instance.name = validated_data.get('name', instance.name)
         instance.start_date = validated_data.get('start_date', instance.start_date)
         instance.end_date = validated_data.get('validate_date', instance.end_date)
-        instance.value = validated_data.get('value', instance.value)
+        instance.target = validated_data.get('target', instance.target)
         # TODO: Image Field
         instance.user = validated_data.get('user', instance.user)
 

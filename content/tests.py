@@ -47,6 +47,10 @@ def publish_page(user, page):
     revision.publish()
 
 
+def create_goal(name, user, target):
+    return Goal.objects.create(name=name, user=user, target=target, start_date=timezone.now(), end_date=timezone.now())
+
+
 class TestTipModel(TestCase):
 
     def setUp(self):
@@ -171,6 +175,18 @@ class TestFavouriteAPI(APITestCase):
         self.assertEqual(response.data[0].get('id', None), tip2.id)
 
 
+class TestGoalModel(TestCase):
+
+    def test_target_property(self):
+        user = create_test_regular_user()
+        goal = create_goal('Goal 1', user, 1000)
+        goal.transactions.create(date=timezone.now(), value=100)
+        goal.transactions.create(date=timezone.now(), value=300)
+        goal.transactions.create(date=timezone.now(), value=-50)
+
+        self.assertEqual(goal.value, 350, "Unexpected Goal value.")
+
+
 class TestGoalAPI(APITestCase):
 
     @staticmethod
@@ -199,8 +215,9 @@ class TestGoalAPI(APITestCase):
                                       is_staff=False, is_superuser=False)
 
     @staticmethod
-    def create_goal(name, user, value):
-        return Goal.objects.create(name=name, user=user, value=value, start_date=timezone.now(), end_date=timezone.now())
+    def create_goal(name, user, target):
+        return Goal.objects.create(name=name, user=user, target=target,
+                                   start_date=timezone.now(), end_date=timezone.now())
 
     def test_user_list_all_restriction(self):
         """A user must not see other user's Goals when listing all.
@@ -239,7 +256,7 @@ class TestGoalAPI(APITestCase):
             "transactions": [],
             "start_date": datetime.utcnow().strftime('%Y-%m-%d'),
             "end_date": datetime.utcnow().strftime('%Y-%m-%d'),
-            "value": 1000,
+            "target": 1000,
             "image": None
         }
 
@@ -260,7 +277,7 @@ class TestGoalAPI(APITestCase):
             "name": "Goal 2",
             "start_date": datetime.utcnow().strftime('%Y-%m-%d'),
             "end_date": datetime.utcnow().strftime('%Y-%m-%d'),
-            "value": 9000,
+            "target": 9000,
             "image": None
         }
 
@@ -272,7 +289,7 @@ class TestGoalAPI(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK, "Request was unsuccessful.")
         self.assertEqual(goal.pk, updated_goal.pk, "Returned Goal was not the same instance as the sent goal.")
         self.assertEqual("Goal 2", updated_goal.name, "Name was not updated.")
-        self.assertEqual(9000, updated_goal.value, "Value was not updated.")
+        self.assertEqual(9000, updated_goal.target, "Target was not updated.")
 
     def test_user_goal_create_for_other_restricted(self):
         """A User must not be able to create a Goal for another user."""
@@ -285,7 +302,7 @@ class TestGoalAPI(APITestCase):
             "transactions": [],
             "start_date": datetime.utcnow().strftime('%Y-%m-%d'),
             "end_date": datetime.utcnow().strftime('%Y-%m-%d'),
-            "value": 1000,
+            "target": 1000,
             "image": None,
             "user": user_2.id  # Different user
         }
@@ -301,13 +318,9 @@ class TestGoalAPI(APITestCase):
 
 class TestGoalTransactionAPI(APITestCase):
 
-    @staticmethod
-    def create_goal(name, user, value):
-        return Goal.objects.create(name=name, user=user, value=value, start_date=timezone.now(), end_date=timezone.now())
-
     def test_create_transactions(self):
         user = create_test_regular_user()
-        goal = self.create_goal('Goal 1', user, 1000)
+        goal = create_goal('Goal 1', user, 1000)
 
         data = [{
             "date": datetime.utcnow().isoformat(),
@@ -325,7 +338,7 @@ class TestGoalTransactionAPI(APITestCase):
 
     def test_create_avoid_duplicates(self):
         user = create_test_regular_user()
-        goal = self.create_goal('Goal 1', user, 1000)
+        goal = create_goal('Goal 1', user, 1000)
         trans = GoalTransaction.objects.create(goal=goal, date=timezone.now(), value=9000)
         trans2 = GoalTransaction.objects.create(goal=goal, date=timezone.now(), value=10000)
         trans3 = GoalTransaction.objects.create(goal=goal, date=timezone.now(), value=11000)
@@ -347,7 +360,7 @@ class TestGoalTransactionAPI(APITestCase):
 
     def test_goal_update_transaction_avoid_duplicates(self):
         user = create_test_regular_user()
-        goal = self.create_goal('Goal 1', user, 1000)
+        goal = create_goal('Goal 1', user, 1000)
         trans = GoalTransaction.objects.create(goal=goal, date=timezone.now(), value=50)
         trans2 = GoalTransaction.objects.create(goal=goal, date=timezone.now()+timezone.timedelta(seconds=1), value=100)
         trans3 = GoalTransaction.objects.create(goal=goal, date=timezone.now()+timezone.timedelta(seconds=2), value=200)
@@ -358,7 +371,7 @@ class TestGoalTransactionAPI(APITestCase):
             "name": "Goal 2",
             "start_date": datetime.utcnow().strftime('%Y-%m-%d'),
             "end_date": datetime.utcnow().strftime('%Y-%m-%d'),
-            "value": 9000,
+            "target": 9000,
             "transactions": [{
                 # Duplicate
                 "date": trans.date.isoformat(),
