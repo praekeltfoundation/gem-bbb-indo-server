@@ -1,13 +1,12 @@
-
 from django.contrib.auth.models import User
-from django.shortcuts import reverse
 from django.utils import timezone
 from rest_framework import serializers
+from rest_framework.reverse import reverse
 
-from content.models import Tip, TipFavourite
-from content.models import Goal, GoalTransaction
 from content.models import Challenge, Entry, FreeTextQuestion, Participant, ParticipantAnswer, ParticipantFreeText, \
     QuestionOption, QuizQuestion
+from content.models import Goal, GoalTransaction
+from content.models import Tip
 
 
 class QuestionOptionSerializer(serializers.ModelSerializer):
@@ -154,6 +153,7 @@ class GoalTransactionSerializer(serializers.ModelSerializer):
 
 class GoalSerializer(serializers.ModelSerializer):
     transactions = GoalTransactionSerializer(required=False, many=True)
+    transactions_url = serializers.HyperlinkedIdentityField('api:goals-transactions')
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
     image_url = serializers.SerializerMethodField()
 
@@ -164,7 +164,7 @@ class GoalSerializer(serializers.ModelSerializer):
         extra_kwargs = {'image': {'write_only': True}}
 
     def get_image_url(self, obj):
-        return reverse('goal-image', kwargs={'goal_pk': obj.pk})
+        return reverse('goal-image', kwargs={'goal_pk': obj.pk}, request=self.context['request'])
 
     def create(self, validated_data):
         transactions = validated_data.pop('transactions', [])
