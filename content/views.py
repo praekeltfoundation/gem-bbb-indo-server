@@ -118,7 +118,8 @@ class GoalViewSet(viewsets.ModelViewSet):
     """
     Endpoint for Goals and Transactions.
 
-    Transactions : /api/goals/{goal_pk)/transactions/
+    Posting transactions to `/api/goals/{goal_pk}/transactions/` will not create duplicates, based on the `date` and
+    `value`.
     """
     queryset = Goal.objects.all()
     serializer_class = GoalSerializer

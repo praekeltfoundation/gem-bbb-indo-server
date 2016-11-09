@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.utils import timezone
+from django.db.models import Q
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
@@ -139,7 +140,16 @@ class CurrentUserDefault(object):
 
 class GoalTransactionListSerializer(serializers.ListSerializer):
     def create(self, validated_data):
-        return [GoalTransaction(**t) for t in validated_data]
+        # TODO: Find alternative to lookup in Python. Possibly direct SQL.
+        # TODO: Get all transactions for Goal instead of using Q object.
+        q = Q()
+        trans = []
+        for t in validated_data:
+            # eg:(date=... AND value=...) OR (date=... AND value=...)
+            q |= Q(goal_id=t['goal'].id) & Q(date=t['date']) & Q(value=t['value'])
+            trans.append(GoalTransaction(**t))
+        exist = {(g.date, g.value, g.goal.id) for g in GoalTransaction.objects.filter(q)}
+        return GoalTransaction.objects.bulk_create([gt for gt in trans if (gt.date, gt.value, gt.goal.id) not in exist])
 
 
 class GoalTransactionSerializer(serializers.ModelSerializer):
@@ -147,8 +157,8 @@ class GoalTransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = GoalTransaction
         exclude = ('goal', 'id',)
-        # TODO
-        #list_serializer_class = GoalTransactionListSerializer
+        # TODO: Set up ListSerializer
+        list_serializer_class = GoalTransactionListSerializer
 
 
 class GoalSerializer(serializers.ModelSerializer):

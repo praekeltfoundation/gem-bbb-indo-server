@@ -322,6 +322,7 @@ class GoalTransaction(models.Model):
     class Meta:
         verbose_name = 'goal transaction'
         verbose_name_plural = 'goal transactions'
+        unique_together = ('date', 'value', 'goal')
 
     def __str__(self):
         return '{} {}'.format(self.date, self.value)

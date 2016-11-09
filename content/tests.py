@@ -320,7 +320,27 @@ class TestGoalTransactionAPI(APITestCase):
         transactions = goal.transactions.all()
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, "Creating Transactions request failed")
+        self.assertEqual(len(transactions), 1, "No transactions created.")
         self.assertEqual(transactions[0].value, 100, "Transaction value was not the same")
 
     def test_create_avoid_duplicates(self):
-        self.skipTest("TODO")
+        user = create_test_regular_user()
+        goal = self.create_goal('Goal 1', user, 1000)
+        trans = GoalTransaction.objects.create(goal=goal, date=timezone.now(), value=9000)
+        trans2 = GoalTransaction.objects.create(goal=goal, date=timezone.now(), value=10000)
+        trans3 = GoalTransaction.objects.create(goal=goal, date=timezone.now(), value=11000)
+
+        data = [{
+            "date": trans.date.isoformat(),
+            "value": trans.value
+        }]
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}),
+                                    data, format='json')
+        transactions = goal.transactions.all()
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, "Creating Transactions request failed")
+        self.assertEqual(len(transactions), 3, "Duplicate was possibly added.")
+        self.assertEqual(trans, transactions[0],
+                         "Returned transaction was not the same as the originally created one")
