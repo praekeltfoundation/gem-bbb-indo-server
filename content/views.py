@@ -120,6 +120,9 @@ class GoalViewSet(viewsets.ModelViewSet):
 
     Posting transactions to `/api/goals/{goal_pk}/transactions/` will not create duplicates, based on the `date` and
     `value`.
+
+    Transactions are immutable and cannot be updated or deleted. When updating a Goal, transactions added to the
+    `transactions` field are ignored when they exist, and created if they don't.
     """
     queryset = Goal.objects.all()
     serializer_class = GoalSerializer

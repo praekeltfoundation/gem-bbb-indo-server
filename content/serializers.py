@@ -139,6 +139,7 @@ class CurrentUserDefault(object):
 
 
 class GoalTransactionListSerializer(serializers.ListSerializer):
+
     def create(self, validated_data):
         # TODO: Find alternative to lookup in Python. Possibly direct SQL.
         # TODO: Get all transactions for Goal instead of using Q object.
@@ -149,7 +150,13 @@ class GoalTransactionListSerializer(serializers.ListSerializer):
             q |= Q(goal_id=t['goal'].id) & Q(date=t['date']) & Q(value=t['value'])
             trans.append(GoalTransaction(**t))
         exist = {(g.date, g.value, g.goal.id) for g in GoalTransaction.objects.filter(q)}
-        return GoalTransaction.objects.bulk_create([gt for gt in trans if (gt.date, gt.value, gt.goal.id) not in exist])
+
+        created_trans = [gt for gt in trans if (gt.date, gt.value, gt.goal.id) not in exist]
+
+        for t in created_trans:
+            t.save()
+
+        return created_trans
 
 
 class GoalTransactionSerializer(serializers.ModelSerializer):
@@ -186,9 +193,8 @@ class GoalSerializer(serializers.ModelSerializer):
         return goal
 
     def update(self, instance, validated_data):
+        # Transactions are ignored on update
         transactions_data = validated_data.pop('transactions', [])
-        transactions = instance.transactions.all()
-        trans_lookup = {datum.get('id', None) for datum in transactions_data}
 
         # Update Goal
         instance.name = validated_data.get('name', instance.name)
@@ -198,10 +204,14 @@ class GoalSerializer(serializers.ModelSerializer):
         # TODO: Image Field
         instance.user = validated_data.get('user', instance.user)
 
+        for t in transactions_data:
+            t['goal'] = instance
+
         instance.save()
 
-        # Update Transactions
-        # TODO: Transactions
+        for t in GoalTransactionSerializer(many=True, context=self.context).create(transactions_data):
+            # Add to instance in memory for return purposes.
+            instance.transactions.add(t)
 
         return instance
 

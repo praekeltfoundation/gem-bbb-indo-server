@@ -344,3 +344,42 @@ class TestGoalTransactionAPI(APITestCase):
         self.assertEqual(len(transactions), 3, "Duplicate was possibly added.")
         self.assertEqual(trans, transactions[0],
                          "Returned transaction was not the same as the originally created one")
+
+    def test_goal_update_transaction_avoid_duplicates(self):
+        user = create_test_regular_user()
+        goal = self.create_goal('Goal 1', user, 1000)
+        trans = GoalTransaction.objects.create(goal=goal, date=timezone.now(), value=50)
+        trans2 = GoalTransaction.objects.create(goal=goal, date=timezone.now()+timezone.timedelta(seconds=1), value=100)
+        trans3 = GoalTransaction.objects.create(goal=goal, date=timezone.now()+timezone.timedelta(seconds=2), value=200)
+
+        next_date = timezone.now()+timezone.timedelta(seconds=3)
+
+        data = {
+            "name": "Goal 2",
+            "start_date": datetime.utcnow().strftime('%Y-%m-%d'),
+            "end_date": datetime.utcnow().strftime('%Y-%m-%d'),
+            "value": 9000,
+            "transactions": [{
+                # Duplicate
+                "date": trans.date.isoformat(),
+                "value": trans.value
+            }, {
+                # New transaction
+                "date": next_date.isoformat(),
+                "value": 300
+            }],
+            "image": None
+        }
+
+        self.client.force_authenticate(user=user)
+        response = self.client.put(reverse('api:goals-detail', kwargs={'pk': goal.pk}), data, format='json')
+        updated_goal = Goal.objects.first()
+        updated_trans = goal.transactions.all().order_by('date')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Update Goal request failed.")
+        self.assertEqual(len(updated_trans), 4, "Unexpected number of transactions.")
+        self.assertEqual(updated_trans[0], trans, "Unexpected transaction.")
+        self.assertEqual(updated_trans[1], trans2, "Unexpected transaction.")
+        self.assertEqual(updated_trans[2], trans3, "Unexpected transaction.")
+        self.assertEqual(updated_trans[3].value, 300, "Unexpected transaction.")
+
