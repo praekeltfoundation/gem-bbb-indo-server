@@ -181,10 +181,11 @@ class TestGoalModel(TestCase):
         user = create_test_regular_user()
         goal = create_goal('Goal 1', user, 1000)
         goal.transactions.create(date=timezone.now(), value=100)
+        goal.transactions.create(date=timezone.now(), value=-90)
         goal.transactions.create(date=timezone.now(), value=300)
         goal.transactions.create(date=timezone.now(), value=-50)
 
-        self.assertEqual(goal.value, 350, "Unexpected Goal value.")
+        self.assertEqual(goal.value, 260, "Unexpected Goal value.")
 
 
 class TestGoalAPI(APITestCase):
@@ -339,9 +340,9 @@ class TestGoalTransactionAPI(APITestCase):
     def test_create_avoid_duplicates(self):
         user = create_test_regular_user()
         goal = create_goal('Goal 1', user, 1000)
-        trans = GoalTransaction.objects.create(goal=goal, date=timezone.now(), value=9000)
-        trans2 = GoalTransaction.objects.create(goal=goal, date=timezone.now(), value=10000)
-        trans3 = GoalTransaction.objects.create(goal=goal, date=timezone.now(), value=11000)
+        trans = GoalTransaction.objects.create(goal=goal, date=timezone.now(), value=90)
+        trans2 = GoalTransaction.objects.create(goal=goal, date=timezone.now(), value=10)
+        trans3 = GoalTransaction.objects.create(goal=goal, date=timezone.now(), value=110)
 
         data = [{
             "date": trans.date.isoformat(),

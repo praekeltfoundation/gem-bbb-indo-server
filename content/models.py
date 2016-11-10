@@ -309,7 +309,8 @@ class Goal(models.Model):
 
     @property
     def value(self):
-        return reduce(lambda acc, el: acc+el['value'], self.transactions.all().values('value'), 0)
+        return reduce(lambda acc, el: acc+el['value'],
+                      self.transactions.all().order_by('date', 'id').values('value'), 0)
 
     class Meta:
         verbose_name = 'goal'
