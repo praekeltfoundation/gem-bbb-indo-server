@@ -26,6 +26,22 @@ def create_test_admin_user(username='Anon'):
                                is_staff=True, is_superuser=False)
 
 
+# ================= #
+# Challenge Entries #
+# ================= #
+
+
+class TestEntryAPI(APITestCase):
+
+    def test_quiz_entry(self):
+        pass
+
+
+# ==== #
+# Tips #
+# ==== #
+
+
 def create_tip(title='Test tip', body='This is a test tip', **kwargs):
     parent_page = Page.get_root_nodes()[0]
     tip = Tip(
@@ -45,10 +61,6 @@ def publish_page(user, page):
         submitted_for_moderation=False,
     )
     revision.publish()
-
-
-def create_goal(name, user, target):
-    return Goal.objects.create(name=name, user=user, target=target, start_date=timezone.now(), end_date=timezone.now())
 
 
 class TestTipModel(TestCase):
@@ -173,6 +185,15 @@ class TestFavouriteAPI(APITestCase):
 
         self.assertEqual(len(response.data), 1, "Unexpected number of favourite tips returned.")
         self.assertEqual(response.data[0].get('id', None), tip2.id)
+
+
+# ===== #
+# Goals #
+# ===== #
+
+
+def create_goal(name, user, target):
+    return Goal.objects.create(name=name, user=user, target=target, start_date=timezone.now(), end_date=timezone.now())
 
 
 class TestGoalModel(TestCase):
