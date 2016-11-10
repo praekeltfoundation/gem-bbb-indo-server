@@ -1,22 +1,23 @@
-
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets
 from rest_framework import status
+from rest_framework import viewsets
 from rest_framework.decorators import list_route, detail_route
-from rest_framework.exceptions import PermissionDenied, NotFound
+from rest_framework.exceptions import PermissionDenied
+from rest_framework.generics import GenericAPIView
 from rest_framework.parsers import FileUploadParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.generics import GenericAPIView
 from sendfile import sendfile
 
-from .exceptions import InvalidQueryParam, ImageNotFound
+from .exceptions import ImageNotFound
 from .models import Challenge, Entry, ParticipantAnswer, ParticipantFreeText
-from .models import Tip, TipFavourite, Goal
+from .models import Goal
+from .models import Tip, TipFavourite
 from .permissions import IsAdminOrOwner
 from .serializers import ChallengeSerializer, EntrySerializer, ParticipantAnswerSerializer, \
     ParticipantFreeTextSerializer
-from .serializers import TipSerializer, GoalSerializer
+from .serializers import GoalSerializer, GoalTransactionSerializer
+from .serializers import TipSerializer
 
 
 class ChallengeViewSet(viewsets.ModelViewSet):
@@ -114,6 +115,15 @@ class TipViewSet(viewsets.ModelViewSet):
 
 
 class GoalViewSet(viewsets.ModelViewSet):
+    """
+    Endpoint for Goals and Transactions.
+
+    Posting transactions to `/api/goals/{goal_pk}/transactions/` will not create duplicates, based on the `date` and
+    `value`.
+
+    Transactions are immutable and cannot be updated or deleted. When updating a Goal, transactions added to the
+    `transactions` field are ignored when they exist, and created if they don't.
+    """
     queryset = Goal.objects.all()
     serializer_class = GoalSerializer
     permission_classes = (IsAdminOrOwner, IsAuthenticated,)
@@ -140,8 +150,26 @@ class GoalViewSet(viewsets.ModelViewSet):
             serializer.save()
             return Response(status=status.HTTP_200_OK)
 
+    @detail_route(methods=['post', 'get'])
+    def transactions(self, request, pk=None, *args, **kwargs):
+        goal = self.get_object()
+
+        if request.method == 'POST':
+            #context = self.get_serializer_context()
+            #context['goal'] = goal
+            serializer = GoalTransactionSerializer(data=request.data, many=True)
+            if serializer.is_valid(raise_exception=True):
+                serializer.save(goal=goal)
+                return Response(status=status.HTTP_204_NO_CONTENT)
+        elif request.method == 'GET':
+            serializer = GoalTransactionSerializer(goal.transactions.all(), many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
 
 class GoalImageView(GenericAPIView):
+    queryset = Goal.objects.all()
+    lookup_field = 'pk'
+    lookup_url_kwarg = 'goal_pk'
     parser_classes = (FileUploadParser,)
     permission_classes = (IsAuthenticated,)
     serializer_class = GoalSerializer
@@ -150,14 +178,14 @@ class GoalImageView(GenericAPIView):
         if not IsAdminOrOwner().has_object_permission(request, self, obj):
             raise PermissionDenied("Users can only access their own goal images.")
 
-    def post(self, request, goal_pk):
+    def post(self, request, goal_pk=None, *args, **kwargs):
         goal = get_object_or_404(Goal, pk=goal_pk)
         self.check_object_permissions(request, goal)
         goal.image = request.FILES['file']
         goal.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
-    def get(self, request, goal_pk):
+    def get(self, request, goal_pk=None, *args, **kwargs):
         goal = get_object_or_404(Goal, pk=goal_pk)
         self.check_object_permissions(request, goal)
         if not goal.image:

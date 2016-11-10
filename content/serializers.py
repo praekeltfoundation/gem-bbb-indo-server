@@ -1,13 +1,13 @@
-
 from django.contrib.auth.models import User
-from django.shortcuts import reverse
 from django.utils import timezone
+from django.db.models import Q
 from rest_framework import serializers
+from rest_framework.reverse import reverse
 
-from content.models import Tip, TipFavourite
-from content.models import Goal, GoalTransaction
 from content.models import Challenge, Entry, FreeTextQuestion, Participant, ParticipantAnswer, ParticipantFreeText, \
     QuestionOption, QuizQuestion
+from content.models import Goal, GoalTransaction
+from content.models import Tip
 
 
 class QuestionOptionSerializer(serializers.ModelSerializer):
@@ -130,15 +130,50 @@ class TipSerializer(serializers.ModelSerializer):
         fields = ('id', 'title', 'article_url', 'cover_image_url', 'tags')
 
 
+class CurrentUserDefault(object):
+    def set_context(self, serializer_field):
+        self.goal = Goal.objects.get(serializer_field.context['goal'])
+
+    def __call__(self):
+        return self.goal
+
+
+class GoalTransactionListSerializer(serializers.ListSerializer):
+
+    def create(self, validated_data):
+        # TODO: Find alternative to lookup in Python. Possibly direct SQL.
+        # TODO: Get all transactions for Goal instead of using Q object.
+        q = Q()
+        trans = []
+        for t in validated_data:
+            # eg:(date=... AND value=...) OR (date=... AND value=...)
+            q |= Q(goal_id=t['goal'].id) & Q(date=t['date']) & Q(value=t['value'])
+            trans.append(GoalTransaction(**t))
+        exist = {(g.date, g.value, g.goal.id) for g in GoalTransaction.objects.filter(q)}
+
+        created_trans = [gt for gt in trans if (gt.date, gt.value, gt.goal.id) not in exist]
+
+        for t in created_trans:
+            t.save()
+
+        return created_trans
+
+
 class GoalTransactionSerializer(serializers.ModelSerializer):
+    value = serializers.DecimalField(18, 2, coerce_to_string=False)
 
     class Meta:
         model = GoalTransaction
         exclude = ('goal', 'id',)
+        # TODO: Set up ListSerializer
+        list_serializer_class = GoalTransactionListSerializer
 
 
 class GoalSerializer(serializers.ModelSerializer):
+    value = serializers.ReadOnlyField()
+    target = serializers.DecimalField(18, 2, coerce_to_string=False)
     transactions = GoalTransactionSerializer(required=False, many=True)
+    transactions_url = serializers.HyperlinkedIdentityField('api:goals-transactions')
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
     image_url = serializers.SerializerMethodField()
 
@@ -149,7 +184,7 @@ class GoalSerializer(serializers.ModelSerializer):
         extra_kwargs = {'image': {'write_only': True}}
 
     def get_image_url(self, obj):
-        return reverse('goal-image', kwargs={'goal_pk': obj.pk})
+        return reverse('goal-image', kwargs={'goal_pk': obj.pk}, request=self.context['request'])
 
     def create(self, validated_data):
         transactions = validated_data.pop('transactions', [])
@@ -161,22 +196,25 @@ class GoalSerializer(serializers.ModelSerializer):
         return goal
 
     def update(self, instance, validated_data):
+        # Transactions are ignored on update
         transactions_data = validated_data.pop('transactions', [])
-        transactions = instance.transactions.all()
-        trans_lookup = {datum.get('id', None) for datum in transactions_data}
 
         # Update Goal
         instance.name = validated_data.get('name', instance.name)
         instance.start_date = validated_data.get('start_date', instance.start_date)
         instance.end_date = validated_data.get('validate_date', instance.end_date)
-        instance.value = validated_data.get('value', instance.value)
+        instance.target = validated_data.get('target', instance.target)
         # TODO: Image Field
         instance.user = validated_data.get('user', instance.user)
 
+        for t in transactions_data:
+            t['goal'] = instance
+
         instance.save()
 
-        # Update Transactions
-        # TODO: Transactions
+        for t in GoalTransactionSerializer(many=True, context=self.context).create(transactions_data):
+            # Add to instance in memory for return purposes.
+            instance.transactions.add(t)
 
         return instance
 

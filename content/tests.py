@@ -15,6 +15,11 @@ from .models import Goal, GoalTransaction
 from .serializers import GoalSerializer
 
 
+def create_test_regular_user(username='AnonReg'):
+    return RegUser.objects.create(username=username, email='anon-reg@ymous.org', password='Blarg',
+                                  is_staff=False, is_superuser=False)
+
+
 def create_test_admin_user(username='Anon'):
     """Creates a staff user."""
     return User.objects.create(username=username, email='anon@ymous.org', password='Blarg',
@@ -40,6 +45,10 @@ def publish_page(user, page):
         submitted_for_moderation=False,
     )
     revision.publish()
+
+
+def create_goal(name, user, target):
+    return Goal.objects.create(name=name, user=user, target=target, start_date=timezone.now(), end_date=timezone.now())
 
 
 class TestTipModel(TestCase):
@@ -166,6 +175,18 @@ class TestFavouriteAPI(APITestCase):
         self.assertEqual(response.data[0].get('id', None), tip2.id)
 
 
+class TestGoalModel(TestCase):
+
+    def test_target_property(self):
+        user = create_test_regular_user()
+        goal = create_goal('Goal 1', user, 1000)
+        goal.transactions.create(date=timezone.now(), value=100)
+        goal.transactions.create(date=timezone.now(), value=300)
+        goal.transactions.create(date=timezone.now(), value=-50)
+
+        self.assertEqual(goal.value, 350, "Unexpected Goal value.")
+
+
 class TestGoalAPI(APITestCase):
 
     @staticmethod
@@ -194,8 +215,9 @@ class TestGoalAPI(APITestCase):
                                       is_staff=False, is_superuser=False)
 
     @staticmethod
-    def create_goal(name, user, value):
-        return Goal.objects.create(name=name, user=user, value=value, start_date=timezone.now(), end_date=timezone.now())
+    def create_goal(name, user, target):
+        return Goal.objects.create(name=name, user=user, target=target,
+                                   start_date=timezone.now(), end_date=timezone.now())
 
     def test_user_list_all_restriction(self):
         """A user must not see other user's Goals when listing all.
@@ -234,7 +256,7 @@ class TestGoalAPI(APITestCase):
             "transactions": [],
             "start_date": datetime.utcnow().strftime('%Y-%m-%d'),
             "end_date": datetime.utcnow().strftime('%Y-%m-%d'),
-            "value": 1000,
+            "target": 1000,
             "image": None
         }
 
@@ -255,7 +277,7 @@ class TestGoalAPI(APITestCase):
             "name": "Goal 2",
             "start_date": datetime.utcnow().strftime('%Y-%m-%d'),
             "end_date": datetime.utcnow().strftime('%Y-%m-%d'),
-            "value": 9000,
+            "target": 9000,
             "image": None
         }
 
@@ -267,7 +289,7 @@ class TestGoalAPI(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK, "Request was unsuccessful.")
         self.assertEqual(goal.pk, updated_goal.pk, "Returned Goal was not the same instance as the sent goal.")
         self.assertEqual("Goal 2", updated_goal.name, "Name was not updated.")
-        self.assertEqual(9000, updated_goal.value, "Value was not updated.")
+        self.assertEqual(9000, updated_goal.target, "Target was not updated.")
 
     def test_user_goal_create_for_other_restricted(self):
         """A User must not be able to create a Goal for another user."""
@@ -280,7 +302,7 @@ class TestGoalAPI(APITestCase):
             "transactions": [],
             "start_date": datetime.utcnow().strftime('%Y-%m-%d'),
             "end_date": datetime.utcnow().strftime('%Y-%m-%d'),
-            "value": 1000,
+            "target": 1000,
             "image": None,
             "user": user_2.id  # Different user
         }
@@ -292,3 +314,85 @@ class TestGoalAPI(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, "Creating Goal failed.")
         self.assertEqual(user_1, goal.user, "User managed to create Goal for someone else.")
+
+
+class TestGoalTransactionAPI(APITestCase):
+
+    def test_create_transactions(self):
+        user = create_test_regular_user()
+        goal = create_goal('Goal 1', user, 1000)
+
+        data = [{
+            "date": datetime.utcnow().isoformat(),
+            "value": 100
+        }]
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}),
+                                    data, format='json')
+        transactions = goal.transactions.all()
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, "Creating Transactions request failed")
+        self.assertEqual(len(transactions), 1, "No transactions created.")
+        self.assertEqual(transactions[0].value, 100, "Transaction value was not the same")
+
+    def test_create_avoid_duplicates(self):
+        user = create_test_regular_user()
+        goal = create_goal('Goal 1', user, 1000)
+        trans = GoalTransaction.objects.create(goal=goal, date=timezone.now(), value=9000)
+        trans2 = GoalTransaction.objects.create(goal=goal, date=timezone.now(), value=10000)
+        trans3 = GoalTransaction.objects.create(goal=goal, date=timezone.now(), value=11000)
+
+        data = [{
+            "date": trans.date.isoformat(),
+            "value": trans.value
+        }]
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}),
+                                    data, format='json')
+        transactions = goal.transactions.all()
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, "Creating Transactions request failed")
+        self.assertEqual(len(transactions), 3, "Duplicate was possibly added.")
+        self.assertEqual(trans, transactions[0],
+                         "Returned transaction was not the same as the originally created one")
+
+    def test_goal_update_transaction_avoid_duplicates(self):
+        user = create_test_regular_user()
+        goal = create_goal('Goal 1', user, 1000)
+        trans = GoalTransaction.objects.create(goal=goal, date=timezone.now(), value=50)
+        trans2 = GoalTransaction.objects.create(goal=goal, date=timezone.now()+timezone.timedelta(seconds=1), value=100)
+        trans3 = GoalTransaction.objects.create(goal=goal, date=timezone.now()+timezone.timedelta(seconds=2), value=200)
+
+        next_date = timezone.now()+timezone.timedelta(seconds=3)
+
+        data = {
+            "name": "Goal 2",
+            "start_date": datetime.utcnow().strftime('%Y-%m-%d'),
+            "end_date": datetime.utcnow().strftime('%Y-%m-%d'),
+            "target": 9000,
+            "transactions": [{
+                # Duplicate
+                "date": trans.date.isoformat(),
+                "value": trans.value
+            }, {
+                # New transaction
+                "date": next_date.isoformat(),
+                "value": 300
+            }],
+            "image": None
+        }
+
+        self.client.force_authenticate(user=user)
+        response = self.client.put(reverse('api:goals-detail', kwargs={'pk': goal.pk}), data, format='json')
+        updated_goal = Goal.objects.first()
+        updated_trans = goal.transactions.all().order_by('date')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Update Goal request failed.")
+        self.assertEqual(len(updated_trans), 4, "Unexpected number of transactions.")
+        self.assertEqual(updated_trans[0], trans, "Unexpected transaction.")
+        self.assertEqual(updated_trans[1], trans2, "Unexpected transaction.")
+        self.assertEqual(updated_trans[2], trans3, "Unexpected transaction.")
+        self.assertEqual(updated_trans[3].value, 300, "Unexpected transaction.")
+
