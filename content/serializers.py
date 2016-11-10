@@ -122,8 +122,15 @@ class EntrySerializer(serializers.ModelSerializer):
 
 class TipSerializer(serializers.ModelSerializer):
     article_url = serializers.ReadOnlyField(source='url', read_only=True)
-    cover_image_url = serializers.ReadOnlyField(source='get_cover_image_url', read_only=True)
+    cover_image_url = serializers.SerializerMethodField()
     tags = serializers.ReadOnlyField(source='get_tag_name_list', read_only=True)
+
+    def get_cover_image_url(self, obj):
+        request = self.context['request']
+        if obj.cover_image:
+            return request.build_absolute_uri(obj.cover_image.file.url)
+        else:
+            return None
 
     class Meta:
         model = Tip
@@ -184,7 +191,10 @@ class GoalSerializer(serializers.ModelSerializer):
         extra_kwargs = {'image': {'write_only': True}}
 
     def get_image_url(self, obj):
-        return reverse('goal-image', kwargs={'goal_pk': obj.pk}, request=self.context['request'])
+        if obj.image:
+            return reverse('goal-image', kwargs={'goal_pk': obj.pk}, request=self.context['request'])
+        else:
+            return None
 
     def create(self, validated_data):
         transactions = validated_data.pop('transactions', [])
