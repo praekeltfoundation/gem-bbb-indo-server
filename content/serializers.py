@@ -121,9 +121,13 @@ class EntrySerializer(serializers.ModelSerializer):
 
 
 class TipSerializer(serializers.ModelSerializer):
-    article_url = serializers.ReadOnlyField(source='url', read_only=True)
+    article_url = serializers.SerializerMethodField()
     cover_image_url = serializers.SerializerMethodField()
     tags = serializers.ReadOnlyField(source='get_tag_name_list', read_only=True)
+
+    def get_article_url(self, obj):
+        request = self.context['request']
+        return request.build_absolute_uri(obj.url)
 
     def get_cover_image_url(self, obj):
         request = self.context['request']
