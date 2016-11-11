@@ -81,7 +81,7 @@ class TipViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None, *args, **kwargs):
-        serializer = self.get_serializer(get_object_or_404(self.get_queryset(), pk=pk))
+        serializer = self.get_serializer(self.get_object())
         return Response(serializer.data)
 
     @list_route(methods=['get'])
