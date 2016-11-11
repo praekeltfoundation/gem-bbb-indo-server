@@ -60,6 +60,41 @@ def validate_participant(data, errors):
     return None
 
 
+class KeyValueField(serializers.Field):
+    """ A field that takes a field's value as the key and returns
+    the associated value for serialization """
+
+    labels = {}
+    inverted_labels = {}
+
+    def __init__(self, labels, *args, **kwargs):
+        self.labels = labels
+        # Check to make sure the labels dict is reversible, otherwise
+        # deserialization may produce unpredictable results
+        inverted = {}
+        for k, v in labels.iteritems():
+            if v in inverted:
+                raise ValueError(
+                    'The field is not deserializable with the given labels.'
+                    ' Please ensure that labels map 1:1 with values'
+                )
+            inverted[v] = k
+        self.inverted_labels = inverted
+        super(KeyValueField, self).__init__(*args, **kwargs)
+
+    def to_representation(self, obj):
+        if type(obj) is list:
+            return [self.labels.get(o, None) for o in obj]
+        else:
+            return self.labels.get(obj, None)
+
+    def to_internal_value(self, data):
+        if type(data) is list:
+            return [self.inverted_labels.get(o, None) for o in data]
+        else:
+            return self.inverted_labels.get(data, None)
+
+
 class QuestionOptionSerializer(serializers.ModelSerializer):
     class Meta:
         model = QuestionOption
@@ -81,8 +116,12 @@ class FreeTextSerializer(serializers.ModelSerializer):
 
 
 class ChallengeSerializer(serializers.ModelSerializer):
+    # challenge type enum mapping
+    challenge_types = {Challenge.CTP_QUIZ: 'quiz', Challenge.CTP_PICTURE: 'picture', Challenge.CTP_FREEFORM: 'freeform'}
+
     questions = QuestionSerializer(many=True, read_only=True, required=False)
     freetext_question = FreeTextSerializer(read_only=True, required=False)
+    type = KeyValueField(read_only=True, labels=challenge_types)
 
     class Meta:
         model = Challenge
