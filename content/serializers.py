@@ -72,7 +72,7 @@ class KeyValueField(serializers.Field):
         # Check to make sure the labels dict is reversible, otherwise
         # deserialization may produce unpredictable results
         inverted = {}
-        for k, v in labels.iteritems():
+        for k, v in labels.items():
             if v in inverted:
                 raise ValueError(
                     'The field is not deserializable with the given labels.'
