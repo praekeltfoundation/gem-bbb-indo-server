@@ -11,7 +11,7 @@ from rest_framework.response import Response
 from sendfile import sendfile
 
 from .models import RegUser, User
-from .permissions import IsUserSelf
+from .permissions import IsUserSelf, IsRegisteringOrSelf
 from .serializers import RegUserDeepSerializer
 
 
@@ -48,14 +48,15 @@ class ProfileImageView(GenericAPIView):
 class RegUserViewSet(viewsets.ModelViewSet):
     queryset = RegUser.objects.all()
     serializer_class = RegUserDeepSerializer
+    permission_classes = (IsRegisteringOrSelf,)
     http_method_names = ('options', 'head', 'get', 'post',)
 
     def list(self, request, *args, **kwargs):
-        serializer = self.get_serializer(self.get_queryset(), many=True)
+        serializer = self.get_serializer(self.get_queryset(pk=request.user.pk), many=True)
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None, *args, **kwargs):
-        serializer = self.get_serializer(get_object_or_404(self.get_queryset(), pk=pk))
+        serializer = self.get_serializer(self.get_object())
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):

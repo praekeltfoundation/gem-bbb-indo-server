@@ -81,6 +81,36 @@ class TestUserAPI(APITestCase):
         self.assertEqual(user.profile.age, 18, "Unexpected age.")
         self.assertEqual(user.profile.gender, Profile.GENDER_FEMALE, "Unexpected gender.")
 
+    def test_user_retrieve_own_profile(self):
+        user_1 = RegUser.objects.create(username='User1', password='password1')
+
+        self.client.force_authenticate(user=user_1)
+        response = self.client.get(reverse('api:users-detail', kwargs={'pk': user_1.pk}))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "User could not access own data.")
+        self.assertEqual(response.data['id'], user_1.id, "Unexpected User id.")
+
+    def test_user_restriction(self):
+        """Users can't retrieve each other's profiles."""
+        user_1 = RegUser.objects.create(username='User1', password='password1')
+        user_2 = RegUser.objects.create(username='User2', password='password2')
+
+        self.client.force_authenticate(user=user_1)
+        response = self.client.get(reverse('api:users-detail', kwargs={'pk': user_2.pk}))
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, "User can access restricted user data.")
+
+    def test_anonymous_restriction(self):
+        """Users can't retrieve each other's profiles."""
+        user_1 = RegUser.objects.create(username='User1', password='password1')
+        user_2 = RegUser.objects.create(username='User2', password='password2')
+
+        response_1 = self.client.get(reverse('api:users-detail', kwargs={'pk': user_1.pk}))
+        response_2 = self.client.get(reverse('api:users-detail', kwargs={'pk': user_2.pk}))
+
+        self.assertEqual(response_1.status_code, status.HTTP_403_FORBIDDEN, "Anonymous can access restricted user data.")
+        self.assertEqual(response_2.status_code, status.HTTP_403_FORBIDDEN, "Anonymous can access restricted user data.")
+
 
 class TestToken(test.TestCase):
 
