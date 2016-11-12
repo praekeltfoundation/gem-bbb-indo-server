@@ -17,7 +17,7 @@ from wagtail.wagtailcore import models as wagtail_models
 from wagtail.wagtailimages import edit_handlers as wagtail_image_edit
 from wagtail.wagtailimages import models as wagtail_image_models
 
-from .storage import GoalImgStorage
+from .storage import GoalImgStorage, ParticipantPictureStorage
 
 
 @python_2_unicode_compatible
@@ -200,11 +200,19 @@ class ParticipantAnswer(models.Model):
         return str(self.participant.user.username)[:8] + str(self.question.text[:8]) + str(self.selected_option.text[:8])
 
 
+def get_challenge_image_filename(instance, filename):
+    return '{}-{}'.format(instance.user.pk, filename)
+
+
 @python_2_unicode_compatible
 class ParticipantPicture(models.Model):
     participant = models.ForeignKey(Participant, null=True, related_name='picture_answer')
     question = models.ForeignKey(PictureQuestion, blank=False, null=True, related_name='+')
-    picture = models.ImageField()
+    picture = models.ImageField(_('picture'),
+                                upload_to=get_challenge_image_filename,
+                                storage=ParticipantPictureStorage(),
+                                null=True,
+                                blank=True)
     date_answered = models.DateTimeField(_('answered on'))
     date_saved = models.DateTimeField(_('saved on'), default=timezone.now)
 
