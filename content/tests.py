@@ -1,5 +1,5 @@
 
-from datetime import datetime
+from datetime import datetime, date, timedelta
 import json
 
 from django.test import TestCase
@@ -187,6 +187,53 @@ class TestGoalModel(TestCase):
         goal.transactions.create(date=timezone.now(), value=-50)
 
         self.assertEqual(goal.value, 260, "Unexpected Goal value.")
+
+    def test_week_count(self):
+        user = create_test_regular_user()
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=25000,
+            start_date=timezone.now() - timedelta(days=14),
+            end_date=timezone.now()
+        )
+        weeks = goal.week_count
+        self.assertEqual(3, weeks, "Unexpected number of weeks.")
+
+    def test_week_aggregates(self):
+        user = create_test_regular_user()
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=25000,
+            start_date=date(2016, 11, 1),
+            end_date=date(2016, 11, 25)
+        )
+
+        # Week 1
+        goal.transactions.create(date=date(2016, 11, 2), value=100)
+
+        # Week 2
+        goal.transactions.create(date=date(2016, 11, 8), value=100)
+        goal.transactions.create(date=date(2016, 11, 9), value=100)
+
+        # Week 3
+        goal.transactions.create(date=date(2016, 11, 15), value=100)
+        goal.transactions.create(date=date(2016, 11, 16), value=100)
+        goal.transactions.create(date=date(2016, 11, 17), value=100)
+
+        # Week 4
+        goal.transactions.create(date=date(2016, 11, 21), value=100)
+        goal.transactions.create(date=date(2016, 11, 22), value=100)
+        goal.transactions.create(date=date(2016, 11, 23), value=100)
+        goal.transactions.create(date=date(2016, 11, 24), value=100)
+
+        weekly_totals = goal.weekly_totals
+
+        self.assertEqual(weekly_totals[0].value, 100)
+        self.assertEqual(weekly_totals[1].value, 200)
+        self.assertEqual(weekly_totals[2].value, 300)
+        self.assertEqual(weekly_totals[3].value, 400)
 
 
 class TestGoalAPI(APITestCase):
