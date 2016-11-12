@@ -258,12 +258,6 @@ class Tip(wagtail_models.Page):
         wagtail_edit_handlers.FieldPanel('tags'),
     ]
 
-    def get_cover_image_url(self):
-        if self.cover_image:
-            return self.cover_image.file.url
-        else:
-            return None
-
     def get_tag_name_list(self):
         return [tag.name for tag in self.tags.all()]
 

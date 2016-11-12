@@ -90,11 +90,6 @@ class TestTipModel(TestCase):
         # )
         # image.save()
 
-    def test_cover_none(self):
-        """When a Tip does not have a cover image set, the image url must be None."""
-        tip = create_tip()
-        self.assertIsNone(tip.get_cover_image_url(), 'Cover image url is not None.')
-
 
 class TestTipAPI(APITestCase):
 
@@ -118,6 +113,12 @@ class TestTipAPI(APITestCase):
         self.assertEqual(Tip.objects.all().count(), 2, 'Test did not set up Tip pages correctly.')
         self.assertEqual(len(data), 1, 'View returned more than one Tip.')
         self.assertEqual(data[0]['title'], 'Live tip', 'The returned Tip was not the expected live page.')
+
+    def test_cover_none(self):
+        """When a Tip does not have a cover image set, the image url must be None."""
+        tip = create_tip()
+        response = self.client.get(reverse('api:tips-detail', kwargs={'pk': tip.pk}))
+        self.assertIsNone(response.data['cover_image_url'], 'Cover image url is not None.')
 
 
 class TestFavouriteAPI(APITestCase):
