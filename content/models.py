@@ -1,4 +1,5 @@
 
+from collections import OrderedDict
 from datetime import timedelta
 from functools import reduce
 
@@ -326,22 +327,20 @@ class Goal(models.Model):
 
     @property
     def weekly_totals(self):
-        trans = self.transactions.all()
         monday, sunday = self._date_window(self.start_date)
-        agg = [self.WeekAggregate(monday, sunday)]
+        agg = OrderedDict()
+        agg[monday] = self.WeekAggregate(monday, sunday)
 
-        for t in trans:
-            if t.date.date() > self.end_date:
-                break
+        while sunday <= self.end_date:
+            monday, sunday = self._date_window(sunday + timedelta(days=1))
+            agg[monday] = self.WeekAggregate(monday, sunday)
 
-            if t.date.date() > sunday:
-                monday, sunday = self._date_window(sunday + timedelta(days=1))
-                agg.append(self.WeekAggregate(monday, sunday))
+        for t in self.transactions.all():
+            monday = Goal._monday(t.date.date())
+            if monday in agg:
+                agg[monday].value += t.value
 
-            week_agg = agg[len(agg) - 1]
-            week_agg.value += t.value
-
-        return agg
+        return [v for k, v in agg.items()]
 
     class Meta:
         verbose_name = 'goal'

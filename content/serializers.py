@@ -191,14 +191,14 @@ class GoalSerializer(serializers.ModelSerializer):
     target = serializers.DecimalField(18, 2, coerce_to_string=False)
     transactions = GoalTransactionSerializer(required=False, many=True)
     transactions_url = serializers.HyperlinkedIdentityField('api:goals-transactions')
-    weekly_totals = GoalAggregateSerializer(read_only=True, many=True)
+    weekly_totals = GoalAggregateSerializer(many=True)
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
     image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Goal
         fields = '__all__'
-        read_only_fields = ('id',)
+        read_only_fields = ('id', 'weekly_totals')
         extra_kwargs = {'image': {'write_only': True}}
 
     def get_image_url(self, obj):
