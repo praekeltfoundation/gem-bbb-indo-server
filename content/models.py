@@ -1,6 +1,10 @@
+
+from collections import OrderedDict
+from datetime import timedelta
 from functools import reduce
-from django.db import models
+
 from django.contrib.auth.models import User
+from django.db import models
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.translation import ugettext as _
@@ -8,10 +12,10 @@ from modelcluster import fields as modelcluster_fields
 from modelcluster.contrib.taggit import ClusterTaggableManager
 from taggit.models import TaggedItemBase
 from wagtail.wagtailadmin import edit_handlers as wagtail_edit_handlers
-from wagtail.wagtailcore import models as wagtail_models
 from wagtail.wagtailcore import fields as wagtail_fields
-from wagtail.wagtailimages import models as wagtail_image_models
+from wagtail.wagtailcore import models as wagtail_models
 from wagtail.wagtailimages import edit_handlers as wagtail_image_edit
+from wagtail.wagtailimages import models as wagtail_image_models
 
 from .storage import GoalImgStorage, ParticipantPictureStorage
 
@@ -312,12 +316,52 @@ class Goal(models.Model):
         return reduce(lambda acc, el: acc+el['value'],
                       self.transactions.all().order_by('date', 'id').values('value'), 0)
 
+    @property
+    def week_count(self):
+        monday1 = Goal._monday(self.start_date)
+        monday2 = Goal._monday(self.end_date)
+
+        # Weeks are inclusive, so 1 is added
+        return int(((monday2 - monday1).days / 7) + 1)
+
+    @staticmethod
+    def _monday(d):
+        return d - timedelta(days=d.weekday())
+
+    @staticmethod
+    def _date_window(d):
+        monday = Goal._monday(d)
+        return monday, monday + timedelta(days=6)
+
+    @property
+    def weekly_totals(self):
+        monday, sunday = self._date_window(self.start_date)
+        agg = OrderedDict()
+        agg[monday] = self.WeekAggregate(monday, sunday)
+
+        while sunday <= self.end_date:
+            monday, sunday = self._date_window(sunday + timedelta(days=1))
+            agg[monday] = self.WeekAggregate(monday, sunday)
+
+        for t in self.transactions.all():
+            monday = Goal._monday(t.date.date())
+            if monday in agg:
+                agg[monday].value += t.value
+
+        return [v for k, v in agg.items()]
+
     class Meta:
         verbose_name = 'goal'
         verbose_name_plural = 'goals'
 
     def __str__(self):
         return self.name
+
+    class WeekAggregate:
+        def __init__(self, start_date, end_date, value=0):
+            self.start_date = start_date
+            self.end_date = end_date
+            self.value = value
 
 
 @python_2_unicode_compatible
