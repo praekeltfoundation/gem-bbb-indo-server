@@ -10,6 +10,9 @@ from rest_framework.test import APITestCase
 from wagtail.wagtailcore.models import Page
 from users.models import User, RegUser
 
+from .models import Challenge
+from .models import QuizQuestion, QuestionOption
+from .models import Entry
 from .models import Tip, TipFavourite
 from .models import Goal, GoalTransaction
 from .serializers import GoalSerializer
@@ -31,10 +34,33 @@ def create_test_admin_user(username='Anon'):
 # ================= #
 
 
+def create_quiz():
+    challenge = Challenge.objects.create(
+        name='Test Challenge',
+        type=Challenge.CTP_QUIZ,
+        state=Challenge.CST_PUBLISHED,
+        activation_date=timezone.now(),
+        deactivation_date=timezone.now()
+    )
+
+    q1 = challenge.questions.create(text='Can you touch your toes?')
+    q1.options.create(text='Yes', correct=True)
+    q1.options.create(text='No')
+
+    q2 = challenge.questions.create(text='Can you land on the sun?')
+    q2.options.create(text='Yes')
+    q2.options.create(text='No', correct=True)
+
+    return challenge
+
+
 class TestEntryAPI(APITestCase):
 
     def test_quiz_entry(self):
-        pass
+        user = RegUser.objects.create(username='Anon')
+        challenge = create_quiz()
+
+        entry_data = {}
 
 
 # ==== #

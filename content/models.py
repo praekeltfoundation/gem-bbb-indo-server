@@ -18,6 +18,11 @@ from wagtail.wagtailimages import edit_handlers as wagtail_image_edit
 from .storage import GoalImgStorage, ParticipantPictureStorage
 
 
+# ========= #
+# Challenge #
+# ========= #
+
+
 @python_2_unicode_compatible
 class Challenge(models.Model):
     # challenge states
@@ -152,6 +157,11 @@ class FreeTextQuestion(models.Model):
         return self.text
 
 
+# ================= #
+# Challenge Entries #
+# ================= #
+
+
 @python_2_unicode_compatible
 class Participant(models.Model):
     user = models.ForeignKey(User, related_name='users', blank=False, null=True)
@@ -238,6 +248,11 @@ class ParticipantFreeText(models.Model):
         return str(self.participant) + ': Free'
 
 
+# ==== #
+# Tips #
+# ==== #
+
+
 class TipTag(TaggedItemBase):
     content_object = modelcluster_fields.ParentalKey('content.Tip', related_name='tagged_item')
 
@@ -294,6 +309,11 @@ class TipFavourite(models.Model):
 
     def unfavourite(self):
         self.state = self.TFST_INACTIVE
+
+
+# ==== #
+# Goal #
+# ==== #
 
 
 def get_goal_image_filename(instance, filename):
