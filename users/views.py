@@ -3,6 +3,7 @@ from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
+from rest_framework.decorators import detail_route
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.generics import GenericAPIView
 from rest_framework.parsers import FileUploadParser
@@ -49,7 +50,7 @@ class RegUserViewSet(viewsets.ModelViewSet):
     queryset = RegUser.objects.all()
     serializer_class = RegUserDeepSerializer
     permission_classes = (IsRegisteringOrSelf,)
-    http_method_names = ('options', 'head', 'get', 'post',)
+    http_method_names = ('options', 'head', 'get', 'post', 'patch',)
 
     def list(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_queryset(pk=request.user.pk), many=True)
@@ -64,6 +65,13 @@ class RegUserViewSet(viewsets.ModelViewSet):
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(serializer.data, status.HTTP_201_CREATED)
+
+    def partial_update(self, request, pk=None, *args, **kwargs):
+        obj = self.get_object()
+        serializer = self.get_serializer(obj, data=request.data, partial=True)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ObtainUserAuthTokenView(ObtainAuthToken):

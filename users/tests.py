@@ -81,6 +81,34 @@ class TestUserAPI(APITestCase):
         self.assertEqual(user.profile.age, 18, "Unexpected age.")
         self.assertEqual(user.profile.gender, Profile.GENDER_FEMALE, "Unexpected gender.")
 
+    def test_username_update(self):
+        user = RegUser.objects.create(username='First', password='password1')
+
+        data = {'username': 'Second'}
+
+        self.client.force_authenticate(user=user)
+        response = self.client.patch(reverse('api:users-detail', kwargs={'pk': user.pk}), data, format='json')
+
+        update_user = RegUser.objects.get(id=user.id)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, "Username update request failed.")
+        self.assertEqual(update_user.username, 'Second', "Username was not update.")
+
+    def test_password_update(self):
+        user = User.objects.create(username='anon')
+        user.set_password('first')
+        user.save()
+
+        data = {'password': 'second'}
+
+        self.client.login(username='anon', password='first')
+        response = self.client.patch(reverse('api:users-detail', kwargs={'pk': user.pk}), data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, "Username update request failed.")
+
+        self.client.logout()
+        self.assertTrue(self.client.login(username='anon', password='second'), "Could not log in with new password.")
+
     def test_user_retrieve_own_profile(self):
         user_1 = RegUser.objects.create(username='User1', password='password1')
 
