@@ -330,8 +330,15 @@ class Goal(models.Model):
         return int(((monday2 - monday1).days / 7) + 1)
 
     @property
+    def week_count_to_now(self):
+        """Provides the number of weeks from the start date to the current date."""
+        monday1 = Goal._monday(self.start_date)
+        monday2 = Goal._monday(timezone.now().date())
+        return int(((monday2 - monday1).days / 7) + 1)
+
+    @property
     def weekly_average(self):
-        return self.value / self.week_count
+        return self.value / self.week_count_to_now
 
     @property
     def weekly_target(self):

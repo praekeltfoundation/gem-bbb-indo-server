@@ -1,4 +1,3 @@
-
 from collections import OrderedDict
 
 from django.contrib.auth.models import User
@@ -177,8 +176,8 @@ class EntrySerializer(serializers.ModelSerializer):
         if answers is None or not isinstance(answers, list):
             raise serializers.ValidationError('Should be a list of answers.')
         question_ids = [answer['question'].id for answer in data['answers']]
-        required_questions = QuizQuestion.objects\
-            .filter(challenge_id=participant.challenge_id)\
+        required_questions = QuizQuestion.objects \
+            .filter(challenge_id=participant.challenge_id) \
             .values_list('id', flat=True)
         if not set(required_questions).issubset(question_ids):
             raise serializers.ValidationError('Not all questions answered.')
@@ -225,7 +224,6 @@ class CurrentUserDefault(object):
 
 
 class GoalTransactionListSerializer(serializers.ListSerializer):
-
     def create(self, validated_data):
         # TODO: Find alternative to lookup in Python. Possibly direct SQL.
         # TODO: Get all transactions for Goal instead of using Q object.
@@ -256,17 +254,20 @@ class GoalTransactionSerializer(serializers.ModelSerializer):
 
 
 class GoalSerializer(serializers.ModelSerializer):
+    name = serializers.CharField()
+    start_date = serializers.DateField()
+    end_date = serializers.DateField()
     value = serializers.ReadOnlyField()
     target = serializers.DecimalField(18, 2, coerce_to_string=False)
     week_count = serializers.ReadOnlyField()
+    week_count_to_now = serializers.ReadOnlyField()
     weekly_average = serializers.ReadOnlyField()
     weekly_target = serializers.ReadOnlyField()
-    # Removed transactions until app requires detailed transaction information.
-    # transactions = GoalTransactionSerializer(required=False, many=True)
-    transactions_url = serializers.HyperlinkedIdentityField('api:goals-transactions')
-    weekly_totals = serializers.SerializerMethodField()
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
     image_url = serializers.SerializerMethodField()
+    transactions = GoalTransactionSerializer(required=False, many=True)
+    transactions_url = serializers.HyperlinkedIdentityField('api:goals-transactions')
+    weekly_totals = serializers.SerializerMethodField()
 
     class Meta:
         model = Goal
