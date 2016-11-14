@@ -18,6 +18,23 @@ from .serializers import ChallengeSerializer, EntrySerializer, GoalSerializer, G
     ParticipantAnswerSerializer, ParticipantFreeTextSerializer, ParticipantPictureSerializer, TipSerializer
 
 
+class ChallengePictureView(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ChallengeSerializer
+
+    def get_serializer(self, *args, **kwargs):
+        kwargs['context'] = {
+            'request': self.request,
+            'format': self.format_kwarg,
+            'view': self
+        }
+        return self.serializer_class(*args, **kwargs)
+
+    def get(self, request, challenge_pk):
+        challenge = get_object_or_404(Challenge, pk=challenge_pk)
+        return sendfile(request, challenge.picture.path, attachment=True)
+
+
 class ChallengeViewSet(viewsets.ModelViewSet):
     queryset = Challenge.objects.all()
     serializer_class = ChallengeSerializer
