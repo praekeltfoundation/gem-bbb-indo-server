@@ -117,13 +117,15 @@ class ChallengeSerializer(serializers.ModelSerializer):
     # challenge type enum mapping
     challenge_types = {Challenge.CTP_QUIZ: 'quiz', Challenge.CTP_PICTURE: 'picture', Challenge.CTP_FREEFORM: 'freeform'}
 
+    image_url = serializers.SerializerMethodField(required=False)
     questions = QuestionSerializer(many=True, read_only=True, required=False)
     freetext_question = FreeTextSerializer(read_only=True, required=False)
     type = KeyValueField(read_only=True, labels=challenge_types)
 
     class Meta:
         model = Challenge
-        fields = ('id', 'name', 'type', 'activation_date', 'deactivation_date', 'questions', 'freetext_question')
+        fields = ('id', 'name', 'type', 'activation_date', 'deactivation_date', 'image_url', 'questions',
+                  'freetext_question')
 
     def __init__(self, *args, **kwargs):
         summary = kwargs.pop('summary', False)
@@ -138,6 +140,13 @@ class ChallengeSerializer(serializers.ModelSerializer):
                 self.fields.pop('questions', None)
             if self.instance.type != Challenge.CTP_FREEFORM:
                 self.fields.pop('freetext_question', None)
+
+    def get_image_url(self, obj):
+        request = self.context['request']
+        if obj.picture:
+            return request.build_absolute_uri(obj.picture.url)
+        else:
+            return None
 
 
 class ParticipantAnswerSerializer(serializers.ModelSerializer):
