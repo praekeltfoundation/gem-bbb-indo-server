@@ -228,12 +228,12 @@ class TestGoalModel(TestCase):
         goal.transactions.create(date=date(2016, 11, 23), value=100)
         goal.transactions.create(date=date(2016, 11, 24), value=100)
 
-        weekly_totals = goal.weekly_totals
+        weekly_aggregates = goal.get_weekly_aggregates()
 
-        self.assertEqual(weekly_totals[0].value, 100)
-        self.assertEqual(weekly_totals[1].value, 200)
-        self.assertEqual(weekly_totals[2].value, 300)
-        self.assertEqual(weekly_totals[3].value, 400)
+        self.assertEqual(weekly_aggregates[0].value, 100)
+        self.assertEqual(weekly_aggregates[1].value, 200)
+        self.assertEqual(weekly_aggregates[2].value, 300)
+        self.assertEqual(weekly_aggregates[3].value, 400)
 
 
 class TestGoalAPI(APITestCase):

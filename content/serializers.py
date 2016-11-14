@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from django.contrib.auth.models import User
 from django.utils import timezone
 from django.db.models import Q
@@ -183,8 +185,8 @@ class EntrySerializer(serializers.ModelSerializer):
         if answers is None or not isinstance(answers, list):
             raise serializers.ValidationError('Should be a list of answers.')
         question_ids = [answer['question'].id for answer in data['answers']]
-        required_questions = QuizQuestion.objects\
-            .filter(challenge_id=participant.challenge_id)\
+        required_questions = QuizQuestion.objects \
+            .filter(challenge_id=participant.challenge_id) \
             .values_list('id', flat=True)
         if not set(required_questions).issubset(question_ids):
             raise serializers.ValidationError('Not all questions answered.')
@@ -231,7 +233,6 @@ class CurrentUserDefault(object):
 
 
 class GoalTransactionListSerializer(serializers.ListSerializer):
-
     def create(self, validated_data):
         # TODO: Find alternative to lookup in Python. Possibly direct SQL.
         # TODO: Get all transactions for Goal instead of using Q object.
@@ -261,20 +262,21 @@ class GoalTransactionSerializer(serializers.ModelSerializer):
         list_serializer_class = GoalTransactionListSerializer
 
 
-class GoalAggregateSerializer(serializers.Serializer):
+class GoalSerializer(serializers.ModelSerializer):
+    name = serializers.CharField()
     start_date = serializers.DateField()
     end_date = serializers.DateField()
-    value = serializers.DecimalField(18, 2)
-
-
-class GoalSerializer(serializers.ModelSerializer):
     value = serializers.ReadOnlyField()
     target = serializers.DecimalField(18, 2, coerce_to_string=False)
-    transactions = GoalTransactionSerializer(required=False, many=True)
-    transactions_url = serializers.HyperlinkedIdentityField('api:goals-transactions')
-    weekly_totals = GoalAggregateSerializer(read_only=True, many=True)
+    week_count = serializers.ReadOnlyField()
+    week_count_to_now = serializers.ReadOnlyField()
+    weekly_average = serializers.ReadOnlyField()
+    weekly_target = serializers.ReadOnlyField()
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
     image_url = serializers.SerializerMethodField()
+    transactions = GoalTransactionSerializer(required=False, many=True)
+    transactions_url = serializers.HyperlinkedIdentityField('api:goals-transactions')
+    weekly_totals = serializers.SerializerMethodField()
 
     class Meta:
         model = Goal
@@ -287,6 +289,12 @@ class GoalSerializer(serializers.ModelSerializer):
             return reverse('goal-image', kwargs={'goal_pk': obj.pk}, request=self.context['request'])
         else:
             return None
+
+    def get_weekly_totals(self, obj):
+        d = OrderedDict()
+        for week in obj.get_weekly_aggregates():
+            d[str(week.id)] = float(week.value)
+        return d
 
     def create(self, validated_data):
         transactions = validated_data.pop('transactions', [])
