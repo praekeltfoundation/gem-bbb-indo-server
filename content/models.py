@@ -302,6 +302,11 @@ def get_goal_image_filename(instance, filename):
     return '/'.join(('goal', str(instance.user.pk), filename))
 
 
+# ===== #
+# Goals #
+# ===== #
+
+
 @python_2_unicode_compatible
 class Goal(models.Model):
     name = models.CharField(max_length=30)
@@ -324,6 +329,14 @@ class Goal(models.Model):
         # Weeks are inclusive, so 1 is added
         return int(((monday2 - monday1).days / 7) + 1)
 
+    @property
+    def weekly_average(self):
+        return self.value / self.week_count
+
+    @property
+    def weekly_target(self):
+        return self.target / self.week_count
+
     @staticmethod
     def _monday(d):
         return d - timedelta(days=d.weekday())
@@ -333,15 +346,16 @@ class Goal(models.Model):
         monday = Goal._monday(d)
         return monday, monday + timedelta(days=6)
 
-    @property
-    def weekly_totals(self):
+    def get_weekly_aggregates(self):
         monday, sunday = self._date_window(self.start_date)
         agg = OrderedDict()
-        agg[monday] = self.WeekAggregate(monday, sunday)
+        week_id = 1
+        agg[monday] = self.WeekAggregate(week_id, monday, sunday)
 
         while sunday <= self.end_date:
+            week_id += 1
             monday, sunday = self._date_window(sunday + timedelta(days=1))
-            agg[monday] = self.WeekAggregate(monday, sunday)
+            agg[monday] = self.WeekAggregate(week_id, monday, sunday)
 
         for t in self.transactions.all():
             monday = Goal._monday(t.date.date())
@@ -358,7 +372,8 @@ class Goal(models.Model):
         return self.name
 
     class WeekAggregate:
-        def __init__(self, start_date, end_date, value=0):
+        def __init__(self, id, start_date, end_date, value=0):
+            self.id = id
             self.start_date = start_date
             self.end_date = end_date
             self.value = value
