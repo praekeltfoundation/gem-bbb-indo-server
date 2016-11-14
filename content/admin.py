@@ -41,8 +41,9 @@ class ChallengeAdmin(admin.ModelAdmin):
         (None,
          {'fields': ['name', 'type', 'state', 'end_processed']}),
         ('Dates',
-         {'fields': ['activation_date', 'deactivation_date']})
-
+         {'fields': ['activation_date', 'deactivation_date']}),
+        ('Images',
+         {'fields': ['picture']}),
     ]
     list_display = ('name', 'type', 'state', 'activation_date', 'deactivation_date')
     list_filter = ('name', 'type', 'state')
