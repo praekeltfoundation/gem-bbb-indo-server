@@ -1,7 +1,8 @@
-
+from uuid import uuid4
 from collections import OrderedDict
 from datetime import timedelta
 from functools import reduce
+from os.path import splitext
 
 from django.contrib.auth.models import User
 from django.db import models
@@ -17,7 +18,15 @@ from wagtail.wagtailcore import models as wagtail_models
 from wagtail.wagtailimages import edit_handlers as wagtail_image_edit
 from wagtail.wagtailimages import models as wagtail_image_models
 
-from .storage import GoalImgStorage, ParticipantPictureStorage
+from .storage import ChallengeStorage, GoalImgStorage, ParticipantPictureStorage
+
+
+def get_challenge_image_filename(instance, filename):
+    if instance and instance.pk:
+        new_name = instance.pk
+    else:
+        new_name = uuid4().hex
+    return 'challenge-{}{}'.format(new_name, splitext(filename)[-1])
 
 
 @python_2_unicode_compatible
@@ -53,6 +62,11 @@ class Challenge(models.Model):
             (CTP_FREEFORM, _('Free text')),
         ),
         default=CTP_QUIZ)
+    picture = models.ImageField(_('picture'),
+                                upload_to=get_challenge_image_filename,
+                                storage=ChallengeStorage(),
+                                null=True,
+                                blank=True)
     end_processed = models.BooleanField(_('processed'), default=False)
 
     class Meta:

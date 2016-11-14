@@ -11,7 +11,16 @@ class GoalImgStorage(FileSystemStorage):
 class ParticipantPictureStorage(FileSystemStorage):
     def __init__(self, location=None, base_url=None, **kwargs):
         if location is None:
-            location = join(settings.SENDFILE_ROOT, 'challenge')
+            location = join(settings.SENDFILE_ROOT, 'participant_pics')
         if location is None:
-            base_url = settings.SENDFILE_URL + 'challenge/'
+            base_url = settings.SENDFILE_URL + 'participant_pics/'
         super(ParticipantPictureStorage, self).__init__(location=location, base_url=base_url, **kwargs)
+
+
+class ChallengeStorage(FileSystemStorage):
+    def __init__(self, location=None, base_url=None, **kwargs):
+        if location is None:
+            location = join(settings.MEDIA_ROOT, 'challenge')
+        if base_url is None:
+            base_url = settings.MEDIA_URL + 'challenge/'
+        super(ChallengeStorage, self).__init__(location=location, base_url=base_url, **kwargs)
