@@ -82,6 +82,7 @@ class QuizQuestion(models.Model):
     order = models.PositiveIntegerField(_('order'), default=0)
     challenge = models.ForeignKey('Challenge', related_name='questions', blank=False, null=True)
     text = models.TextField(_('text'), blank=True)
+    hint = models.TextField(_('hint'), blank=True, null=True)
 
     class Meta:
         verbose_name = _('question')

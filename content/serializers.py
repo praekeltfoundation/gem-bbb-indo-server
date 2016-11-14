@@ -104,7 +104,7 @@ class QuestionSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = QuizQuestion
-        fields = ('id', 'text', 'options')
+        fields = ('id', 'text', 'hint', 'options')
 
 
 class FreeTextSerializer(serializers.ModelSerializer):
