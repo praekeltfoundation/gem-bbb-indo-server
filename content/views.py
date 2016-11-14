@@ -18,9 +18,11 @@ from .serializers import ChallengeSerializer, EntrySerializer, GoalSerializer, G
     ParticipantAnswerSerializer, ParticipantFreeTextSerializer, ParticipantPictureSerializer, TipSerializer
 
 
-class ChallengePictureView(GenericAPIView):
+class ChallengeImageView(GenericAPIView):
+    queryset = Challenge.objects.all()
     permission_classes = (IsAuthenticated,)
     serializer_class = ChallengeSerializer
+    http_method_names = ('options', 'head', 'get',)
 
     def get_serializer(self, *args, **kwargs):
         kwargs['context'] = {
