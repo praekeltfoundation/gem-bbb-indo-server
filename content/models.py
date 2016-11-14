@@ -1,3 +1,4 @@
+from uuid import uuid4
 from collections import OrderedDict
 from datetime import timedelta
 from functools import reduce
@@ -21,7 +22,11 @@ from .storage import ChallengeStorage, GoalImgStorage, ParticipantPictureStorage
 
 
 def get_challenge_image_filename(instance, filename):
-    return 'challenge-{}'.format(instance.pk, splitext(filename))
+    if instance and instance.pk:
+        new_name = instance.pk
+    else:
+        new_name = uuid4().hex
+    return 'challenge-{}{}'.format(new_name, splitext(filename)[-1])
 
 
 @python_2_unicode_compatible
