@@ -246,10 +246,40 @@ class GoalImageView(GenericAPIView):
 class ParticipantFreeTextViewSet(viewsets.ModelViewSet):
     queryset = ParticipantFreeText.objects.all()
     serializer_class = ParticipantFreeTextSerializer
+    permission_classes = (IsAuthenticated,)
     http_method_names = ('options', 'head', 'get', 'post', 'put')
+
+    def check_permissions(self, request):
+        if not IsAuthenticated().has_permission(request, self):
+            raise PermissionDenied("User must be authenticated")
+
+    def check_object_permissions(self, request, obj):
+        if not IsAuthenticated().has_object_permission(request, self, obj):
+            raise PermissionDenied("Users can only access their freeform entries.")
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @list_route(methods=['get'])
+    def fetch(self, request, *args, **kwargs):
+        self.check_permissions(request)
+        params = request.GET if hasattr(request, 'GET') else dict()
+        challenge_id = int(params.get('challenge', None)) if params.get('challenge', None) else None
+
+        # if user is staff and queries an ID, use specified ID
+        if request.user.is_staff and params.get('user', None):
+            user_id = int(params.get('user', None))
+        # else use own ID
+        else:
+            user_id = request.user.id
+
+        # participant must map user to challenge 1:1, so do a get if only one challenge
+        result = self.get_queryset().filter(participant__user_id=user_id)
+        if challenge_id:
+            result = result.get(participant__challenge_id=challenge_id)
+        serial = self.get_serializer(result, many=not challenge_id)
+
+        return Response(data=serial.data)
