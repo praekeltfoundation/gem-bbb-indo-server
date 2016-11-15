@@ -215,7 +215,7 @@ class ParticipantAnswer(models.Model):
         return str(self.participant.user.username)[:8] + str(self.question.text[:8]) + str(self.selected_option.text[:8])
 
 
-def get_challenge_image_filename(instance, filename):
+def get_participant_image_filename(instance, filename):
     return '{}-{}'.format(instance.user.pk, filename)
 
 
@@ -224,7 +224,7 @@ class ParticipantPicture(models.Model):
     participant = models.ForeignKey(Participant, null=True, related_name='picture_answer')
     question = models.ForeignKey(PictureQuestion, blank=False, null=True, related_name='+')
     picture = models.ImageField(_('picture'),
-                                upload_to=get_challenge_image_filename,
+                                upload_to=get_participant_image_filename,
                                 storage=ParticipantPictureStorage(),
                                 null=True,
                                 blank=True)
