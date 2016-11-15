@@ -206,6 +206,7 @@ class EntrySerializer(serializers.ModelSerializer):
 class TipSerializer(serializers.ModelSerializer):
     article_url = serializers.SerializerMethodField()
     cover_image_url = serializers.SerializerMethodField()
+    is_favourite = serializers.SerializerMethodField()
     tags = serializers.ReadOnlyField(source='get_tag_name_list', read_only=True)
 
     def get_article_url(self, obj):
@@ -219,9 +220,21 @@ class TipSerializer(serializers.ModelSerializer):
         else:
             return None
 
+    def get_is_favourite(self, obj):
+        request = self.context['request']
+        if obj.favourites.filter(user_id=request.user.id).exists():
+            return True
+        else:
+            return False
+
+    @staticmethod
+    def setup_prefetch_related(queryset):
+        queryset = queryset.prefetch_related('favourites')
+        return queryset
+
     class Meta:
         model = Tip
-        fields = ('id', 'title', 'article_url', 'cover_image_url', 'tags')
+        fields = ('id', 'title', 'article_url', 'cover_image_url', 'is_favourite', 'tags')
 
 
 class CurrentUserDefault(object):

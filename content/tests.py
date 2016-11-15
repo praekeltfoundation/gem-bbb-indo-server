@@ -108,6 +108,23 @@ class TestTipAPI(APITestCase):
         response = self.client.get(reverse('api:tips-detail', kwargs={'pk': tip.pk}))
         self.assertIsNone(response.data['cover_image_url'], 'Cover image url is not None.')
 
+    def test_inlined_favourite_flag(self):
+        """The tip itself should have a field indicating that it is favourited for the current user."""
+        user = create_test_regular_user()
+        tip1 = create_tip(title='Fav tip')
+        tip2 = create_tip(title='Unfav tip')
+
+        publish_page(user, tip1)
+        publish_page(user, tip2)
+
+        tip1.favourites.create(user=user)
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:tips-list'))
+
+        self.assertEqual(response.data[0]['is_favourite'], True, "Tip 1 was not favourited.")
+        self.assertEqual(response.data[1]['is_favourite'], False, "Tip 2 was not favourited.")
+
 
 class TestFavouriteAPI(APITestCase):
     """Testing favouriting functionality via Tip sub routes."""
