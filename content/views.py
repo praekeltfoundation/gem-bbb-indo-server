@@ -124,6 +124,8 @@ class TipViewSet(viewsets.ModelViewSet):
             fav.save()
             return Response(status=status.HTTP_201_CREATED)
         else:
+            fav.favourite()
+            fav.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
     @detail_route(methods=['post'])

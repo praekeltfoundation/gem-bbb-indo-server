@@ -310,6 +310,9 @@ class TipFavourite(models.Model):
     def is_active(self):
         return self.state == self.TFST_ACTIVE
 
+    def favourite(self):
+        self.state = self.TFST_ACTIVE
+
     def unfavourite(self):
         self.state = self.TFST_INACTIVE
 

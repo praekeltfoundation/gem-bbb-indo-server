@@ -188,6 +188,25 @@ class TestFavouriteAPI(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(updated_fav.is_active)
 
+    def test_favourite_again(self):
+        """After a Tip has been favourited and unfavourited, it should be favourted again."""
+        user = self.create_regular_user()
+        tip = create_tip('Tip 1')
+
+        fav = tip.favourites.create(user=user)
+        fav.unfavourite()
+        fav.save()
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:tips-favourite', kwargs={'pk': tip.id}))
+
+        updated_fav = TipFavourite.objects.get(user_id=user.id, tip_id=tip.id)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertTrue(updated_fav.is_active, "Updated Tip is not favourited.")
+
+
+
     def test_favourite_list(self):
         user = self.create_regular_user()
         tip1 = create_tip('Tip 1')
