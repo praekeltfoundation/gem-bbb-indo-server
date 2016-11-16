@@ -120,13 +120,10 @@ class TipViewSet(viewsets.ModelViewSet):
             user=request.user,
             tip=tip
         )
-        if created:
-            fav.save()
-            return Response(status=status.HTTP_201_CREATED)
-        else:
+        if not created:
             fav.favourite()
             fav.save()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @detail_route(methods=['post'])
     def unfavourite(self, request, pk=None, *args, **kwargs):

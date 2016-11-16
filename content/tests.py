@@ -156,7 +156,7 @@ class TestFavouriteAPI(APITestCase):
         self.client.force_authenticate(user=user)
         response = self.client.post(reverse('api:tips-favourite', kwargs={'pk': tip.id}))
 
-        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_duplicate_favourites(self):
         """Favouriting a Tip more than once should not fail."""
