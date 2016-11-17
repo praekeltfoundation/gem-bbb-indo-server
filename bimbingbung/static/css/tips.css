@@ -1,0 +1,126 @@
+
+/*
+ * Util
+ */
+
+.clearfix {
+	overflow : auto;
+}
+
+// Fixes text bottom being cut off
+.rich-text {
+	padding-bottom : 0.2em;
+}
+
+body {
+	font-family : 'Lato';
+	background-image : url("/static/img/pattern_02_grey.png");
+	background-color : #F2F2F2;
+	background-position : top;
+	background-size : 100%auto;
+	background-repeat : repeat;
+}
+
+/*
+ * Headers
+ */
+
+h1, h2 {
+    font-family : 'Londrina Solid', 'san-serif';
+}
+
+h1 {
+	font-size : 2.2em;
+	line-height : 1em;
+	margin-bottom : 0.3em;
+}
+
+h5 { 
+	font-size : 0.8em;
+	margin-bottom : 1em;
+	//color : #828282;
+	color : #333;
+}
+
+/*
+ * Article
+ */
+
+p {
+	font-size : 1em;
+}
+
+#tip-article {
+	margin : 1.3em;
+}
+
+#tip-article img {
+	display : block;
+	margin-top : 0.3em;
+}
+
+#tip-article img.left {
+	float : left;
+}
+
+#tip-article img.right {
+	float : right;
+}
+
+#tip-article img.full-width {
+	zoom: 4;  //increase if you have very small images
+
+    display: block;
+    margin-left: auto;
+	margin-right: auto;
+
+    height: auto;
+    max-height: 100%;
+
+    width: auto;
+    max-width: 100%;
+}
+
+/* 
+ * Tags
+ */
+
+#tip-tags {
+	margin-bottom : 0.2em;
+}
+
+.tip-tag {
+	//background-color : #FDDF5B;
+	background-image : url("/static/img/tag.png");
+	background-position : center;
+	background-size : 100% 100%;
+	background-repeat : no-repeat;
+	font-size : 0.6em;
+	font-weight : bold;
+	float : left;
+	padding : 0.5em;
+	margin-right : 0.3em;
+	margin-bottom : 0.3em;
+}
+
+/*
+ * Swipe-js navigation
+ */
+
+.swipe {
+  overflow: hidden;
+  visibility: hidden;
+  position: relative;
+}
+
+.swipe-wrap {
+	overflow: hidden;
+	position: relative;
+}
+
+.swipe-wrap > div {
+  float: left;
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
