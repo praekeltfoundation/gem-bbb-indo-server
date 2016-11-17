@@ -10,7 +10,7 @@ def structured_exception_handler(exc, context):
     response = exception_handler(exc, context)
 
     detail = response.data.pop('detail', '')
-    non_field_errors = response.data.pop(settings.REST_FRAMEWORK['NON_FIELD_ERRORS_KEY'], {})
+    non_field_errors = response.data.pop(settings.REST_FRAMEWORK['NON_FIELD_ERRORS_KEY'], [])
     fields = response.data
 
     response.data = OrderedDict()
