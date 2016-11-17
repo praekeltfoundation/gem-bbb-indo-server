@@ -165,7 +165,7 @@ REST_FRAMEWORK = {
         'rest_framework.authentication.TokenAuthentication',
     ),
     'EXCEPTION_HANDLER': 'bimbingbung.exception_handler.structured_exception_handler',
-    'NON_FIELD_ERRORS_KEY': 'non_field_errors'
+    'NON_FIELD_ERRORS_KEY': 'errors'
 }
 
 
