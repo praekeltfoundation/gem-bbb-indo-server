@@ -85,7 +85,7 @@ p {
  * Tags
  */
 
-#tip-tags {
+li#tip-tags {
 	margin-bottom : 0.2em;
 }
 
@@ -104,9 +104,47 @@ p {
 }
 
 /*
+ * Navbar
+ */
+ 
+#tip-nav {
+	display : table;
+	margin : 0 auto;
+}
+
+#tip-nav > ul {
+	float : left;
+	margin-left : -0.1em;
+}
+ 
+#tip-nav li {
+	float : left;
+	margin-left : 0.1em;
+}
+
+#tip-nav > button {
+	font-family : "Lato";
+	background-color : #FDDF5B;
+	background-position : center;
+	background-size : 100% 100%;
+	background-repeat : no-repeat;
+	border : none;
+	padding : 0.5em;
+	margin : 0 0.5em;
+	text-align: center;
+    text-decoration: none;
+    display: inline-block;
+	float : left;
+}
+
+/*
  * Swipe-js navigation
  */
 
+#slider {
+	margin-bottom : 1em;
+}
+ 
 .swipe {
   overflow: hidden;
   visibility: hidden;

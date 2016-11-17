@@ -37,19 +37,21 @@
             </div>
         </div>
 
-        {% if page.body %}
         <div>
-            <button onclick="mySwipe.prev()">Prev</button>
+        {% if page.body %}
+        <div id="tip-nav">
+            <button onclick="mySwipe.prev()">PREV</button>
             <ul>
             {% for block in page.body %}
                 {% if block.block_type == 'paragraph' %}
-                    <li>o</li>
+                    <li>&#8226</li>
                 {% endif %}
             {% endfor %}
             </ul>
-            <button onclick="mySwipe.next()">Next</button>
+            <button onclick="mySwipe.next()">NEXT</button>
         </div>
         {% endif %}
+        </div>
     </div>
 
     <script language="JavaScript" src="{% static 'vendor/swipe.min.js' %}"></script>
