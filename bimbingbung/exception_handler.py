@@ -14,6 +14,7 @@ def structured_exception_handler(exc, context):
     fields = response.data
 
     response.data = OrderedDict()
+    response.data['status_code'] = response.status_code
     response.data['detail'] = detail
     response.data[settings.REST_FRAMEWORK['NON_FIELD_ERRORS_KEY']] = non_field_errors
     response.data['field_errors'] = fields
