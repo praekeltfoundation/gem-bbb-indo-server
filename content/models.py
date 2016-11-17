@@ -16,6 +16,7 @@ from taggit.models import TaggedItemBase
 from wagtail.wagtailadmin import edit_handlers as wagtail_edit_handlers
 from wagtail.wagtailcore import fields as wagtail_fields
 from wagtail.wagtailcore import models as wagtail_models
+from wagtail.wagtailcore import blocks as wagtail_blocks
 from wagtail.wagtailimages import edit_handlers as wagtail_image_edit
 from wagtail.wagtailimages import models as wagtail_image_models
 
@@ -264,12 +265,14 @@ class TipTag(TaggedItemBase):
 class Tip(wagtail_models.Page):
     cover_image = models.ForeignKey(wagtail_image_models.Image, blank=True, null=True,
                                     on_delete=models.SET_NULL, related_name='+')
-    body = wagtail_fields.RichTextField(blank=True)
+    body = wagtail_fields.StreamField([
+        ('paragraph', wagtail_blocks.RichTextBlock())
+    ])
     tags = ClusterTaggableManager(through=TipTag, blank=True)
 
     content_panels = wagtail_models.Page.content_panels + [
         wagtail_image_edit.ImageChooserPanel('cover_image'),
-        wagtail_edit_handlers.FieldPanel('body'),
+        wagtail_edit_handlers.StreamFieldPanel('body'),
     ]
 
     promote_panels = wagtail_models.Page.promote_panels + [

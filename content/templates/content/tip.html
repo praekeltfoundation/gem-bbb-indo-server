@@ -4,18 +4,64 @@
     <meta charset="UTF-8">
     <title>{{ page.title }}</title>
 
+    {% load static %}
     {% load wagtailcore_tags %}
+
+    <style>
+        .swipe {
+          overflow: hidden;
+          visibility: hidden;
+          position: relative;
+        }
+        .swipe-wrap {
+          overflow: hidden;
+          position: relative;
+        }
+        .swipe-wrap > div {
+          float: left;
+          width: 100%;
+          position: relative;
+          overflow: hidden;
+        }
+    </style>
 
 </head>
 <body>
     <h1>{{ page.title }}</h1>
-    <div id="tip-body">
-        {{ page.body|richtext }}
-    </div>
+    <h3>{{ page.first_published_at|date:"d / m / Y" }} {{ page.owner }}</h3>
+
     <ul>
     {% for tag in page.tags.all %}
         <li>{{ tag.name }}</li>
     {% endfor %}
     </ul>
+
+    <div id="slider" class="swipe">
+        <div class="swipe-wrap">
+        {% for block in page.body %}
+            <div>
+                <p>{% include_block block %}</p>
+            </div>
+        {% endfor %}
+        </div>
+    </div>
+
+    {% if page.body %}
+    <div>
+
+        <button onclick="mySwipe.prev()">Prev</button>
+        <ul>
+        {% for block in page.body %}
+            <li>o</li>
+        {% endfor %}
+        </ul>
+        <button onclick="mySwipe.next()">Next</button>
+    </div>
+    {% endif %}
+
+    <script language="JavaScript" src="{% static 'vendor/swipe.min.js' %}"></script>
+    <script language="JavaScript">
+        window.mySwipe = new Swipe(document.getElementById('slider'));
+    </script>
 </body>
 </html>
