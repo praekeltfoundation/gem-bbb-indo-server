@@ -39,20 +39,23 @@
     <div id="slider" class="swipe">
         <div class="swipe-wrap">
         {% for block in page.body %}
+            {% if block.block_type == 'paragraph' %}
             <div>
                 <p>{% include_block block %}</p>
             </div>
+            {% endif %}
         {% endfor %}
         </div>
     </div>
 
     {% if page.body %}
     <div>
-
         <button onclick="mySwipe.prev()">Prev</button>
         <ul>
         {% for block in page.body %}
-            <li>o</li>
+            {% if block.block_type == 'paragraph' %}
+                <li>o</li>
+            {% endif %}
         {% endfor %}
         </ul>
         <button onclick="mySwipe.next()">Next</button>
