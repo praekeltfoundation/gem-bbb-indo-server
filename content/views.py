@@ -116,11 +116,13 @@ class TipViewSet(viewsets.ModelViewSet):
     @detail_route(methods=['post'])
     def favourite(self, request, pk=None, *args, **kwargs):
         tip = self.get_object()
-        fav = TipFavourite.objects.create(
+        fav, created = TipFavourite.objects.get_or_create(
             user=request.user,
             tip=tip
         )
-        fav.save()
+        if not created:
+            fav.favourite()
+            fav.save()
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @detail_route(methods=['post'])

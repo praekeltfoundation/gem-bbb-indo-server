@@ -1,6 +1,6 @@
 
-from datetime import datetime, date, timedelta
 import json
+from datetime import datetime, date, timedelta
 
 from django.test import TestCase
 from django.urls import reverse
@@ -8,11 +8,10 @@ from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 from wagtail.wagtailcore.models import Page
-from users.models import User, RegUser
 
-from .models import Tip, TipFavourite
+from users.models import User, RegUser
 from .models import Goal, GoalTransaction
-from .serializers import GoalSerializer
+from .models import Tip, TipFavourite
 
 
 def create_test_regular_user(username='AnonReg'):
@@ -108,7 +107,7 @@ class TestTipAPI(APITestCase):
         response = self.client.get(reverse('api:tips-detail', kwargs={'pk': tip.pk}))
         self.assertIsNone(response.data['cover_image_url'], 'Cover image url is not None.')
 
-    def test_inlined_favourite_flag(self):
+    def test_inline_favourite_flag(self):
         """The tip itself should have a field indicating that it is favourited for the current user."""
         user = create_test_regular_user()
         tip1 = create_tip(title='Fav tip')
@@ -122,8 +121,24 @@ class TestTipAPI(APITestCase):
         self.client.force_authenticate(user=user)
         response = self.client.get(reverse('api:tips-list'))
 
-        self.assertEqual(response.data[0]['is_favourite'], True, "Tip 1 was not favourited.")
-        self.assertEqual(response.data[1]['is_favourite'], False, "Tip 2 was not favourited.")
+        self.assertTrue(response.data[0]['is_favourite'], "Tip 1 was not favourited.")
+        self.assertFalse(response.data[1]['is_favourite'], "Tip 2 was not favourited.")
+
+    def test_inline_favourite_flag_removed(self):
+        """Flag should be false when a tip was removed from favourites."""
+        user = create_test_regular_user()
+        tip1 = create_tip(title='Fav tip')
+
+        publish_page(user, tip1)
+
+        fav = tip1.favourites.create(user=user)
+        fav.unfavourite()
+        fav.save()
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:tips-list'))
+
+        self.assertFalse(response.data[0]['is_favourite'], "Tip 1 was still favourited.")
 
 
 class TestFavouriteAPI(APITestCase):
@@ -143,6 +158,21 @@ class TestFavouriteAPI(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 
+    def test_duplicate_favourites(self):
+        """Favouriting a Tip more than once should not fail."""
+
+        user = self.create_regular_user()
+        tip = create_tip('Tip 1')
+
+        # Once
+        tip.favourites.create(user=user)
+
+        # Twice
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:tips-favourite', kwargs={'pk': tip.id}))
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, "Favouriting a Tip a second time failed.")
+
     def test_unfavouriting(self):
         user = self.create_regular_user()
         tip = create_tip('Tip 1')
@@ -157,6 +187,25 @@ class TestFavouriteAPI(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertFalse(updated_fav.is_active)
+
+    def test_favourite_again(self):
+        """After a Tip has been favourited and unfavourited, it should be favourted again."""
+        user = self.create_regular_user()
+        tip = create_tip('Tip 1')
+
+        fav = tip.favourites.create(user=user)
+        fav.unfavourite()
+        fav.save()
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:tips-favourite', kwargs={'pk': tip.id}))
+
+        updated_fav = TipFavourite.objects.get(user_id=user.id, tip_id=tip.id)
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertTrue(updated_fav.is_active, "Updated Tip is not favourited.")
+
+
 
     def test_favourite_list(self):
         user = self.create_regular_user()

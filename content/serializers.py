@@ -1,13 +1,16 @@
+
 from collections import OrderedDict
 
 from django.contrib.auth.models import User
-from django.utils import timezone
 from django.db.models import Q
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
-from content.models import Challenge, Entry, Goal, GoalTransaction, FreeTextQuestion, Participant, ParticipantAnswer, \
-    ParticipantFreeText, ParticipantPicture, QuestionOption, QuizQuestion, Tip
+from .models import Goal, GoalTransaction
+from .models import Challenge, FreeTextQuestion, QuestionOption, QuizQuestion
+from .models import Participant, Entry, ParticipantAnswer, ParticipantFreeText, ParticipantPicture
+from .models import Tip, TipFavourite
 
 
 def validate_participant(data, errors):
@@ -222,7 +225,7 @@ class TipSerializer(serializers.ModelSerializer):
 
     def get_is_favourite(self, obj):
         request = self.context['request']
-        if obj.favourites.filter(user_id=request.user.id).exists():
+        if obj.favourites.filter(user_id=request.user.id, state=TipFavourite.TFST_ACTIVE).exists():
             return True
         else:
             return False

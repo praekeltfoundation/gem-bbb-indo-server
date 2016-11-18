@@ -49,3 +49,6 @@ Thumbs.db
 
 #ignore local_settings.py
 local_settings.py
+
+# Django
+media/
