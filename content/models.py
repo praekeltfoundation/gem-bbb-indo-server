@@ -286,6 +286,11 @@ class ParticipantFreeText(models.Model):
         return str(self.participant) + ': Free'
 
 
+# ==== #
+# Tips #
+# ==== #
+
+
 class TipTag(TaggedItemBase):
     content_object = modelcluster_fields.ParentalKey('content.Tip', related_name='tagged_item')
 
@@ -294,6 +299,8 @@ class TipTag(TaggedItemBase):
 class Tip(wagtail_models.Page):
     cover_image = models.ForeignKey(wagtail_image_models.Image, blank=True, null=True,
                                     on_delete=models.SET_NULL, related_name='+')
+    intro = models.CharField(_('intro dialogue'), max_length=200, blank=True,
+                             help_text=_('The opening line said by the Coach when telling the user about the Tip'))
     body = wagtail_fields.StreamField([
         ('paragraph', wagtail_blocks.RichTextBlock())
     ])
@@ -301,6 +308,7 @@ class Tip(wagtail_models.Page):
 
     content_panels = wagtail_models.Page.content_panels + [
         wagtail_image_edit.ImageChooserPanel('cover_image'),
+        wagtail_edit_handlers.FieldPanel('intro'),
         wagtail_edit_handlers.StreamFieldPanel('body'),
     ]
 
