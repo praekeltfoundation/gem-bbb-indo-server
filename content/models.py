@@ -23,6 +23,28 @@ from wagtail.wagtailimages import models as wagtail_image_models
 from .storage import ChallengeStorage, GoalImgStorage, ParticipantPictureStorage
 
 
+# ========== #
+# Agreements #
+# ========== #
+
+
+class Agreement(wagtail_models.Page):
+    body = wagtail_fields.RichTextField(blank=True)
+
+    content_panels = wagtail_models.Page.content_panels + [
+        wagtail_edit_handlers.FieldPanel('body')
+    ]
+
+    class Meta:
+        verbose_name = 'agreement'
+        verbose_name_plural = 'agreements'
+
+
+# ========== #
+# Challenges #
+# ========== #
+
+
 def get_challenge_image_filename(instance, filename):
     if instance and instance.pk:
         new_name = instance.pk
@@ -71,6 +93,8 @@ class Challenge(models.Model):
                                 blank=True)
     end_processed = models.BooleanField(_('processed'), default=False)
 
+    agreement = models.ManyToManyField(Agreement, through='ChallengeAgreement')
+
     class Meta:
         verbose_name = _('challenge')
         verbose_name_plural = _('challenges')
@@ -91,6 +115,11 @@ class Challenge(models.Model):
 
     def is_active(self):
         return (self.state == 'published') and (self.activation_date < timezone.now() < self.deactivation_date)
+
+
+class ChallengeAgreement(models.Model):
+    challenge = models.ForeignKey(Challenge, on_delete=models.CASCADE)
+    agreement = models.ForeignKey(Agreement, on_delete=models.CASCADE)
 
 
 @python_2_unicode_compatible
