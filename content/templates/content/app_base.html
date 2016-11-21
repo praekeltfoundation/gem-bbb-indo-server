@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}{% endblock %}</title>
+
+    {% load static %}
+
+    <link rel="stylesheet" href="{% static 'css/reset.css' %}" />
+    <link rel="stylesheet" href="{% static 'fonts/lato/stylesheet.css' %}" />
+    <link rel="stylesheet" href="{% static 'fonts/londrina/stylesheet.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/dooit.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/agreements.css' %}" />
+    <link rel="stylesheet" href="{% static 'css/tips.css' %}" />
+
+</head>
+<body>
+
+    {% block content %}{% endblock %}
+
+</body>
+</html>

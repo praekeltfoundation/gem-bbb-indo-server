@@ -1,0 +1,88 @@
+
+/*
+ * Util
+ */
+
+.clearfix {
+	overflow : auto;
+}
+
+// Fixes text bottom being cut off
+.rich-text {
+	padding-bottom : 0.2em;
+}
+
+body {
+	font-family : 'Lato';
+	background-image : url("/static/img/pattern_02_grey.png");
+	background-color : #F2F2F2;
+	background-position : top;
+	background-size : 100%auto;
+	background-repeat : repeat;
+}
+
+/*
+ * Typography
+ */
+
+h1 {
+	font-family : 'Londrina Solid', 'san-serif';
+	font-size : 2.2em;
+	line-height : 1em;
+	margin-bottom : 0.3em;
+}
+
+h2 {
+    font-size : 1.8em;
+	line-height : 1em;
+}
+
+h3 {
+	font-size : 1.5em;
+}
+
+h5 {
+	font-size : 0.8em;
+	margin-bottom : 1em;
+	//color : #828282;
+	color : #333;
+}
+
+/*
+ * Article
+ */
+
+p {
+	font-size : 1em;
+}
+
+#article {
+	margin : 1.3em;
+}
+
+#article img {
+	display : block;
+	margin-top : 0.3em;
+}
+
+#article img.left {
+	float : left;
+}
+
+#article img.right {
+	float : right;
+}
+
+#article img.full-width {
+	zoom: 4;  //increase if you have very small images
+
+    display: block;
+    margin-left: auto;
+	margin-right: auto;
+
+    height: auto;
+    max-height: 100%;
+
+    width: auto;
+    max-width: 100%;
+}

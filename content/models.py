@@ -23,6 +23,28 @@ from wagtail.wagtailimages import models as wagtail_image_models
 from .storage import ChallengeStorage, GoalImgStorage, ParticipantPictureStorage
 
 
+# ========== #
+# Agreements #
+# ========== #
+
+
+class Agreement(wagtail_models.Page):
+    body = wagtail_fields.RichTextField(blank=True)
+
+    content_panels = wagtail_models.Page.content_panels + [
+        wagtail_edit_handlers.FieldPanel('body')
+    ]
+
+    class Meta:
+        verbose_name = 'agreement'
+        verbose_name_plural = 'agreements'
+
+
+# ========== #
+# Challenges #
+# ========== #
+
+
 def get_challenge_image_filename(instance, filename):
     if instance and instance.pk:
         new_name = instance.pk
@@ -71,6 +93,8 @@ class Challenge(models.Model):
                                 blank=True)
     end_processed = models.BooleanField(_('processed'), default=False)
 
+    agreement = models.ManyToManyField(Agreement, through='ChallengeAgreement')
+
     class Meta:
         verbose_name = _('challenge')
         verbose_name_plural = _('challenges')
@@ -91,6 +115,11 @@ class Challenge(models.Model):
 
     def is_active(self):
         return (self.state == 'published') and (self.activation_date < timezone.now() < self.deactivation_date)
+
+
+class ChallengeAgreement(models.Model):
+    challenge = models.ForeignKey(Challenge, on_delete=models.CASCADE)
+    agreement = models.ForeignKey(Agreement, on_delete=models.CASCADE)
 
 
 @python_2_unicode_compatible
@@ -257,6 +286,11 @@ class ParticipantFreeText(models.Model):
         return str(self.participant) + ': Free'
 
 
+# ==== #
+# Tips #
+# ==== #
+
+
 class TipTag(TaggedItemBase):
     content_object = modelcluster_fields.ParentalKey('content.Tip', related_name='tagged_item')
 
@@ -265,6 +299,8 @@ class TipTag(TaggedItemBase):
 class Tip(wagtail_models.Page):
     cover_image = models.ForeignKey(wagtail_image_models.Image, blank=True, null=True,
                                     on_delete=models.SET_NULL, related_name='+')
+    intro = models.CharField(_('intro dialogue'), max_length=200, blank=True,
+                             help_text=_('The opening line said by the Coach when telling the user about the Tip'))
     body = wagtail_fields.StreamField([
         ('paragraph', wagtail_blocks.RichTextBlock())
     ])
@@ -272,6 +308,7 @@ class Tip(wagtail_models.Page):
 
     content_panels = wagtail_models.Page.content_panels + [
         wagtail_image_edit.ImageChooserPanel('cover_image'),
+        wagtail_edit_handlers.FieldPanel('intro'),
         wagtail_edit_handlers.StreamFieldPanel('body'),
     ]
 

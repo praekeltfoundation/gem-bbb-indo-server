@@ -237,7 +237,7 @@ class TipSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Tip
-        fields = ('id', 'title', 'article_url', 'cover_image_url', 'is_favourite', 'tags')
+        fields = ('id', 'title', 'intro', 'article_url', 'cover_image_url', 'is_favourite', 'tags')
 
 
 class CurrentUserDefault(object):
