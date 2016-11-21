@@ -3,6 +3,7 @@ from uuid import uuid4
 from collections import OrderedDict
 from datetime import timedelta
 from functools import reduce
+from math import ceil
 from os.path import splitext
 
 from django.contrib.auth.models import User
@@ -397,11 +398,11 @@ class Goal(models.Model):
 
     @property
     def weekly_average(self):
-        return self.value / self.week_count_to_now
+        return ceil(self.value / self.week_count_to_now)
 
     @property
     def weekly_target(self):
-        return self.target / self.week_count
+        return ceil(self.target / self.week_count)
 
     @staticmethod
     def _monday(d):

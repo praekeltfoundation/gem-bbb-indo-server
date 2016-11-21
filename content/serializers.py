@@ -312,6 +312,14 @@ class GoalSerializer(serializers.ModelSerializer):
             d[str(week.id)] = float(week.value)
         return d
 
+    def validate(self, attrs):
+        data = super().validate(attrs)
+
+        if attrs['end_date'] < attrs['start_date']:
+            raise serializers.ValidationError('End date is earlier than start date.')
+
+        return data
+
     def create(self, validated_data):
         transactions = validated_data.pop('transactions', [])
         goal = Goal.objects.create(**validated_data)
