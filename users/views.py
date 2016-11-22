@@ -1,6 +1,5 @@
 
 from django.shortcuts import get_object_or_404
-from django.http import HttpResponseBadRequest
 
 from rest_framework import status
 from rest_framework import viewsets
@@ -14,6 +13,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from sendfile import sendfile
 
+from .exceptions import PasswordNotMatching
 from .models import RegUser, User
 from .permissions import IsUserSelf, IsRegisteringOrSelf
 from .serializers import RegUserDeepSerializer, PasswordChangeSerializer
@@ -81,7 +81,7 @@ class RegUserViewSet(viewsets.ModelViewSet):
         serializer = PasswordChangeSerializer(data=request.data, context=self.get_serializer_context())
         if serializer.is_valid(raise_exception=True):
             if not request.user.check_password(serializer.validated_data['old_password']):
-                return HttpResponseBadRequest('Provided old password did not match existing password.')
+                raise PasswordNotMatching()
             request.user.set_password(serializer.validated_data['new_password'])
             request.user.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
