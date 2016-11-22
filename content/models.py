@@ -37,8 +37,8 @@ class Agreement(wagtail_models.Page):
     ]
 
     class Meta:
-        verbose_name = 'agreement'
-        verbose_name_plural = 'agreements'
+        verbose_name = _('agreement')
+        verbose_name_plural = _('agreements')
 
 
 # ========== #
@@ -432,8 +432,8 @@ class Goal(models.Model):
         return [v for k, v in agg.items()]
 
     class Meta:
-        verbose_name = 'goal'
-        verbose_name_plural = 'goals'
+        verbose_name = _('goal')
+        verbose_name_plural = _('goals')
 
     def __str__(self):
         return self.name
@@ -453,8 +453,8 @@ class GoalTransaction(models.Model):
     goal = models.ForeignKey(Goal, related_name='transactions')
 
     class Meta:
-        verbose_name = 'goal transaction'
-        verbose_name_plural = 'goal transactions'
+        verbose_name = _('goal transaction')
+        verbose_name_plural = _('goal transactions')
         unique_together = ('date', 'value', 'goal')
 
     def __str__(self):

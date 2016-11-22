@@ -1,5 +1,6 @@
 
 from django.contrib import admin
+from django.utils.translation import ugettext as _
 from django import forms
 import wagtail.contrib.modeladmin.options as wagadmin
 from .models import Challenge, FreeTextQuestion, QuizQuestion, QuestionOption, Participant
@@ -28,7 +29,7 @@ class ChallengeAdminForm(forms.ModelForm):
             if challenge.state == Challenge.CST_PUBLISHED and \
                     Participant.objects.filter(challenge_id=challenge.id).count() > 0:
                 raise forms.ValidationError(
-                    'Editing of challenges is disallowed when participants have already answered.',
+                    _('Editing of challenges is disallowed when participants have already answered.'),
                     code='challenge_active_error'
                 )
         return cleaned_data
@@ -67,7 +68,7 @@ class QuestionAdminForm(forms.ModelForm):
             if challenge.state == Challenge.CST_PUBLISHED and \
                     Participant.objects.filter(challenge_id=challenge.id).count() > 0:
                 raise forms.ValidationError(
-                    'Editing of challenges is disallowed when participants have already answered.',
+                    _('Editing of challenges is disallowed when participants have already answered.'),
                     code='challenge_active_error'
                 )
         return cleaned_data
@@ -95,7 +96,7 @@ class QuestionOptionAdminForm(forms.ModelForm):
                     Participant.objects.filter(challenge_id=challenge.id).count() > 0:
                 print(challenge.id)
                 raise forms.ValidationError(
-                    'Editing of challenges is disallowed when participants have already answered.',
+                    _('Editing of challenges is disallowed when participants have already answered.'),
                     code='challenge_active_error'
                 )
         return cleaned_data
