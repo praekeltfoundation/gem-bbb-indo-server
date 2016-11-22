@@ -82,7 +82,20 @@ class RegUserDeepSerializer(serializers.ModelSerializer):
         return user
 
     def update(self, instance, validated_data):
+        # TODO: Do not allow password to be updated via RegUserDeepSerializer
         password = validated_data.pop('password', None)
         if password:
             instance.set_password(password)
         return super(RegUserDeepSerializer, self).update(instance, validated_data)
+
+
+class PasswordChangeSerializer(serializers.Serializer):
+    old_password = serializers.CharField()
+    new_password = serializers.CharField()
+
+    class Meta:
+        fields = '__all__'
+        extra_kwargs = {
+            'old_password': {'write_only': True},
+            'new_password': {'write_only': True}
+        }

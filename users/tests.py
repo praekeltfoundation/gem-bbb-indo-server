@@ -95,6 +95,7 @@ class TestUserAPI(APITestCase):
         self.assertEqual(update_user.username, 'Second', "Username was not update.")
 
     def test_password_update(self):
+        # TODO: Disallow password to be patched
         user = User.objects.create(username='anon')
         user.set_password('first')
         user.save()
@@ -108,6 +109,44 @@ class TestUserAPI(APITestCase):
 
         self.client.logout()
         self.assertTrue(self.client.login(username='anon', password='second'), "Could not log in with new password.")
+
+    def test_password_change(self):
+        """The user must confirm their existing password to update it."""
+        user = User.objects.create(username='anon')
+        user.set_password('first')
+        user.save()
+
+        data = {
+            'old_password': 'first',
+            'new_password': 'second'
+        }
+
+        self.client.login(username='anon', password='first')
+        response = self.client.post(reverse('api:users-password', kwargs={'pk': user.pk}), data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, "Password change failed")
+
+        self.client.logout()
+        self.assertTrue(self.client.login(username='anon', password='second'), "Could not log in with new password")
+
+    def test_password_change_old_password_check(self):
+        """If the provided old password doesn't match the new password, a bad request will be raised."""
+        user = User.objects.create(username='anon')
+        user.set_password('first')
+        user.save()
+
+        data = {
+            'old_password': 'incorrect',
+            'new_password': 'second'
+        }
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:users-password', kwargs={'pk': user.pk}), data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST, "Password change unexpectedly succeeded.")
+
+        self.client.logout()
+        self.assertTrue(self.client.login(username='anon', password='first'), "Password was unexpectedly changed.")
 
     def test_user_retrieve_own_profile(self):
         user_1 = RegUser.objects.create(username='User1', password='password1')
