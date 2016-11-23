@@ -125,7 +125,12 @@ class Challenge(modelcluster_fields.ClusterableModel):
     @classmethod
     def get_next(cls):
         """Decides which Challenge the user will receive next."""
-        return Challenge.objects.order_by('activation_date').first()
+        return Challenge.objects \
+            .order_by('state') \
+            .order_by('activation_date')\
+            .filter(deactivation_date__gt=timezone.now())\
+            .exclude(state=cls.CST_DONE)\
+            .first()
 
 
 Challenge.panels = [

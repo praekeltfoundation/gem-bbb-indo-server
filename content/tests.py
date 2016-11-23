@@ -110,6 +110,24 @@ class TestChallengeModel(TestCase):
         next_challenge = Challenge.get_next()
         self.assertEqual(challenge_now, next_challenge, "Unexpected challenge was returned.")
 
+    def test_ignore_over(self):
+        """When a Challenge is past it's deactivation date, the next Challenge should be chosen."""
+        challenge_old = Challenge.objects.create(
+            name='Old Challenge',
+            activation_date=timezone.now() + timedelta(days=-14),
+            deactivation_date=timezone.now() + timedelta(days=-7)
+        )
+
+        challenge_current = Challenge.objects.create(
+            name='Current Challenge',
+            activation_date=timezone.now() + timedelta(days=-2),
+            deactivation_date=timezone.now() + timedelta(days=2)
+        )
+
+        next_challenge = Challenge.get_next()
+
+        self.assertEqual(challenge_current, next_challenge, "Unexpected challenge returned.")
+    
 
 class TestChallengeAPI(APITestCase):
 
