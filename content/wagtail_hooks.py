@@ -16,7 +16,7 @@ class ChallengeAdmin(ModelAdmin):
 class QuizQuestionAdmin(ModelAdmin):
     model = QuizQuestion
     add_to_settings_menu = False
-    list_display = ('challenge', 'text',)
+    list_display = ('challenge', 'text', 'hint',)
     list_filter = ('challenge',)
     search_fields = ('challenge',)
 

@@ -128,10 +128,11 @@ Challenge.panels = [
     ], heading=_('Challenge')),
     wagtail_edit_handlers.MultiFieldPanel([
         wagtail_edit_handlers.FieldPanel('activation_date'),
-        wagtail_edit_handlers.FieldPanel('deactivation_date')
+        wagtail_edit_handlers.FieldPanel('deactivation_date'),
     ], heading=_('Dates')),
     wagtail_edit_handlers.InlinePanel('questions', panels=[
         wagtail_edit_handlers.FieldPanel('text'),
+        wagtail_edit_handlers.FieldPanel('hint'),
     ], label=_('Questions')),
 ]
 
@@ -181,6 +182,7 @@ class QuizQuestion(modelcluster_fields.ClusterableModel):
 QuizQuestion.panels = [
     wagtail_edit_handlers.MultiFieldPanel([
         wagtail_edit_handlers.FieldPanel('text'),
+        wagtail_edit_handlers.FieldPanel('hint'),
         wagtail_edit_handlers.FieldPanel('challenge'),
     ], heading=_('Question')),
     wagtail_edit_handlers.InlinePanel('options', panels=[
