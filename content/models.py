@@ -125,12 +125,14 @@ Challenge.panels = [
         wagtail_edit_handlers.FieldPanel('type'),
         wagtail_edit_handlers.FieldPanel('state'),
         wagtail_edit_handlers.FieldPanel('picture'),
-    ], heading="Challenge"),
+    ], heading=_('Challenge')),
     wagtail_edit_handlers.MultiFieldPanel([
         wagtail_edit_handlers.FieldPanel('activation_date'),
         wagtail_edit_handlers.FieldPanel('deactivation_date')
-    ], heading="Dates"),
-    wagtail_edit_handlers.InlinePanel('questions', label="Questions"),
+    ], heading=_('Dates')),
+    wagtail_edit_handlers.InlinePanel('questions', panels=[
+        wagtail_edit_handlers.FieldPanel('text'),
+    ], label=_('Questions')),
 ]
 
 
@@ -177,13 +179,21 @@ class QuizQuestion(modelcluster_fields.ClusterableModel):
 
 
 QuizQuestion.panels = [
-    wagtail_edit_handlers.FieldPanel('text'),
+    wagtail_edit_handlers.MultiFieldPanel([
+        wagtail_edit_handlers.FieldPanel('text'),
+        wagtail_edit_handlers.FieldPanel('challenge'),
+    ], heading=_('Question')),
+    wagtail_edit_handlers.InlinePanel('options', panels=[
+        wagtail_edit_handlers.FieldPanel('text'),
+        wagtail_edit_handlers.FieldPanel('correct'),
+    ], label=_('Question Options'))
 ]
 
 
 @python_2_unicode_compatible
 class QuestionOption(models.Model):
-    question = models.ForeignKey('QuizQuestion', related_name='options', blank=False, null=True)
+    #question = models.ForeignKey('QuizQuestion', related_name='options', blank=False, null=True)
+    question = modelcluster_fields.ParentalKey('QuizQuestion', related_name='options', blank=False, null=True)
     picture = models.URLField(_('picture URL'), blank=True, null=True)
     text = models.TextField(_('text'), blank=True)
     correct = models.BooleanField(_('correct'), default=False)
