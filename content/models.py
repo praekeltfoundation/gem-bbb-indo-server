@@ -192,7 +192,6 @@ QuizQuestion.panels = [
 
 @python_2_unicode_compatible
 class QuestionOption(models.Model):
-    #question = models.ForeignKey('QuizQuestion', related_name='options', blank=False, null=True)
     question = modelcluster_fields.ParentalKey('QuizQuestion', related_name='options', blank=False, null=True)
     picture = models.URLField(_('picture URL'), blank=True, null=True)
     text = models.TextField(_('text'), blank=True)
