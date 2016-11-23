@@ -50,6 +50,10 @@ class ChallengeViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(get_object_or_404(self.get_queryset(), pk=pk))
         return Response(serializer.data)
 
+    @list_route(methods=['get'])
+    def current(self, request, *args, **kwargs):
+        return Response()
+
 
 class EntryViewSet(viewsets.ModelViewSet):
     queryset = Entry.objects.all()

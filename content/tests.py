@@ -50,6 +50,25 @@ def create_goal(name, user, target):
     return Goal.objects.create(name=name, user=user, target=target, start_date=timezone.now(), end_date=timezone.now())
 
 
+# ========== #
+# Challenges #
+# ========== #
+
+
+class TestChallengeAPI(APITestCase):
+
+    def test_date_filtering(self):
+        """When the current date is outside the Challenge's activation and deactivation time, it should not be available.
+        """
+        # TODO: Mock datetime.now instead of using timedelta
+        self.skipTest('TODO')
+
+
+# ==== #
+# Tips #
+# ==== #
+
+
 class TestTipModel(TestCase):
 
     def setUp(self):
@@ -240,6 +259,11 @@ class TestFavouriteAPI(APITestCase):
 
         self.assertEqual(len(response.data), 1, "Unexpected number of favourite tips returned.")
         self.assertEqual(response.data[0].get('id', None), tip2.id)
+
+
+# ===== #
+# Goals #
+# ===== #
 
 
 class TestGoalModel(TestCase):
@@ -510,4 +534,3 @@ class TestGoalTransactionAPI(APITestCase):
         self.assertEqual(updated_trans[1], trans2, "Unexpected transaction.")
         self.assertEqual(updated_trans[2], trans3, "Unexpected transaction.")
         self.assertEqual(updated_trans[3].value, 300, "Unexpected transaction.")
-
