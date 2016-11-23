@@ -115,8 +115,12 @@ class Challenge(modelcluster_fields.ClusterableModel):
     def get_questions(self):
         return QuizQuestion.objects.filter(challenge=self.pk)
 
+    @property
     def is_active(self):
-        return (self.state == 'published') and (self.activation_date < timezone.now() < self.deactivation_date)
+        return (self.state == self.CST_PUBLISHED) and (self.activation_date < timezone.now() < self.deactivation_date)
+
+    def publish(self):
+        self.state = self.CST_PUBLISHED
 
 
 Challenge.panels = [

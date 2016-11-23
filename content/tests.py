@@ -10,8 +10,12 @@ from rest_framework.test import APITestCase
 from wagtail.wagtailcore.models import Page
 
 from users.models import User, RegUser
+from .models import Challenge
 from .models import Goal, GoalTransaction
 from .models import Tip, TipFavourite
+
+
+# TODO: Mock datetime.now instead of using timedelta
 
 
 def create_test_regular_user(username='AnonReg'):
@@ -55,12 +59,40 @@ def create_goal(name, user, target):
 # ========== #
 
 
+class TestChallengeModel(TestCase):
+
+    def test_is_not_active(self):
+        challenge = Challenge.objects.create(
+            name='Test Challenge',
+            activation_date=timezone.now() + timedelta(days=1),
+            deactivation_date=timezone.now() + timedelta(days=2)
+        )
+        self.assertFalse(challenge.is_active, "Challenge was unexpectedly active.")
+
+    def test_is_not_active_but_published(self):
+        challenge = Challenge.objects.create(
+            name='Test Challenge',
+            activation_date=timezone.now() + timedelta(days=1),
+            deactivation_date=timezone.now() + timedelta(days=2)
+        )
+        challenge.publish()
+        self.assertFalse(challenge.is_active, "Challenge was unexpectedly active.")
+
+    def test_is_active(self):
+        challenge = Challenge.objects.create(
+            name='Test Challenge',
+            activation_date=timezone.now() + timedelta(days=-1),
+            deactivation_date=timezone.now() + timedelta(days=2)
+        )
+        challenge.publish()
+        self.assertTrue(challenge.is_active, "Challenge was unexpectedly inactive.")
+
+
 class TestChallengeAPI(APITestCase):
 
     def test_date_filtering(self):
         """When the current date is outside the Challenge's activation and deactivation time, it should not be available.
         """
-        # TODO: Mock datetime.now instead of using timedelta
         self.skipTest('TODO')
 
 
