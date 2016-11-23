@@ -97,20 +97,6 @@ class Challenge(modelcluster_fields.ClusterableModel):
 
     agreement = models.ManyToManyField(Agreement, through='ChallengeAgreement')
 
-    panels = [
-        wagtail_edit_handlers.MultiFieldPanel([
-            wagtail_edit_handlers.FieldPanel('name'),
-            wagtail_edit_handlers.FieldPanel('type'),
-            wagtail_edit_handlers.FieldPanel('state'),
-            wagtail_edit_handlers.FieldPanel('picture'),
-        ], heading="Challenge"),
-        wagtail_edit_handlers.MultiFieldPanel([
-            wagtail_edit_handlers.FieldPanel('activation_date'),
-            wagtail_edit_handlers.FieldPanel('deactivation_date')
-        ], heading="Dates"),
-        wagtail_edit_handlers.InlinePanel('questions', label="Questions"),
-    ]
-
     class Meta:
         verbose_name = _('challenge')
         verbose_name_plural = _('challenges')
@@ -133,6 +119,21 @@ class Challenge(modelcluster_fields.ClusterableModel):
         return (self.state == 'published') and (self.activation_date < timezone.now() < self.deactivation_date)
 
 
+Challenge.panels = [
+    wagtail_edit_handlers.MultiFieldPanel([
+        wagtail_edit_handlers.FieldPanel('name'),
+        wagtail_edit_handlers.FieldPanel('type'),
+        wagtail_edit_handlers.FieldPanel('state'),
+        wagtail_edit_handlers.FieldPanel('picture'),
+    ], heading="Challenge"),
+    wagtail_edit_handlers.MultiFieldPanel([
+        wagtail_edit_handlers.FieldPanel('activation_date'),
+        wagtail_edit_handlers.FieldPanel('deactivation_date')
+    ], heading="Dates"),
+    wagtail_edit_handlers.InlinePanel('questions', label="Questions"),
+]
+
+
 class ChallengeAgreement(models.Model):
     challenge = models.ForeignKey(Challenge, on_delete=models.CASCADE)
     agreement = models.ForeignKey(Agreement, on_delete=models.CASCADE)
@@ -144,17 +145,6 @@ class QuizQuestion(modelcluster_fields.ClusterableModel):
     challenge = modelcluster_fields.ParentalKey('Challenge', related_name='questions', blank=False, null=True)
     text = models.TextField(_('text'), blank=True)
     hint = models.TextField(_('hint'), blank=True, null=True)
-
-    panels = [
-        wagtail_edit_handlers.FieldPanel('text'),
-        #wagtail_edit_handlers.FieldPanel('options'),
-        wagtail_edit_handlers.FieldPanel('get_options'),
-    ]
-
-    @property
-    def get_options(self):
-        model = apps.get_model(app_label='content', model_name='QuestionOption')
-        return model.objects.filter(question=self)
 
     class Meta:
         verbose_name = _('question')
@@ -184,6 +174,11 @@ class QuizQuestion(modelcluster_fields.ClusterableModel):
 
     def get_options(self):
         return QuestionOption.objects.filter(question=self)
+
+
+QuizQuestion.panels = [
+    wagtail_edit_handlers.FieldPanel('text'),
+]
 
 
 @python_2_unicode_compatible
