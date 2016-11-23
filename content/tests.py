@@ -88,7 +88,27 @@ class TestChallengeModel(TestCase):
         self.assertTrue(challenge.is_active, "Challenge was unexpectedly inactive.")
 
     def test_get_next(self):
-        self.skipTest('TODO')
+        """The next challenge is chosen according to the activation date, whether it is active or not."""
+        challenge_later = Challenge.objects.create(
+            name='Test Challenge',
+            activation_date=timezone.now() + timedelta(days=3),
+            deactivation_date=timezone.now() + timedelta(days=5)
+        )
+
+        challenge_now = Challenge.objects.create(
+            name='Test Challenge',
+            activation_date=timezone.now() + timedelta(days=1),
+            deactivation_date=timezone.now() + timedelta(days=5)
+        )
+
+        challenge_much_later = Challenge.objects.create(
+            name='Test Challenge',
+            activation_date=timezone.now() + timedelta(days=18),
+            deactivation_date=timezone.now() + timedelta(days=30)
+        )
+
+        next_challenge = Challenge.get_next()
+        self.assertEqual(challenge_now, next_challenge, "Unexpected challenge was returned.")
 
 
 class TestChallengeAPI(APITestCase):
