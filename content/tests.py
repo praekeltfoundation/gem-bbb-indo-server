@@ -90,22 +90,28 @@ class TestChallengeModel(TestCase):
     def test_get_next(self):
         """The next challenge is chosen according to the activation date, whether it is active or not."""
         challenge_later = Challenge.objects.create(
-            name='Test Challenge',
+            name='Later Challenge',
             activation_date=timezone.now() + timedelta(days=3),
             deactivation_date=timezone.now() + timedelta(days=5)
         )
+        challenge_later.publish()
+        challenge_later.save()
 
         challenge_now = Challenge.objects.create(
-            name='Test Challenge',
+            name='Current Challenge',
             activation_date=timezone.now() + timedelta(days=1),
             deactivation_date=timezone.now() + timedelta(days=5)
         )
+        challenge_now.publish()
+        challenge_now.save()
 
         challenge_much_later = Challenge.objects.create(
-            name='Test Challenge',
+            name='Much Later Challenge',
             activation_date=timezone.now() + timedelta(days=18),
             deactivation_date=timezone.now() + timedelta(days=30)
         )
+        challenge_much_later.publish()
+        challenge_much_later.save()
 
         next_challenge = Challenge.get_next()
         self.assertEqual(challenge_now, next_challenge, "Unexpected challenge was returned.")
@@ -117,17 +123,47 @@ class TestChallengeModel(TestCase):
             activation_date=timezone.now() + timedelta(days=-14),
             deactivation_date=timezone.now() + timedelta(days=-7)
         )
+        challenge_old.publish()
+        challenge_old.save()
 
         challenge_current = Challenge.objects.create(
             name='Current Challenge',
             activation_date=timezone.now() + timedelta(days=-2),
             deactivation_date=timezone.now() + timedelta(days=2)
         )
+        challenge_current.publish()
+        challenge_current.save()
 
         next_challenge = Challenge.get_next()
 
         self.assertEqual(challenge_current, next_challenge, "Unexpected challenge returned.")
-    
+
+    def test_prefer_published(self):
+        """When an unpublished and published challenge overlap on dates, the published should be preferred."""
+        Challenge.objects.create(
+            name='Unpublished Challenge',
+            activation_date=timezone.now() + timedelta(days=-7),
+            deactivation_date=timezone.now() + timedelta(days=7)
+        )
+
+        challenge_published = Challenge.objects.create(
+            name='Published Challenge',
+            activation_date=timezone.now() + timedelta(days=-7),
+            deactivation_date=timezone.now() + timedelta(days=7)
+        )
+        challenge_published.publish()
+        challenge_published.save()
+
+        Challenge.objects.create(
+            name='Later Unpublished Challenge',
+            activation_date=timezone.now() + timedelta(days=-7),
+            deactivation_date=timezone.now() + timedelta(days=7)
+        )
+
+        next_challenge = Challenge.get_next()
+
+        self.assertEqual(challenge_published, next_challenge, "Unexpected challenge returned.")
+
 
 class TestChallengeAPI(APITestCase):
 
