@@ -79,7 +79,7 @@ class QuestionAdmin(admin.ModelAdmin):
     form = QuestionAdminForm
     fieldsets = [
         (None,
-         {'fields': ['challenge', 'text']})
+         {'fields': ['challenge', 'text', 'hint']})
     ]
     list_display = ('challenge', 'text')
     list_filter = ('challenge', 'text')
