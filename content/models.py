@@ -6,7 +6,7 @@ from functools import reduce
 from math import ceil
 from os.path import splitext
 
-from django.apps import apps
+from django.utils.html import format_html
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
@@ -118,6 +118,13 @@ class Challenge(modelcluster_fields.ClusterableModel):
     @property
     def is_active(self):
         return (self.state == self.CST_PUBLISHED) and (self.activation_date < timezone.now() < self.deactivation_date)
+
+    def is_active_html(self):
+        colour = 'FF0000'
+        active = self.is_active
+        if active:
+            colour = '00FF00'
+        return format_html('<span style="color: #{};">{}</span>', colour, str(active))
 
     def publish(self):
         self.state = self.CST_PUBLISHED

@@ -8,7 +8,7 @@ from .models import QuizQuestion
 class ChallengeAdmin(ModelAdmin):
     model = Challenge
     add_to_settings_menu = False
-    list_display = ('name', 'type', 'state', 'activation_date', 'deactivation_date')
+    list_display = ('name', 'type', 'state', 'activation_date', 'deactivation_date', 'is_active_html')
     list_filter = ('name', 'type', 'state')
     search_fields = ('name',)
 
