@@ -118,6 +118,15 @@ class TestChallengeAPI(APITestCase):
         """
         self.skipTest('TODO')
 
+    def test_no_challenge_available(self):
+        user = create_test_regular_user('anon')
+        # No Challenge created
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:challenges-current'), format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
 
 # ==== #
 # Tips #

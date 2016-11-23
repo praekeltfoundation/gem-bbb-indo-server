@@ -1,8 +1,9 @@
+
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.decorators import list_route, detail_route
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.generics import GenericAPIView
 from rest_framework.parsers import FileUploadParser
 from rest_framework.permissions import IsAuthenticated
@@ -52,7 +53,11 @@ class ChallengeViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def current(self, request, *args, **kwargs):
-        return Response()
+        challenge = Challenge.get_next()
+        if challenge is None:
+            raise NotFound("No upcoming Challenge is available.")
+        serializer = self.get_serializer(challenge)
+        return Response(serializer.data, status=status.HTTP_200_OK)
 
 
 class EntryViewSet(viewsets.ModelViewSet):
