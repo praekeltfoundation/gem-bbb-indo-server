@@ -6,6 +6,7 @@ from functools import reduce
 from math import ceil
 from os.path import splitext
 
+from django.apps import apps
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
@@ -55,7 +56,7 @@ def get_challenge_image_filename(instance, filename):
 
 
 @python_2_unicode_compatible
-class Challenge(models.Model):
+class Challenge(modelcluster_fields.ClusterableModel):
     # challenge states
     CST_INCOMPLETE = 1
     CST_REVIEW_READY = 2
@@ -96,6 +97,20 @@ class Challenge(models.Model):
 
     agreement = models.ManyToManyField(Agreement, through='ChallengeAgreement')
 
+    panels = [
+        wagtail_edit_handlers.MultiFieldPanel([
+            wagtail_edit_handlers.FieldPanel('name'),
+            wagtail_edit_handlers.FieldPanel('type'),
+            wagtail_edit_handlers.FieldPanel('state'),
+            wagtail_edit_handlers.FieldPanel('picture'),
+        ], heading="Challenge"),
+        wagtail_edit_handlers.MultiFieldPanel([
+            wagtail_edit_handlers.FieldPanel('activation_date'),
+            wagtail_edit_handlers.FieldPanel('deactivation_date')
+        ], heading="Dates"),
+        wagtail_edit_handlers.InlinePanel('questions', label="Questions"),
+    ]
+
     class Meta:
         verbose_name = _('challenge')
         verbose_name_plural = _('challenges')
@@ -124,11 +139,22 @@ class ChallengeAgreement(models.Model):
 
 
 @python_2_unicode_compatible
-class QuizQuestion(models.Model):
+class QuizQuestion(modelcluster_fields.ClusterableModel):
     order = models.PositiveIntegerField(_('order'), default=0)
-    challenge = models.ForeignKey('Challenge', related_name='questions', blank=False, null=True)
+    challenge = modelcluster_fields.ParentalKey('Challenge', related_name='questions', blank=False, null=True)
     text = models.TextField(_('text'), blank=True)
     hint = models.TextField(_('hint'), blank=True, null=True)
+
+    panels = [
+        wagtail_edit_handlers.FieldPanel('text'),
+        #wagtail_edit_handlers.FieldPanel('options'),
+        wagtail_edit_handlers.FieldPanel('get_options'),
+    ]
+
+    @property
+    def get_options(self):
+        model = apps.get_model(app_label='content', model_name='QuestionOption')
+        return model.objects.filter(question=self)
 
     class Meta:
         verbose_name = _('question')
