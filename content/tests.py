@@ -87,6 +87,9 @@ class TestChallengeModel(TestCase):
         challenge.publish()
         self.assertTrue(challenge.is_active, "Challenge was unexpectedly inactive.")
 
+    def test_get_next(self):
+        self.skipTest('TODO')
+
 
 class TestChallengeAPI(APITestCase):
 

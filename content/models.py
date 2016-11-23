@@ -122,6 +122,11 @@ class Challenge(modelcluster_fields.ClusterableModel):
     def publish(self):
         self.state = self.CST_PUBLISHED
 
+    @classmethod
+    def get_next(cls):
+        """Decides which Challenge the user will receive next."""
+        return Challenge.objects.order_by('activation_date').first()
+
 
 Challenge.panels = [
     wagtail_edit_handlers.MultiFieldPanel([
