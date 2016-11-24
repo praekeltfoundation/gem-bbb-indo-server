@@ -41,6 +41,10 @@ class ChallengeImageView(GenericAPIView):
 class ChallengeViewSet(viewsets.ModelViewSet):
     """
     The current active challenge can be retrieved from `/api/challenges/current/`
+
+    Setting the `exclude-done` query parameter to `true` will ignore Challenges in which the user has participated.
+
+    `/api/challenges/current/?exclude_done=true`
     """
     queryset = Challenge.objects.all()
     serializer_class = ChallengeSerializer
@@ -56,9 +60,16 @@ class ChallengeViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def current(self, request, *args, **kwargs):
-        challenge = Challenge.get_current()
+        exclude_done = self.request.query_params.get('exclude-done', 'false')
+
+        if exclude_done.lower() == 'true':
+            challenge = Challenge.get_current(user=request.user)
+        else:
+            challenge = Challenge.get_current()
+
         if challenge is None:
             raise NotFound("No upcoming Challenge is available.")
+
         serializer = self.get_serializer(challenge)
         return Response(serializer.data)
 

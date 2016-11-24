@@ -182,6 +182,45 @@ class TestChallengeAPI(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
 
 
+# ================= #
+# Challenge Entries #
+# ================= #
+
+
+class ChallengeParticipantIntegrationAPI(APITestCase):
+
+    def test_filter_challenge(self):
+        """When the user has participated in a Challenge, they should receive the next available Challenge."""
+        user = create_test_regular_user('anon')
+
+        # Both challenges are active
+        challenge_first = Challenge.objects.create(
+            name='First Challenge',
+            activation_date=timezone.now() + timedelta(days=-7),
+            deactivation_date=timezone.now() + timedelta(days=7)
+        )
+        challenge_first.publish()
+        challenge_first.save()
+
+        challenge_second = Challenge.objects.create(
+            name='Second Challenge',
+            activation_date=timezone.now() + timedelta(days=-6),
+            deactivation_date=timezone.now() + timedelta(days=8)
+        )
+        challenge_second.publish()
+        challenge_second.save()
+
+        # Participate and complete
+        challenge_first.participants\
+            .create(user=user)\
+            .entries.create()
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:challenges-current'), {'exclude-done': 'true'})
+
+        self.assertEqual(response.data['id'], challenge_second.id, "Unexpected challenge returned.")
+
+
 # ==== #
 # Tips #
 # ==== #

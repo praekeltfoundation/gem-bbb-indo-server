@@ -134,14 +134,16 @@ class Challenge(modelcluster_fields.ClusterableModel):
     @classmethod
     def get_current(cls, user=None):
         """Decides which Challenge the user will receive next."""
-        if user is None:
-            return Challenge.objects \
-                .order_by('activation_date')\
-                .filter(state=cls.CST_PUBLISHED, deactivation_date__gt=timezone.now())\
-                .first()
-        else:
-            # TODO: Ignore Challenges with a participant for the user
-            return None
+        q = Challenge.objects \
+            .prefetch_related('participants', 'participants__entries')\
+            .order_by('activation_date')\
+            .filter(state=cls.CST_PUBLISHED, deactivation_date__gt=timezone.now())
+
+        if user is not None:
+            # A participant without entries is incomplete
+            q = q.exclude(participants__entries__isnull=False, participants__user__exact=user)
+
+        return q.first()
 
 
 Challenge.panels = [
@@ -261,10 +263,14 @@ class FreeTextQuestion(models.Model):
 @python_2_unicode_compatible
 class Participant(models.Model):
     user = models.ForeignKey(User, related_name='users', blank=False, null=True)
-    challenge = models.ForeignKey(Challenge, related_name='challenges', blank=False, null=True)
-    completed = models.BooleanField(_('completed'), default=False)
+    challenge = models.ForeignKey(Challenge, related_name='participants', blank=False, null=True)
     date_created = models.DateTimeField(_('created on'), default=timezone.now)
     date_completed = models.DateTimeField(_('completed on'), null=True)
+
+    @property
+    def is_completed(self):
+        """A Participant is considered complete when at least one entry has been created."""
+        return self.entries.all().exists()
 
     class Meta:
         verbose_name = _('participant')
