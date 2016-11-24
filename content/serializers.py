@@ -131,8 +131,7 @@ class ChallengeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Challenge
-        fields = ('id', 'name', 'type', 'activation_date', 'deactivation_date', 'image_url', 'terms_url', 'is_active',
-                  'questions', 'freetext_question')
+        exclude = ('end_processed', 'picture', 'state', 'terms')
 
     def __init__(self, *args, **kwargs):
         summary = kwargs.pop('summary', False)
