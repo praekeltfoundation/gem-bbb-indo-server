@@ -14,6 +14,9 @@ from .models import Challenge
 from .models import Goal, GoalTransaction
 from .models import Tip, TipFavourite
 
+from .serializers import ParticipantRegisterSerializer
+import rest_framework.exceptions as rest_exceptions
+
 
 # TODO: Mock datetime.now instead of using timedelta
 
@@ -52,6 +55,27 @@ def publish_page(user, page):
 
 def create_goal(name, user, target):
     return Goal.objects.create(name=name, user=user, target=target, start_date=timezone.now(), end_date=timezone.now())
+
+
+def create_test_challenge(**kwargs):
+    """
+    Create a test challenge. Params can be set via kwargs.
+    @param name default='Test Challenge'
+    @param activation_date default=timezone.now() + timedelta(days=-7)
+    @param deactivation_date default=timezone.now() + timedelta(days=+7)
+    @param publish default=True
+    """
+    challenge = Challenge(
+        name=kwargs.get('name', 'Test Challenge'),
+        activation_date=kwargs.get('activation_date', timezone.now() + timedelta(days=-7)),
+        deactivation_date=kwargs.get('deactivation_date', timezone.now() + timedelta(days=7))
+    )
+
+    if kwargs.get('publish', True):
+        challenge.publish()
+    challenge.save()
+
+    return challenge
 
 
 # ========== #
@@ -182,6 +206,72 @@ class TestChallengeAPI(APITestCase):
         response = self.client.get(reverse('api:challenges-current'), format='json')
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+
+# ============ #
+# Participants #
+# ============ #
+
+
+class ChallengeParticipantRegistrationAPI(APITestCase):
+
+    def test_create_participant(self):
+        """Before a user can participate in a Challenge, they must register for the Challenge."""
+        user = create_test_regular_user('anon')
+        challenge = create_test_challenge()
+
+        serializer = ParticipantRegisterSerializer(data={'user': user.id, 'challenge': challenge.id})
+        if serializer.is_valid(raise_exception=True):
+            participant = serializer.save()
+
+    def test_participant_no_user(self):
+        """Participant registration requires a valid user."""
+        challenge = create_test_challenge()
+        serializer = ParticipantRegisterSerializer(data={'user': 0xDEADBEEF, 'challenge': challenge.id})
+
+        with self.assertRaises(rest_exceptions.ValidationError):
+            serializer.is_valid(raise_exception=True)
+
+    def test_participant_no_challenge(self):
+        """Participant registration requires a valid challenge."""
+        user = create_test_regular_user('anon')
+        serializer = ParticipantRegisterSerializer(data={'user': user.id, 'challenge': 0xDEADBEEF})
+
+        with self.assertRaises(rest_exceptions.ValidationError):
+            serializer.is_valid(raise_exception=True)
+
+    def test_create_participant_multiple_times(self):
+        """Registering for a challenge multiple times should return the same participant."""
+        user = create_test_regular_user('anon')
+        challenge = create_test_challenge()
+
+        participant1 = None
+        serializer1 = ParticipantRegisterSerializer(data={'user': user.id, 'challenge': challenge.id})
+        if serializer1.is_valid(raise_exception=True):
+            participant1 = serializer1.save()
+
+        participant2 = None
+        serializer2 = ParticipantRegisterSerializer(data={'user': user.id, 'challenge': challenge.id})
+        if serializer2.is_valid(raise_exception=True):
+            participant2 = serializer2.save()
+
+        self.assertEqual(participant1.id, participant2.id, msg='Should be the same participant')
+
+    def test_create_participant_invalid_time(self):
+        """Participants should only be able to register for active challenges."""
+        user = create_test_regular_user('anon')
+        challenge = create_test_challenge(activation_date=timezone.now() + timedelta(days=+1),
+                                          deactivation_date=timezone.now() + timedelta(days=+7))
+
+        serializer = ParticipantRegisterSerializer(data={'user': user.id, 'challenge': challenge.id})
+        with self.assertRaises(rest_exceptions.ValidationError):
+            serializer.is_valid(raise_exception=True)
+
+        challenge.activation_date = timezone.now() + timedelta(days=-7)
+        challenge.deactivation_date = timezone.now() + timedelta(days=-1)
+        serializer = ParticipantRegisterSerializer(data={'user': user.id, 'challenge': challenge.id})
+        with self.assertRaises(rest_exceptions.ValidationError):
+            serializer.is_valid(raise_exception=True)
 
 
 # ================= #
@@ -382,7 +472,6 @@ class TestFavouriteAPI(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertTrue(updated_fav.is_active, "Updated Tip is not favourited.")
-
 
 
     def test_favourite_list(self):
