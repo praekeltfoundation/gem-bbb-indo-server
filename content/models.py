@@ -69,9 +69,17 @@ class Challenge(modelcluster_fields.ClusterableModel):
     CTP_FREEFORM = 3
 
     name = models.CharField(_('challenge name'), max_length=30, null=False, blank=False)
+    subtitle = models.CharField(max_length=30, null=False, blank=True)
+    intro = models.CharField(_('intro dialogue'), max_length=200, blank=True,
+                             help_text=_('The opening line said by the Coach when telling the user about the Challenge.'))
+    outro = models.CharField(_('outro dialogue'), max_length=200, blank=True,
+                             help_text=_('The line said by the Coach when the user has completed their Challenge submission.'))
+    call_to_action = models.CharField(_('call to action'), max_length=200, blank=True,
+                             help_text=_('Displayed on the Challenge popup when it is not available yet.'))
+    instruction = models.CharField(_('instructional text'), max_length=200, blank=True,
+                             help_text=_('Displayed on the Challenge splash screen when it is available.'))
     activation_date = models.DateTimeField(_('activate on'))
     deactivation_date = models.DateTimeField(_('deactivate on'))
-    # questions = models.ManyToManyField('Questions')
     # challenge_badge = models.ForeignKey('', null=True, blank=True)
     state = models.PositiveIntegerField(
         'state', choices=(
@@ -93,6 +101,8 @@ class Challenge(modelcluster_fields.ClusterableModel):
                                 storage=ChallengeStorage(),
                                 null=True,
                                 blank=True)
+
+    # Processed flag to indicate that participant data has been aggregated and stored.
     end_processed = models.BooleanField(_('processed'), default=False)
 
     agreement = models.ManyToManyField(Agreement, through='ChallengeAgreement')
@@ -149,10 +159,19 @@ class Challenge(modelcluster_fields.ClusterableModel):
 Challenge.panels = [
     wagtail_edit_handlers.MultiFieldPanel([
         wagtail_edit_handlers.FieldPanel('name'),
+        wagtail_edit_handlers.FieldPanel('subtitle'),
         wagtail_edit_handlers.FieldPanel('type'),
         wagtail_edit_handlers.FieldPanel('state'),
         wagtail_edit_handlers.FieldPanel('picture'),
     ], heading=_('Challenge')),
+    wagtail_edit_handlers.MultiFieldPanel([
+        wagtail_edit_handlers.FieldPanel('instruction'),
+        wagtail_edit_handlers.FieldPanel('call_to_action'),
+    ], heading=_('Instructional Text')),
+    wagtail_edit_handlers.MultiFieldPanel([
+        wagtail_edit_handlers.FieldPanel('intro'),
+        wagtail_edit_handlers.FieldPanel('outro'),
+    ], heading=_('Coach UI')),
     wagtail_edit_handlers.MultiFieldPanel([
         wagtail_edit_handlers.FieldPanel('activation_date'),
         wagtail_edit_handlers.FieldPanel('deactivation_date'),
@@ -364,7 +383,7 @@ class Tip(wagtail_models.Page):
     cover_image = models.ForeignKey(wagtail_image_models.Image, blank=True, null=True,
                                     on_delete=models.SET_NULL, related_name='+')
     intro = models.CharField(_('intro dialogue'), max_length=200, blank=True,
-                             help_text=_('The opening line said by the Coach when telling the user about the Tip'))
+                             help_text=_('The opening line said by the Coach when telling the user about the Tip.'))
     body = wagtail_fields.StreamField([
         ('paragraph', wagtail_blocks.RichTextBlock())
     ])
