@@ -76,6 +76,7 @@ class TestChallengeModel(TestCase):
             deactivation_date=timezone.now() + timedelta(days=2)
         )
         challenge.publish()
+        challenge.save()
         self.assertFalse(challenge.is_active, "Challenge was unexpectedly active.")
 
     def test_is_active(self):
@@ -85,6 +86,7 @@ class TestChallengeModel(TestCase):
             deactivation_date=timezone.now() + timedelta(days=2)
         )
         challenge.publish()
+        challenge.save()
         self.assertTrue(challenge.is_active, "Challenge was unexpectedly inactive.")
 
     def test_get_next(self):
