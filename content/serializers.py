@@ -19,6 +19,7 @@ def validate_participant(data, errors):
     Requires keys: participant OR user and challenge
     Returns: participant OR None
     """
+    print(data)
     user = data.pop('user', None)
     challenge = data.pop('challenge', None)
 
@@ -50,12 +51,14 @@ def validate_participant(data, errors):
         if len(errors) <= 0:
             try:
                 participant = Participant.objects.get(challenge_id=challenge.id, user_id=user.id)
+                data['participant'] = participant.id
                 return participant
             except Participant.MultipleObjectsReturned:
                 errors.update({'participant': 'Multiple participants exist.'})
             except Participant.DoesNotExist:
                 try:
                     participant = Participant.objects.create(user_id=user.id, challenge_id=challenge.id)
+                    data['participant'] = participant.id
                     return participant
                 except:
                     errors.update({'participant': 'Participant could not be created'})
