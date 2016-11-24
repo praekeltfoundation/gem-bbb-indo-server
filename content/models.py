@@ -126,6 +126,8 @@ class Challenge(modelcluster_fields.ClusterableModel):
             colour = '00FF00'
         return format_html('<span style="color: #{};">{}</span>', colour, str(active))
 
+    is_active_html.admin_order_field = 'state'
+
     def publish(self):
         self.state = self.CST_PUBLISHED
 
