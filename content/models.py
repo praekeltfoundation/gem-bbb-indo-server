@@ -6,6 +6,7 @@ from functools import reduce
 from math import ceil
 from os.path import splitext
 
+from django.utils.html import format_html
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
@@ -37,8 +38,8 @@ class Agreement(wagtail_models.Page):
     ]
 
     class Meta:
-        verbose_name = 'agreement'
-        verbose_name_plural = 'agreements'
+        verbose_name = _('agreement')
+        verbose_name_plural = _('agreements')
 
 
 # ========== #
@@ -55,7 +56,7 @@ def get_challenge_image_filename(instance, filename):
 
 
 @python_2_unicode_compatible
-class Challenge(models.Model):
+class Challenge(modelcluster_fields.ClusterableModel):
     # challenge states
     CST_INCOMPLETE = 1
     CST_REVIEW_READY = 2
@@ -68,9 +69,17 @@ class Challenge(models.Model):
     CTP_FREEFORM = 3
 
     name = models.CharField(_('challenge name'), max_length=30, null=False, blank=False)
+    subtitle = models.CharField(max_length=30, null=False, blank=True)
+    intro = models.CharField(_('intro dialogue'), max_length=200, blank=True,
+                             help_text=_('The opening line said by the Coach when telling the user about the Challenge.'))
+    outro = models.CharField(_('outro dialogue'), max_length=200, blank=True,
+                             help_text=_('The line said by the Coach when the user has completed their Challenge submission.'))
+    call_to_action = models.CharField(_('call to action'), max_length=200, blank=True,
+                             help_text=_('Displayed on the Challenge popup when it is not available yet.'))
+    instruction = models.CharField(_('instructional text'), max_length=200, blank=True,
+                             help_text=_('Displayed on the Challenge splash screen when it is available.'))
     activation_date = models.DateTimeField(_('activate on'))
     deactivation_date = models.DateTimeField(_('deactivate on'))
-    # questions = models.ManyToManyField('Questions')
     # challenge_badge = models.ForeignKey('', null=True, blank=True)
     state = models.PositiveIntegerField(
         'state', choices=(
@@ -92,6 +101,8 @@ class Challenge(models.Model):
                                 storage=ChallengeStorage(),
                                 null=True,
                                 blank=True)
+
+    # Processed flag to indicate that participant data has been aggregated and stored.
     end_processed = models.BooleanField(_('processed'), default=False)
 
     agreement = models.ManyToManyField(Agreement, through='ChallengeAgreement')
@@ -114,8 +125,62 @@ class Challenge(models.Model):
     def get_questions(self):
         return QuizQuestion.objects.filter(challenge=self.pk)
 
+    @property
     def is_active(self):
-        return (self.state == 'published') and (self.activation_date < timezone.now() < self.deactivation_date)
+        return (self.state == self.CST_PUBLISHED) and (self.activation_date < timezone.now() < self.deactivation_date)
+
+    def is_active_html(self):
+        colour = 'FF0000'
+        active = self.is_active
+        if active:
+            colour = '00FF00'
+        return format_html('<span style="color: #{};">{}</span>', colour, str(active))
+
+    is_active_html.admin_order_field = 'state'
+
+    def publish(self):
+        self.state = self.CST_PUBLISHED
+
+    @classmethod
+    def get_current(cls, user=None):
+        """Decides which Challenge the user will receive next."""
+        q = Challenge.objects \
+            .prefetch_related('participants', 'participants__entries')\
+            .order_by('activation_date')\
+            .filter(state=cls.CST_PUBLISHED, deactivation_date__gt=timezone.now())
+
+        if user is not None:
+            # A participant without entries is incomplete
+            q = q.exclude(participants__entries__isnull=False, participants__user__exact=user)
+
+        return q.first()
+
+
+Challenge.panels = [
+    wagtail_edit_handlers.MultiFieldPanel([
+        wagtail_edit_handlers.FieldPanel('name'),
+        wagtail_edit_handlers.FieldPanel('subtitle'),
+        wagtail_edit_handlers.FieldPanel('type'),
+        wagtail_edit_handlers.FieldPanel('state'),
+        wagtail_edit_handlers.FieldPanel('picture'),
+    ], heading=_('Challenge')),
+    wagtail_edit_handlers.MultiFieldPanel([
+        wagtail_edit_handlers.FieldPanel('instruction'),
+        wagtail_edit_handlers.FieldPanel('call_to_action'),
+    ], heading=_('Instructional Text')),
+    wagtail_edit_handlers.MultiFieldPanel([
+        wagtail_edit_handlers.FieldPanel('intro'),
+        wagtail_edit_handlers.FieldPanel('outro'),
+    ], heading=_('Coach UI')),
+    wagtail_edit_handlers.MultiFieldPanel([
+        wagtail_edit_handlers.FieldPanel('activation_date'),
+        wagtail_edit_handlers.FieldPanel('deactivation_date'),
+    ], heading=_('Dates')),
+    wagtail_edit_handlers.InlinePanel('questions', panels=[
+        wagtail_edit_handlers.FieldPanel('text'),
+        wagtail_edit_handlers.FieldPanel('hint'),
+    ], label=_('Questions')),
+]
 
 
 class ChallengeAgreement(models.Model):
@@ -124,9 +189,9 @@ class ChallengeAgreement(models.Model):
 
 
 @python_2_unicode_compatible
-class QuizQuestion(models.Model):
+class QuizQuestion(modelcluster_fields.ClusterableModel):
     order = models.PositiveIntegerField(_('order'), default=0)
-    challenge = models.ForeignKey('Challenge', related_name='questions', blank=False, null=True)
+    challenge = modelcluster_fields.ParentalKey('Challenge', related_name='questions', blank=False, null=True)
     text = models.TextField(_('text'), blank=True)
     hint = models.TextField(_('hint'), blank=True, null=True)
 
@@ -160,9 +225,22 @@ class QuizQuestion(models.Model):
         return QuestionOption.objects.filter(question=self)
 
 
+QuizQuestion.panels = [
+    wagtail_edit_handlers.MultiFieldPanel([
+        wagtail_edit_handlers.FieldPanel('text'),
+        wagtail_edit_handlers.FieldPanel('hint'),
+        wagtail_edit_handlers.FieldPanel('challenge'),
+    ], heading=_('Question')),
+    wagtail_edit_handlers.InlinePanel('options', panels=[
+        wagtail_edit_handlers.FieldPanel('text'),
+        wagtail_edit_handlers.FieldPanel('correct'),
+    ], label=_('Question Options'))
+]
+
+
 @python_2_unicode_compatible
 class QuestionOption(models.Model):
-    question = models.ForeignKey('QuizQuestion', related_name='options', blank=False, null=True)
+    question = modelcluster_fields.ParentalKey('QuizQuestion', related_name='options', blank=False, null=True)
     picture = models.URLField(_('picture URL'), blank=True, null=True)
     text = models.TextField(_('text'), blank=True)
     correct = models.BooleanField(_('correct'), default=False)
@@ -204,10 +282,14 @@ class FreeTextQuestion(models.Model):
 @python_2_unicode_compatible
 class Participant(models.Model):
     user = models.ForeignKey(User, related_name='users', blank=False, null=True)
-    challenge = models.ForeignKey(Challenge, related_name='challenges', blank=False, null=True)
-    completed = models.BooleanField(_('completed'), default=False)
+    challenge = models.ForeignKey(Challenge, related_name='participants', blank=False, null=True)
     date_created = models.DateTimeField(_('created on'), default=timezone.now)
     date_completed = models.DateTimeField(_('completed on'), null=True)
+
+    @property
+    def is_completed(self):
+        """A Participant is considered complete when at least one entry has been created."""
+        return self.entries.all().exists()
 
     class Meta:
         verbose_name = _('participant')
@@ -301,7 +383,7 @@ class Tip(wagtail_models.Page):
     cover_image = models.ForeignKey(wagtail_image_models.Image, blank=True, null=True,
                                     on_delete=models.SET_NULL, related_name='+')
     intro = models.CharField(_('intro dialogue'), max_length=200, blank=True,
-                             help_text=_('The opening line said by the Coach when telling the user about the Tip'))
+                             help_text=_('The opening line said by the Coach when telling the user about the Tip.'))
     body = wagtail_fields.StreamField([
         ('paragraph', wagtail_blocks.RichTextBlock())
     ])
@@ -432,8 +514,8 @@ class Goal(models.Model):
         return [v for k, v in agg.items()]
 
     class Meta:
-        verbose_name = 'goal'
-        verbose_name_plural = 'goals'
+        verbose_name = _('goal')
+        verbose_name_plural = _('goals')
 
     def __str__(self):
         return self.name
@@ -453,8 +535,8 @@ class GoalTransaction(models.Model):
     goal = models.ForeignKey(Goal, related_name='transactions')
 
     class Meta:
-        verbose_name = 'goal transaction'
-        verbose_name_plural = 'goal transactions'
+        verbose_name = _('goal transaction')
+        verbose_name_plural = _('goal transactions')
         unique_together = ('date', 'value', 'goal')
 
     def __str__(self):

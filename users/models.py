@@ -63,8 +63,8 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     age = models.IntegerField(blank=True, null=True)
     gender = models.IntegerField(choices=(
-        (GENDER_MALE, 'Male'),
-        (GENDER_FEMALE, 'Female'),
+        (GENDER_MALE, _('Male')),
+        (GENDER_FEMALE, _('Female')),
     ), blank=True, null=True)
     mobile_regex = RegexValidator(
         regex=r'^\+?1?\d{9,15}$',

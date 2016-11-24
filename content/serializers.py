@@ -19,6 +19,7 @@ def validate_participant(data, errors):
     Requires keys: participant OR user and challenge
     Returns: participant OR None
     """
+    print(data)
     user = data.pop('user', None)
     challenge = data.pop('challenge', None)
 
@@ -50,12 +51,14 @@ def validate_participant(data, errors):
         if len(errors) <= 0:
             try:
                 participant = Participant.objects.get(challenge_id=challenge.id, user_id=user.id)
+                data['participant'] = participant.id
                 return participant
             except Participant.MultipleObjectsReturned:
                 errors.update({'participant': 'Multiple participants exist.'})
             except Participant.DoesNotExist:
                 try:
                     participant = Participant.objects.create(user_id=user.id, challenge_id=challenge.id)
+                    data['participant'] = participant.id
                     return participant
                 except:
                     errors.update({'participant': 'Participant could not be created'})
@@ -123,13 +126,14 @@ class ChallengeSerializer(serializers.ModelSerializer):
     challenge_types = {Challenge.CTP_QUIZ: 'quiz', Challenge.CTP_PICTURE: 'picture', Challenge.CTP_FREEFORM: 'freeform'}
 
     image_url = serializers.SerializerMethodField(required=False)
+    is_active = serializers.BooleanField(read_only=True)
     questions = QuestionSerializer(many=True, read_only=True, required=False)
     freetext_question = FreeTextSerializer(read_only=True, required=False)
     type = KeyValueField(read_only=True, labels=challenge_types)
 
     class Meta:
         model = Challenge
-        fields = ('id', 'name', 'type', 'activation_date', 'deactivation_date', 'image_url', 'questions',
+        fields = ('id', 'name', 'type', 'activation_date', 'deactivation_date', 'image_url', 'is_active', 'questions',
                   'freetext_question')
 
     def __init__(self, *args, **kwargs):

@@ -1,8 +1,9 @@
+
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.decorators import list_route, detail_route
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.generics import GenericAPIView
 from rest_framework.parsers import FileUploadParser
 from rest_framework.permissions import IsAuthenticated
@@ -38,6 +39,13 @@ class ChallengeImageView(GenericAPIView):
 
 
 class ChallengeViewSet(viewsets.ModelViewSet):
+    """
+    The current active challenge can be retrieved from `/api/challenges/current/`
+
+    Setting the `exclude-done` query parameter to `true` will ignore Challenges in which the user has participated.
+
+    `/api/challenges/current/?exclude_done=true`
+    """
     queryset = Challenge.objects.all()
     serializer_class = ChallengeSerializer
     http_method_names = ('options', 'head', 'get',)
@@ -48,6 +56,21 @@ class ChallengeViewSet(viewsets.ModelViewSet):
 
     def retrieve(self, request, pk=None, *args, **kwargs):
         serializer = self.get_serializer(get_object_or_404(self.get_queryset(), pk=pk))
+        return Response(serializer.data)
+
+    @list_route(methods=['get'])
+    def current(self, request, *args, **kwargs):
+        exclude_done = self.request.query_params.get('exclude-done', 'false')
+
+        if exclude_done.lower() == 'true':
+            challenge = Challenge.get_current(user=request.user)
+        else:
+            challenge = Challenge.get_current()
+
+        if challenge is None:
+            raise NotFound("No upcoming Challenge is available.")
+
+        serializer = self.get_serializer(challenge)
         return Response(serializer.data)
 
 
