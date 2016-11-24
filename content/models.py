@@ -105,7 +105,7 @@ class Challenge(modelcluster_fields.ClusterableModel):
     # Processed flag to indicate that participant data has been aggregated and stored.
     end_processed = models.BooleanField(_('processed'), default=False)
 
-    terms = models.ForeignKey(Agreement, related_name='+', null=True)
+    terms = models.ForeignKey(Agreement, related_name='+', blank=False, null=True, on_delete=models.DO_NOTHING)
 
     class Meta:
         verbose_name = _('challenge')
