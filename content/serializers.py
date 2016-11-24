@@ -158,6 +158,35 @@ class ChallengeSerializer(serializers.ModelSerializer):
             return None
 
 
+class ParticipantRegisterSerializer(serializers.ModelSerializer):
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    challenge = serializers.PrimaryKeyRelatedField(queryset=Challenge.objects.all())
+
+    class Meta:
+        model = Participant
+        fields = ('id', 'user', 'challenge',)
+        read_only_fields = ('id', 'user', 'challenge',)
+
+    def validate_challenge(self, value):
+        if value.activation_date > timezone.now():
+            raise serializers.ValidationError('Challenge not yet active')
+        elif value.deactivation_date < timezone.now():
+            raise serializers.ValidationError('Challenge no longer active')
+
+        return value
+
+    def create(self, validated_data):
+        user = validated_data.get('user')
+        challenge = validated_data.get('challenge')
+
+        try:
+            participant = Participant.objects.get(user=user, challenge=challenge)
+        except Participant.DoesNotExist:
+            participant = Participant.objects.create(user=user, challenge=challenge)
+
+        return participant
+
+
 class ParticipantAnswerSerializer(serializers.ModelSerializer):
     question = serializers.PrimaryKeyRelatedField(queryset=QuizQuestion.objects.all())
     selected_option = serializers.PrimaryKeyRelatedField(queryset=QuestionOption.objects.all())
@@ -184,6 +213,11 @@ class EntrySerializer(serializers.ModelSerializer):
 
         if participant is None or len(errors) > 0:
             raise serializers.ValidationError(errors)
+
+        if data.get('answers', None) is not None:
+            for answer in data.get('answers', None):
+                answer['participant'] = participant.id
+
         return super(EntrySerializer, self).to_internal_value(data)
 
     def validate(self, data):
