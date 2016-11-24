@@ -123,6 +123,7 @@ class ChallengeSerializer(serializers.ModelSerializer):
     challenge_types = {Challenge.CTP_QUIZ: 'quiz', Challenge.CTP_PICTURE: 'picture', Challenge.CTP_FREEFORM: 'freeform'}
 
     image_url = serializers.SerializerMethodField(required=False)
+    terms_url = serializers.SerializerMethodField(required=False)
     is_active = serializers.BooleanField(read_only=True)
     questions = QuestionSerializer(many=True, read_only=True, required=False)
     freetext_question = FreeTextSerializer(read_only=True, required=False)
@@ -130,8 +131,8 @@ class ChallengeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Challenge
-        fields = ('id', 'name', 'type', 'activation_date', 'deactivation_date', 'image_url', 'is_active', 'questions',
-                  'freetext_question')
+        fields = ('id', 'name', 'type', 'activation_date', 'deactivation_date', 'image_url', 'terms_url', 'is_active',
+                  'questions', 'freetext_question')
 
     def __init__(self, *args, **kwargs):
         summary = kwargs.pop('summary', False)
@@ -153,6 +154,14 @@ class ChallengeSerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(obj.picture.url)
         else:
             return None
+
+    def get_terms_url(self, obj):
+        request = self.context['request']
+        if obj.terms:
+            return request.build_absolute_uri(obj.terms.url)
+        else:
+            return None
+
 
 
 class ParticipantAnswerSerializer(serializers.ModelSerializer):
