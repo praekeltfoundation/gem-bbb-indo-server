@@ -113,7 +113,7 @@ class TestChallengeModel(TestCase):
         challenge_much_later.publish()
         challenge_much_later.save()
 
-        next_challenge = Challenge.get_next()
+        next_challenge = Challenge.get_current()
         self.assertEqual(challenge_now, next_challenge, "Unexpected challenge was returned.")
 
     def test_ignore_over(self):
@@ -134,7 +134,7 @@ class TestChallengeModel(TestCase):
         challenge_current.publish()
         challenge_current.save()
 
-        next_challenge = Challenge.get_next()
+        next_challenge = Challenge.get_current()
 
         self.assertEqual(challenge_current, next_challenge, "Unexpected challenge returned.")
 
@@ -160,7 +160,7 @@ class TestChallengeModel(TestCase):
             deactivation_date=timezone.now() + timedelta(days=7)
         )
 
-        next_challenge = Challenge.get_next()
+        next_challenge = Challenge.get_current()
 
         self.assertEqual(challenge_published, next_challenge, "Unexpected challenge returned.")
 

@@ -39,6 +39,9 @@ class ChallengeImageView(GenericAPIView):
 
 
 class ChallengeViewSet(viewsets.ModelViewSet):
+    """
+    The current active challenge can be retrieved from `/api/challenges/current/`
+    """
     queryset = Challenge.objects.all()
     serializer_class = ChallengeSerializer
     http_method_names = ('options', 'head', 'get',)
@@ -53,11 +56,11 @@ class ChallengeViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def current(self, request, *args, **kwargs):
-        challenge = Challenge.get_next()
+        challenge = Challenge.get_current()
         if challenge is None:
             raise NotFound("No upcoming Challenge is available.")
         serializer = self.get_serializer(challenge)
-        return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.data)
 
 
 class EntryViewSet(viewsets.ModelViewSet):

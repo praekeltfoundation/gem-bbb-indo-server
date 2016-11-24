@@ -132,12 +132,16 @@ class Challenge(modelcluster_fields.ClusterableModel):
         self.state = self.CST_PUBLISHED
 
     @classmethod
-    def get_next(cls):
+    def get_current(cls, user=None):
         """Decides which Challenge the user will receive next."""
-        return Challenge.objects \
-            .order_by('activation_date')\
-            .filter(state=cls.CST_PUBLISHED, deactivation_date__gt=timezone.now())\
-            .first()
+        if user is None:
+            return Challenge.objects \
+                .order_by('activation_date')\
+                .filter(state=cls.CST_PUBLISHED, deactivation_date__gt=timezone.now())\
+                .first()
+        else:
+            # TODO: Ignore Challenges with a participant for the user
+            return None
 
 
 Challenge.panels = [
