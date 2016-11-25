@@ -794,3 +794,19 @@ class TestWeeklyStreaks(TestCase):
         streak = Goal.get_current_streak(user, now)
 
         self.assertEqual(streak, 0, "Unexpected weekly streak.")
+
+    def test_no_savings(self):
+        now = timezone.make_aware(datetime(2016, 11, 30))
+
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=100000,
+            start_date=now - timedelta(days=30),
+            end_date=now
+        )
+
+        streak = Goal.get_current_streak(user, now)
+
+        self.assertEqual(streak, 0, "Unexpected weekly streak.")
