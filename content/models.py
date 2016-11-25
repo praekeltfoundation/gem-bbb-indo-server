@@ -6,6 +6,7 @@ from functools import reduce
 from math import ceil
 from os.path import splitext
 
+from django.apps import apps
 from django.utils.html import format_html
 from django.contrib.auth.models import User
 from django.db import models
@@ -513,6 +514,40 @@ class Goal(models.Model):
 
         return [v for k, v in agg.items()]
 
+    @classmethod
+    def get_current_streak(cls, user):
+        """Calculates the weekly savings streak for a user, starting at the current time."""
+        trans_model = apps.get_model('content', 'GoalTransaction')
+
+        since = timezone.now() - timedelta(weeks=6)
+        trans = trans_model.objects\
+            .filter(goal__user=user, date__gt=since)\
+            .order_by('-date')
+
+        last_monday = None
+
+        # No Transactions at all means no streak
+        streak = 0
+
+        for t in trans:
+            monday = Goal._monday(t.date.date())
+
+            if last_monday is None:
+                # Any Transactions is at least 1 week's streak
+                streak = 1
+                last_monday = monday
+
+            if last_monday != monday:
+                diff = (last_monday - monday).days
+                if diff > 7:
+                    # Streak broken
+                    break
+                else:
+                    streak += 1
+                    last_monday = monday
+
+        return streak
+
     class Meta:
         verbose_name = _('goal')
         verbose_name_plural = _('goals')
@@ -533,6 +568,14 @@ class GoalTransaction(models.Model):
     date = models.DateTimeField()
     value = models.DecimalField(max_digits=12, decimal_places=2)
     goal = models.ForeignKey(Goal, related_name='transactions')
+
+    @property
+    def is_deposit(self):
+        return self.value > 0
+
+    @property
+    def is_withdraw(self):
+        return self.value <= 0
 
     class Meta:
         verbose_name = _('goal transaction')
