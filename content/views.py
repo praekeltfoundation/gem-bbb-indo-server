@@ -19,6 +19,11 @@ from .serializers import ChallengeSerializer, EntrySerializer, GoalSerializer, G
     ParticipantAnswerSerializer, ParticipantFreeTextSerializer, ParticipantPictureSerializer, TipSerializer
 
 
+# ========== #
+# Challenges #
+# ========== #
+
+
 class ChallengeImageView(GenericAPIView):
     queryset = Challenge.objects.all()
     permission_classes = (IsAuthenticated,)
@@ -74,6 +79,11 @@ class ChallengeViewSet(viewsets.ModelViewSet):
         return Response(serializer.data)
 
 
+# ================= #
+# Challenge Entries #
+# ================= #
+
+
 class EntryViewSet(viewsets.ModelViewSet):
     queryset = Entry.objects.all()
     serializer_class = EntrySerializer
@@ -106,6 +116,81 @@ class ParticipantAnswerViewSet(viewsets.ModelViewSet):
             return Response(data=serial.errors, status=400)
         serial.create(serial.validated_data)
         return Response(serial.data, status=201)
+
+    class ParticipantPictureViewSet(viewsets.ModelViewSet):
+        # PARAM_USER_PK = 'user_pk'
+        queryset = ParticipantPicture.objects.all()
+        serializer_class = ParticipantPictureSerializer
+        # permission_classes = (IsAdminOrOwner, IsAuthenticated,)
+        http_method_names = ('options', 'head', 'get', 'post',)
+
+        def check_object_permissions(self, request, obj):
+            if not IsAdminOrOwner().has_object_permission(request, self, obj):
+                raise PermissionDenied("Users can only access their own goal images.")
+
+        def get_serializer_context(self):
+            return {'request': self.request}
+
+        def create(self, request, *args, **kwargs):
+            serial = self.get_serializer(data=request.data)
+            # self.check_object_permissions(request, goal)
+            if serial.is_valid(raise_exception=True):
+                serial.save()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        def get(self, request, pk=None, *args, **kwargs):
+            participantpicture = get_object_or_404(self.get_queryset(), pk=pk)
+            # self.check_object_permissions(request, participantpicture)
+            if not participantpicture.picture:
+                raise ImageNotFound()
+            return sendfile(request, participantpicture.picture.path)
+
+
+class ParticipantFreeTextViewSet(viewsets.ModelViewSet):
+    queryset = ParticipantFreeText.objects.all()
+    serializer_class = ParticipantFreeTextSerializer
+    permission_classes = (IsAuthenticated,)
+    http_method_names = ('options', 'head', 'get', 'post', 'put')
+
+    def check_permissions(self, request):
+        if not IsAuthenticated().has_permission(request, self):
+            raise PermissionDenied("User must be authenticated")
+
+    def check_object_permissions(self, request, obj):
+        if not IsAuthenticated().has_object_permission(request, self, obj):
+            raise PermissionDenied("Users can only access their freeform entries.")
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @list_route(methods=['get'])
+    def fetch(self, request, *args, **kwargs):
+        self.check_permissions(request)
+        params = request.GET if hasattr(request, 'GET') else dict()
+        challenge_id = int(params.get('challenge', None)) if params.get('challenge', None) else None
+
+        # if user is staff and queries an ID, use specified ID
+        if request.user.is_staff and params.get('user', None):
+            user_id = int(params.get('user', None))
+        # else use own ID
+        else:
+            user_id = request.user.id
+
+        # participant must map user to challenge 1:1, so do a get if only one challenge
+        result = self.get_queryset().filter(participant__user_id=user_id)
+        if challenge_id:
+            result = result.get(participant__challenge_id=challenge_id)
+        serial = self.get_serializer(result, many=not challenge_id)
+
+        return Response(data=serial.data)
+
+
+# ==== #
+# Tips #
+# ==== #
 
 
 class TipViewSet(viewsets.ModelViewSet):
@@ -160,6 +245,11 @@ class TipViewSet(viewsets.ModelViewSet):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
+# ===== #
+# Goals #
+# ===== #
+
+
 class GoalViewSet(viewsets.ModelViewSet):
     """
     Endpoint for Goals and Transactions.
@@ -212,35 +302,6 @@ class GoalViewSet(viewsets.ModelViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
 
-class ParticipantPictureViewSet(viewsets.ModelViewSet):
-    #PARAM_USER_PK = 'user_pk'
-    queryset = ParticipantPicture.objects.all()
-    serializer_class = ParticipantPictureSerializer
-    #permission_classes = (IsAdminOrOwner, IsAuthenticated,)
-    http_method_names = ('options', 'head', 'get', 'post',)
-
-    def check_object_permissions(self, request, obj):
-        if not IsAdminOrOwner().has_object_permission(request, self, obj):
-            raise PermissionDenied("Users can only access their own goal images.")
-
-    def get_serializer_context(self):
-        return {'request': self.request}
-
-    def create(self, request, *args, **kwargs):
-        serial = self.get_serializer(data=request.data)
-        #self.check_object_permissions(request, goal)
-        if serial.is_valid(raise_exception=True):
-            serial.save()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-    def get(self, request, pk=None, *args, **kwargs):
-        participantpicture = get_object_or_404(self.get_queryset(), pk=pk)
-        #self.check_object_permissions(request, participantpicture)
-        if not participantpicture.picture:
-            raise ImageNotFound()
-        return sendfile(request, participantpicture.picture.path)
-
-
 class GoalImageView(GenericAPIView):
     queryset = Goal.objects.all()
     lookup_field = 'pk'
@@ -266,45 +327,3 @@ class GoalImageView(GenericAPIView):
         if not goal.image:
             raise ImageNotFound()
         return sendfile(request, goal.image.path)
-
-
-class ParticipantFreeTextViewSet(viewsets.ModelViewSet):
-    queryset = ParticipantFreeText.objects.all()
-    serializer_class = ParticipantFreeTextSerializer
-    permission_classes = (IsAuthenticated,)
-    http_method_names = ('options', 'head', 'get', 'post', 'put')
-
-    def check_permissions(self, request):
-        if not IsAuthenticated().has_permission(request, self):
-            raise PermissionDenied("User must be authenticated")
-
-    def check_object_permissions(self, request, obj):
-        if not IsAuthenticated().has_object_permission(request, self, obj):
-            raise PermissionDenied("Users can only access their freeform entries.")
-
-    def create(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-    @list_route(methods=['get'])
-    def fetch(self, request, *args, **kwargs):
-        self.check_permissions(request)
-        params = request.GET if hasattr(request, 'GET') else dict()
-        challenge_id = int(params.get('challenge', None)) if params.get('challenge', None) else None
-
-        # if user is staff and queries an ID, use specified ID
-        if request.user.is_staff and params.get('user', None):
-            user_id = int(params.get('user', None))
-        # else use own ID
-        else:
-            user_id = request.user.id
-
-        # participant must map user to challenge 1:1, so do a get if only one challenge
-        result = self.get_queryset().filter(participant__user_id=user_id)
-        if challenge_id:
-            result = result.get(participant__challenge_id=challenge_id)
-        serial = self.get_serializer(result, many=not challenge_id)
-
-        return Response(data=serial.data)
