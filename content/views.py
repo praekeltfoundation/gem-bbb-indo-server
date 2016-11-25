@@ -1,4 +1,7 @@
 
+from collections import OrderedDict
+
+from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework import viewsets
@@ -10,11 +13,10 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from sendfile import sendfile
 
-
 from .exceptions import ImageNotFound
 from .models import Challenge, Entry, Goal, ParticipantAnswer, ParticipantFreeText, ParticipantPicture, Tip, \
     TipFavourite
-from .permissions import IsAdminOrOwner
+from .permissions import IsUserSelf, IsAdminOrOwner
 from .serializers import ChallengeSerializer, EntrySerializer, GoalSerializer, GoalTransactionSerializer, \
     ParticipantAnswerSerializer, ParticipantFreeTextSerializer, ParticipantPictureSerializer, TipSerializer
 
@@ -334,7 +336,17 @@ class GoalImageView(GenericAPIView):
 
 
 class AchievementsView(GenericAPIView):
+    permission_classes = (IsAuthenticated,)
+
+    def check_object_permissions(self, request, obj):
+        if not IsUserSelf().has_object_permission(request, self, obj):
+            raise PermissionDenied("Users can only access their own achievements.")
 
     def get(self, request, user_pk, *args, **kwargs):
-        #weekly_streak = Goal.get_current_streak()
-        return Response({})
+        user = get_object_or_404(User, pk=user_pk)
+        self.check_object_permissions(request, user)
+        data = OrderedDict()
+        data['weekly_streak'] = Goal.get_current_streak(user)
+        # TODO: Badges
+        data['badges'] = []
+        return Response(data=data)
