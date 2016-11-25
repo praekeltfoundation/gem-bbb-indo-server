@@ -515,13 +515,16 @@ class Goal(models.Model):
         return [v for k, v in agg.items()]
 
     @classmethod
-    def get_current_streak(cls, user):
+    def get_current_streak(cls, user, since=None):
         """Calculates the weekly savings streak for a user, starting at the current time."""
         trans_model = apps.get_model('content', 'GoalTransaction')
 
-        since = timezone.now() - timedelta(weeks=6)
+        since_date = since
+        if not since_date:
+            since_date = timezone.now() - timedelta(weeks=6)
+
         trans = trans_model.objects\
-            .filter(goal__user=user, date__gt=since)\
+            .filter(goal__user=user, date__gt=since_date)\
             .order_by('-date')
 
         last_monday = None

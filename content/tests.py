@@ -703,34 +703,73 @@ class TestGoalTransactionAPI(APITestCase):
 class TestWeeklyStreaks(TestCase):
 
     def test_basic_streak(self):
-        now = timezone.make_aware(datetime(2016, 11, 1))
+        now = timezone.make_aware(datetime(2016, 11, 30))
+        since = now - timedelta(weeks=6)
 
         user = create_test_regular_user('anon')
         goal = Goal.objects.create(
             name='Goal 1',
             user=user,
             target=100000,
-            start_date=now,
-            end_date=now + timedelta(days=28)
+            start_date=now - timedelta(days=-30),
+            end_date=now
         )
 
         # Three week savings streak
-        # Week 1
-        goal.transactions.create(value=1000, date=now + timedelta(days=1))
-        goal.transactions.create(value=1000, date=now + timedelta(days=2))
-        goal.transactions.create(value=1000, date=now + timedelta(days=3))
-
-        # Week 2
-        goal.transactions.create(value=2000, date=now + timedelta(days=7))
-        goal.transactions.create(value=2000, date=now + timedelta(days=8))
-        goal.transactions.create(value=2000, date=now + timedelta(days=9))
-
         # Week 3
-        goal.transactions.create(value=3000, date=now + timedelta(days=14))
-        goal.transactions.create(value=3000, date=now + timedelta(days=15))
-        goal.transactions.create(value=3000, date=now + timedelta(days=16))
+        goal.transactions.create(value=1000, date=now + timedelta(days=-14))
+        goal.transactions.create(value=1000, date=now + timedelta(days=-15))
+        goal.transactions.create(value=1000, date=now + timedelta(days=-16))
 
-        streak = Goal.get_current_streak(user)
+        # Week 4
+        goal.transactions.create(value=2000, date=now + timedelta(days=-7))
+        goal.transactions.create(value=2000, date=now + timedelta(days=-8))
+        goal.transactions.create(value=2000, date=now + timedelta(days=-9))
+
+        # Week 5
+        goal.transactions.create(value=3000, date=now + timedelta(days=-1))
+        goal.transactions.create(value=3000, date=now + timedelta(days=-2))
+        goal.transactions.create(value=3000, date=now + timedelta(days=-3))
+
+        streak = Goal.get_current_streak(user, since)
 
         self.assertEqual(streak, 3, "Unexpected weekly streak.")
 
+    def test_broken_streak(self):
+        now = timezone.make_aware(datetime(2016, 11, 30))
+        since = now - timedelta(weeks=6)
+
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=100000,
+            start_date=now - timedelta(days=30),
+            end_date=now
+        )
+
+        # Week 2
+        goal.transactions.create(value=1000, date=now + timedelta(days=-21))
+        goal.transactions.create(value=1000, date=now + timedelta(days=-22))
+        goal.transactions.create(value=1000, date=now + timedelta(days=-23))
+
+        # Streak breaks here
+        # Week 4
+        goal.transactions.create(value=2000, date=now + timedelta(days=-7))
+        goal.transactions.create(value=2000, date=now + timedelta(days=-8))
+        goal.transactions.create(value=2000, date=now + timedelta(days=-9))
+
+        # Week 5
+        goal.transactions.create(value=3000, date=now + timedelta(days=-1))
+        goal.transactions.create(value=3000, date=now + timedelta(days=-2))
+        goal.transactions.create(value=3000, date=now + timedelta(days=-3))
+
+        streak = Goal.get_current_streak(user, since)
+
+        self.assertEqual(streak, 2, "Unexpected weekly streak.")
+
+    def test_inactivity(self):
+        """When the user has saved before, but has been inactive since, the streak should be 0."""
+
+
+        self.skipTest('TODO')
