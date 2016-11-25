@@ -522,7 +522,7 @@ class Goal(models.Model):
 
         now_date = now
         if now is None:
-            now_date = timedelta.now()
+            now_date = timezone.now()
 
         since_date = now_date - timedelta(weeks=weeks_back)
 
@@ -530,7 +530,7 @@ class Goal(models.Model):
             .filter(goal__user=user, date__gt=since_date)\
             .order_by('-date')
 
-        last_monday = Goal._monday(now.date())
+        last_monday = Goal._monday(now_date.date())
 
         # No Transactions at all mean no streak
         streak = 0

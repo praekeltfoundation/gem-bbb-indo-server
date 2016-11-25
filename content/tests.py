@@ -810,3 +810,15 @@ class TestWeeklyStreaks(TestCase):
         streak = Goal.get_current_streak(user, now)
 
         self.assertEqual(streak, 0, "Unexpected weekly streak.")
+
+
+class TestAchievementAPI(APITestCase):
+
+    def test_basic(self):
+        """Basic test to ensure view is accessible."""
+        user = create_test_regular_user('anon')
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:achievements', kwargs={'user_pk': user.pk}))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Achievement request failed.")
