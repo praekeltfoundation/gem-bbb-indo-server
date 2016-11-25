@@ -117,33 +117,34 @@ class ParticipantAnswerViewSet(viewsets.ModelViewSet):
         serial.create(serial.validated_data)
         return Response(serial.data, status=201)
 
-    class ParticipantPictureViewSet(viewsets.ModelViewSet):
-        # PARAM_USER_PK = 'user_pk'
-        queryset = ParticipantPicture.objects.all()
-        serializer_class = ParticipantPictureSerializer
-        # permission_classes = (IsAdminOrOwner, IsAuthenticated,)
-        http_method_names = ('options', 'head', 'get', 'post',)
 
-        def check_object_permissions(self, request, obj):
-            if not IsAdminOrOwner().has_object_permission(request, self, obj):
-                raise PermissionDenied("Users can only access their own goal images.")
+class ParticipantPictureViewSet(viewsets.ModelViewSet):
+    # PARAM_USER_PK = 'user_pk'
+    queryset = ParticipantPicture.objects.all()
+    serializer_class = ParticipantPictureSerializer
+    # permission_classes = (IsAdminOrOwner, IsAuthenticated,)
+    http_method_names = ('options', 'head', 'get', 'post',)
 
-        def get_serializer_context(self):
-            return {'request': self.request}
+    def check_object_permissions(self, request, obj):
+        if not IsAdminOrOwner().has_object_permission(request, self, obj):
+            raise PermissionDenied("Users can only access their own goal images.")
 
-        def create(self, request, *args, **kwargs):
-            serial = self.get_serializer(data=request.data)
-            # self.check_object_permissions(request, goal)
-            if serial.is_valid(raise_exception=True):
-                serial.save()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+    def get_serializer_context(self):
+        return {'request': self.request}
 
-        def get(self, request, pk=None, *args, **kwargs):
-            participantpicture = get_object_or_404(self.get_queryset(), pk=pk)
-            # self.check_object_permissions(request, participantpicture)
-            if not participantpicture.picture:
-                raise ImageNotFound()
-            return sendfile(request, participantpicture.picture.path)
+    def create(self, request, *args, **kwargs):
+        serial = self.get_serializer(data=request.data)
+        # self.check_object_permissions(request, goal)
+        if serial.is_valid(raise_exception=True):
+            serial.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def get(self, request, pk=None, *args, **kwargs):
+        participantpicture = get_object_or_404(self.get_queryset(), pk=pk)
+        # self.check_object_permissions(request, participantpicture)
+        if not participantpicture.picture:
+            raise ImageNotFound()
+        return sendfile(request, participantpicture.picture.path)
 
 
 class ParticipantFreeTextViewSet(viewsets.ModelViewSet):
@@ -291,8 +292,6 @@ class GoalViewSet(viewsets.ModelViewSet):
         goal = self.get_object()
 
         if request.method == 'POST':
-            #context = self.get_serializer_context()
-            #context['goal'] = goal
             serializer = GoalTransactionSerializer(data=request.data, many=True)
             if serializer.is_valid(raise_exception=True):
                 serializer.save(goal=goal)
