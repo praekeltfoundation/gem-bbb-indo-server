@@ -326,3 +326,15 @@ class GoalImageView(GenericAPIView):
         if not goal.image:
             raise ImageNotFound()
         return sendfile(request, goal.image.path)
+
+
+# ============ #
+# Achievements #
+# ============ #
+
+
+class AchievementsView(GenericAPIView):
+
+    def get(self, request, user_pk, *args, **kwargs):
+        #weekly_streak = Goal.get_current_streak()
+        return Response({})

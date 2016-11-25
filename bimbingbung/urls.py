@@ -24,6 +24,10 @@ router.register(r'tips', content_views.TipViewSet, base_name='tips')
 router.register(r'goals', content_views.GoalViewSet, base_name='goals')
 router.register(r'users', user_views.RegUserViewSet, base_name='users')
 
+api_urls = [
+    url(r'achievements/(?P<user_pk)/$', content_views.AchievementsView.as_view(), name='achievements'),
+]
+
 urlpatterns = [
     url(r'^django-admin/', include(admin.site.urls)),
 
