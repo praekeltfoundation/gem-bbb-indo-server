@@ -24,6 +24,17 @@ router.register(r'tips', content_views.TipViewSet, base_name='tips')
 router.register(r'goals', content_views.GoalViewSet, base_name='goals')
 router.register(r'users', user_views.RegUserViewSet, base_name='users')
 
+api_urls = [
+    url(r'token/', user_views.ObtainUserAuthTokenView.as_view(), name='token'),
+    url(r'challenge-image/(?P<challenge_pk>\d+)/$', content_views.ChallengeImageView.as_view(),
+        name='challenge-image'),
+    url(r'goal-image/(?P<goal_pk>\d+)/$', content_views.GoalImageView.as_view(), name='goal-image'),
+    url(r'profile-image/(?P<user_pk>\d+)/$', user_views.ProfileImageView.as_view(), name='profile-image'),
+    url(r'achievements/(?P<user_pk>\d+)/$', content_views.AchievementsView.as_view(), name='achievements'),
+
+    url(r'', include(router.urls)),
+]
+
 urlpatterns = [
     url(r'^django-admin/', include(admin.site.urls)),
 
@@ -32,11 +43,7 @@ urlpatterns = [
 
     url(r'^search/$', search_views.search, name='search'),
 
-    url(r'^api/token/', user_views.ObtainUserAuthTokenView.as_view(), name='token'),
-    url(r'^api/challenge-image/(?P<challenge_pk>\d+)/$', content_views.ChallengeImageView.as_view(), name='challenge-image'),
-    url(r'^api/goal-image/(?P<goal_pk>\d+)/$', content_views.GoalImageView.as_view(), name='goal-image'),
-    url(r'^api/profile-image/(?P<user_pk>\d+)/$', user_views.ProfileImageView.as_view(), name='profile-image'),
-    url(r'^api/', include(router.urls, namespace='api')),
+    url(r'^api/', include(api_urls, namespace='api')),
 
     url(r'', include(wagtail_urls)),
 ]

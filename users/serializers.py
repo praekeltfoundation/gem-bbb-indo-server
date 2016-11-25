@@ -44,7 +44,7 @@ class ProfileSerializer(serializers.ModelSerializer):
         if not obj.profile_image:
             return None
         request = self.context.get('request')
-        return reverse('profile-image', request=request, kwargs={'user_pk': obj.user.pk})
+        return reverse('api:profile-image', request=request, kwargs={'user_pk': obj.user.pk})
 
     class Meta:
         model = Profile

@@ -314,7 +314,7 @@ class GoalSerializer(serializers.ModelSerializer):
 
     def get_image_url(self, obj):
         if obj.image:
-            return reverse('goal-image', kwargs={'goal_pk': obj.pk}, request=self.context['request'])
+            return reverse('api:goal-image', kwargs={'goal_pk': obj.pk}, request=self.context['request'])
         else:
             return None
 
