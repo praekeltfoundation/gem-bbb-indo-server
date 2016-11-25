@@ -530,18 +530,13 @@ class Goal(models.Model):
             .filter(goal__user=user, date__gt=since_date)\
             .order_by('-date')
 
-        last_monday = None
+        last_monday = Goal._monday(now.date())
 
-        # No Transactions at all means no streak
+        # No Transactions at all mean no streak
         streak = 0
 
         for t in trans:
             monday = Goal._monday(t.date.date())
-
-            if last_monday is None:
-                # Any Transactions is at least 1 week's streak
-                streak = 1
-                last_monday = monday
 
             if last_monday != monday:
                 diff = (last_monday - monday).days
@@ -551,6 +546,10 @@ class Goal(models.Model):
                 else:
                     streak += 1
                     last_monday = monday
+
+        if streak > 0:
+            # Any Transactions make for at least 1 week's streak. Weeks are inclusive.
+            streak += 1
 
         return streak
 
