@@ -270,7 +270,7 @@ class TestProfileImage(APITestCase):
 
         self.client.force_login(user=user)
         tmp_file = BytesIO(b'foobar')
-        response = self.client.post(reverse('profile-image', kwargs={'user_pk': user.pk}),
+        response = self.client.post(reverse('api:profile-image', kwargs={'user_pk': user.pk}),
                                     data={'file': tmp_file}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -285,7 +285,7 @@ class TestProfileImage(APITestCase):
 
         self.client.force_login(user=user)
         tmp_file = BytesIO(b'foobar')
-        response = self.client.post(reverse('profile-image', kwargs={'user_pk': user.pk}),
+        response = self.client.post(reverse('api:profile-image', kwargs={'user_pk': user.pk}),
                                     data={'file': tmp_file}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -301,7 +301,7 @@ class TestProfileImage(APITestCase):
 
         self.client.force_login(user=user)
         tmp_file = BytesIO(b'foobar')
-        response = self.client.post(reverse('profile-image', kwargs={'user_pk': wrong_user.pk}),
+        response = self.client.post(reverse('api:profile-image', kwargs={'user_pk': wrong_user.pk}),
                                     data={'file': tmp_file}, **headers)
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN,
