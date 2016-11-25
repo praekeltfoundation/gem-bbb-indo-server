@@ -168,9 +168,10 @@ class ParticipantRegisterSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'user', 'challenge',)
 
     def validate_challenge(self, value):
-        if value.activation_date > timezone.now():
+        now = timezone.now()
+        if value.activation_date > now:
             raise serializers.ValidationError('Challenge not yet active')
-        elif value.deactivation_date < timezone.now():
+        if value.deactivation_date < now:
             raise serializers.ValidationError('Challenge no longer active')
 
         return value
