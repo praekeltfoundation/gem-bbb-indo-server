@@ -782,3 +782,132 @@ class TestGoalTransactionAPI(APITestCase):
         self.assertEqual(updated_trans[1], trans2, "Unexpected transaction.")
         self.assertEqual(updated_trans[2], trans3, "Unexpected transaction.")
         self.assertEqual(updated_trans[3].value, 300, "Unexpected transaction.")
+
+
+# ============ #
+# Achievements #
+# ============ #
+
+
+class TestWeeklyStreaks(TestCase):
+
+    def test_basic_streak(self):
+        now = timezone.make_aware(datetime(2016, 11, 30))
+
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=100000,
+            start_date=now - timedelta(days=-30),
+            end_date=now
+        )
+
+        # Three week savings streak
+        # Week 3
+        goal.transactions.create(value=1000, date=now + timedelta(days=-14))
+        goal.transactions.create(value=1000, date=now + timedelta(days=-15))
+        goal.transactions.create(value=1000, date=now + timedelta(days=-16))
+
+        # Week 4
+        goal.transactions.create(value=2000, date=now + timedelta(days=-7))
+        goal.transactions.create(value=2000, date=now + timedelta(days=-8))
+        goal.transactions.create(value=2000, date=now + timedelta(days=-9))
+
+        # Week 5
+        goal.transactions.create(value=3000, date=now + timedelta(days=-1))
+        goal.transactions.create(value=3000, date=now + timedelta(days=-2))
+        goal.transactions.create(value=3000, date=now + timedelta(days=-3))
+
+        streak = Goal.get_current_streak(user, now)
+
+        self.assertEqual(streak, 3, "Unexpected weekly streak.")
+
+    def test_broken_streak(self):
+        now = timezone.make_aware(datetime(2016, 11, 30))
+
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=100000,
+            start_date=now - timedelta(days=30),
+            end_date=now
+        )
+
+        # Week 2
+        goal.transactions.create(value=1000, date=now + timedelta(days=-21))
+        goal.transactions.create(value=1000, date=now + timedelta(days=-22))
+        goal.transactions.create(value=1000, date=now + timedelta(days=-23))
+
+        # Streak breaks here
+        # Week 4
+        goal.transactions.create(value=2000, date=now + timedelta(days=-7))
+        goal.transactions.create(value=2000, date=now + timedelta(days=-8))
+        goal.transactions.create(value=2000, date=now + timedelta(days=-9))
+
+        # Week 5
+        goal.transactions.create(value=3000, date=now + timedelta(days=-1))
+        goal.transactions.create(value=3000, date=now + timedelta(days=-2))
+        goal.transactions.create(value=3000, date=now + timedelta(days=-3))
+
+        streak = Goal.get_current_streak(user, now)
+
+        self.assertEqual(streak, 2, "Unexpected weekly streak.")
+
+    def test_inactivity(self):
+        """When the user has saved before, but has been inactive since, the streak should be 0."""
+        now = timezone.make_aware(datetime(2016, 11, 30))
+
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=100000,
+            start_date=now - timedelta(days=30),
+            end_date=now
+        )
+
+        # Week 1
+        goal.transactions.create(value=2000, date=now + timedelta(days=-28))
+        goal.transactions.create(value=2000, date=now + timedelta(days=-29))
+        goal.transactions.create(value=2000, date=now + timedelta(days=-30))
+
+        # Week 2
+        goal.transactions.create(value=1000, date=now + timedelta(days=-21))
+        goal.transactions.create(value=1000, date=now + timedelta(days=-22))
+        goal.transactions.create(value=1000, date=now + timedelta(days=-23))
+
+        # Streak breaks here
+
+        streak = Goal.get_current_streak(user, now)
+
+        self.assertEqual(streak, 0, "Unexpected weekly streak.")
+
+    def test_no_savings(self):
+        now = timezone.make_aware(datetime(2016, 11, 30))
+
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=100000,
+            start_date=now - timedelta(days=30),
+            end_date=now
+        )
+
+        streak = Goal.get_current_streak(user, now)
+
+        self.assertEqual(streak, 0, "Unexpected weekly streak.")
+
+
+class TestAchievementAPI(APITestCase):
+
+    def test_basic(self):
+        """Basic test to ensure view is accessible."""
+        user = create_test_regular_user('anon')
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:achievements', kwargs={'user_pk': user.pk}))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Achievement request failed.")

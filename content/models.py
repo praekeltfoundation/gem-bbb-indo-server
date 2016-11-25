@@ -6,6 +6,7 @@ from functools import reduce
 from math import ceil
 from os.path import splitext
 
+from django.apps import apps
 from django.utils.html import format_html
 from django.contrib.auth.models import User
 from django.db import models
@@ -105,7 +106,7 @@ class Challenge(modelcluster_fields.ClusterableModel):
     # Processed flag to indicate that participant data has been aggregated and stored.
     end_processed = models.BooleanField(_('processed'), default=False)
 
-    agreement = models.ManyToManyField(Agreement, through='ChallengeAgreement')
+    terms = models.ForeignKey(Agreement, related_name='+', blank=False, null=True, on_delete=models.DO_NOTHING)
 
     class Meta:
         verbose_name = _('challenge')
@@ -163,6 +164,7 @@ Challenge.panels = [
         wagtail_edit_handlers.FieldPanel('type'),
         wagtail_edit_handlers.FieldPanel('state'),
         wagtail_edit_handlers.FieldPanel('picture'),
+        wagtail_edit_handlers.PageChooserPanel('terms')
     ], heading=_('Challenge')),
     wagtail_edit_handlers.MultiFieldPanel([
         wagtail_edit_handlers.FieldPanel('instruction'),
@@ -181,11 +183,6 @@ Challenge.panels = [
         wagtail_edit_handlers.FieldPanel('hint'),
     ], label=_('Questions')),
 ]
-
-
-class ChallengeAgreement(models.Model):
-    challenge = models.ForeignKey(Challenge, on_delete=models.CASCADE)
-    agreement = models.ForeignKey(Agreement, on_delete=models.CASCADE)
 
 
 @python_2_unicode_compatible
@@ -513,6 +510,45 @@ class Goal(models.Model):
 
         return [v for k, v in agg.items()]
 
+    @classmethod
+    def get_current_streak(cls, user, now=None, weeks_back=6):
+        """Calculates the weekly savings streak for a user, starting at the current time.
+        """
+        trans_model = apps.get_model('content', 'GoalTransaction')
+
+        now_date = now
+        if now is None:
+            now_date = timezone.now()
+
+        since_date = now_date - timedelta(weeks=weeks_back)
+
+        trans = trans_model.objects\
+            .filter(goal__user=user, date__gt=since_date)\
+            .order_by('-date')
+
+        last_monday = Goal._monday(now_date.date())
+
+        # No Transactions at all mean no streak
+        streak = 0
+
+        for t in trans:
+            monday = Goal._monday(t.date.date())
+
+            if last_monday != monday:
+                diff = (last_monday - monday).days
+                if diff > 7:
+                    # Streak broken
+                    break
+                else:
+                    streak += 1
+                    last_monday = monday
+
+        if streak > 0:
+            # Any Transactions make for at least 1 week's streak. Weeks are inclusive.
+            streak += 1
+
+        return streak
+
     class Meta:
         verbose_name = _('goal')
         verbose_name_plural = _('goals')
@@ -533,6 +569,14 @@ class GoalTransaction(models.Model):
     date = models.DateTimeField()
     value = models.DecimalField(max_digits=12, decimal_places=2)
     goal = models.ForeignKey(Goal, related_name='transactions')
+
+    @property
+    def is_deposit(self):
+        return self.value > 0
+
+    @property
+    def is_withdraw(self):
+        return self.value <= 0
 
     class Meta:
         verbose_name = _('goal transaction')

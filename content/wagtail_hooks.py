@@ -1,4 +1,5 @@
 
+from django.utils.translation import ugettext_lazy as _
 from wagtail.contrib.modeladmin.options import ModelAdmin, ModelAdminGroup, modeladmin_register
 
 from .models import Challenge
@@ -22,7 +23,7 @@ class QuizQuestionAdmin(ModelAdmin):
 
 
 class CompetitionsAdminGroup(ModelAdminGroup):
-    menu_label = 'Competitions'
+    menu_label = _('Competitions')
     menu_icon = 'folder-open-inverse'
     menu_order = 200
     items = (ChallengeAdmin, QuizQuestionAdmin)
