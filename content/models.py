@@ -105,7 +105,7 @@ class Challenge(modelcluster_fields.ClusterableModel):
     # Processed flag to indicate that participant data has been aggregated and stored.
     end_processed = models.BooleanField(_('processed'), default=False)
 
-    agreement = models.ManyToManyField(Agreement, through='ChallengeAgreement')
+    terms = models.ForeignKey(Agreement, related_name='+', blank=False, null=True, on_delete=models.DO_NOTHING)
 
     class Meta:
         verbose_name = _('challenge')
@@ -163,6 +163,7 @@ Challenge.panels = [
         wagtail_edit_handlers.FieldPanel('type'),
         wagtail_edit_handlers.FieldPanel('state'),
         wagtail_edit_handlers.FieldPanel('picture'),
+        wagtail_edit_handlers.PageChooserPanel('terms')
     ], heading=_('Challenge')),
     wagtail_edit_handlers.MultiFieldPanel([
         wagtail_edit_handlers.FieldPanel('instruction'),
@@ -181,11 +182,6 @@ Challenge.panels = [
         wagtail_edit_handlers.FieldPanel('hint'),
     ], label=_('Questions')),
 ]
-
-
-class ChallengeAgreement(models.Model):
-    challenge = models.ForeignKey(Challenge, on_delete=models.CASCADE)
-    agreement = models.ForeignKey(Agreement, on_delete=models.CASCADE)
 
 
 @python_2_unicode_compatible
