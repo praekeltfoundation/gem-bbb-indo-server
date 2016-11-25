@@ -17,6 +17,29 @@ EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 SENDFILE_BACKEND = 'sendfile.backends.development'
 SENDFILE_ROOT = os.path.join(MEDIA_ROOT, 'protected')
 
+LOGGING = {
+    'filters': {
+        'require_debug_true': {
+            '()': 'django.utils.log.RequireDebugTrue',
+        }
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'filters': ['require_debug_true'],
+            'level': 'DEBUG',
+        },
+    },
+    'loggers': {
+        'dooit': {
+            'handlers': ['console'],
+            'level': 'DEBUG',
+            'propagate': True,
+        },
+    },
+    'version': 1,
+}
+
 
 try:
     from .local import *
