@@ -180,7 +180,6 @@ Challenge.panels = [
     ], heading=_('Dates')),
     wagtail_edit_handlers.InlinePanel('questions', panels=[
         wagtail_edit_handlers.FieldPanel('text'),
-        wagtail_edit_handlers.FieldPanel('hint'),
     ], label=_('Quiz Questions'), help_text=_('Only relevant for Quiz type Challenges.')),
 ]
 
