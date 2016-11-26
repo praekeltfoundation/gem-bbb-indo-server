@@ -389,8 +389,9 @@ class TestTipAPI(APITestCase):
         self.client.force_authenticate(user=user)
         response = self.client.get(reverse('api:tips-list'))
 
-        self.assertTrue(response.data[0]['is_favourite'], "Tip 1 was not favourited.")
-        self.assertFalse(response.data[1]['is_favourite'], "Tip 2 was not favourited.")
+        # Tips are ordered from newest to oldest.
+        self.assertTrue(response.data[1]['is_favourite'], "Tip 1 was not favourited.")
+        self.assertFalse(response.data[0]['is_favourite'], "Tip 2 was not favourited.")
 
     def test_inline_favourite_flag_removed(self):
         """Flag should be false when a tip was removed from favourites."""
