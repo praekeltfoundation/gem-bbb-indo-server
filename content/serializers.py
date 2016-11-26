@@ -7,7 +7,7 @@ from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
-from .models import Goal, GoalTransaction
+from .models import GoalPrototype, Goal, GoalTransaction
 from .models import Challenge, FreeTextQuestion, QuestionOption, QuizQuestion
 from .models import Participant, Entry, ParticipantAnswer, ParticipantFreeText, ParticipantPicture
 from .models import Tip, TipFavourite
@@ -295,6 +295,27 @@ class CurrentUserDefault(object):
         return self.goal
 
 
+# ===== #
+# Goals #
+# ===== #
+
+
+class GoalPrototypeSerializer(serializers.ModelSerializer):
+    name = serializers.CharField()
+    image_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = GoalPrototype
+        fields = ('id', 'name', 'image_url')
+
+    def get_image_url(self, obj):
+        request = self.context['request']
+        if obj.image:
+            return request.build_absolute_uri(obj.image.file.url)
+        else:
+            return None
+
+
 class GoalTransactionListSerializer(serializers.ListSerializer):
     def create(self, validated_data):
         # TODO: Find alternative to lookup in Python. Possibly direct SQL.
@@ -327,6 +348,7 @@ class GoalTransactionSerializer(serializers.ModelSerializer):
 
 class GoalSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
+    prototype = serializers.PrimaryKeyRelatedField(queryset=GoalPrototype.objects.all(), allow_null=True)
     start_date = serializers.DateField()
     end_date = serializers.DateField()
     value = serializers.ReadOnlyField()
