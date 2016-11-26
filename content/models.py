@@ -460,12 +460,16 @@ class GoalPrototype(models.Model):
     ACTIVE = 1
 
     name = models.CharField(max_length=100)
-    image = models.ForeignKey(wagtail_image_models.Image, on_delete=models.SET_NULL, related_name='+',
-                              blank=True, null=True)
+    image = models.ForeignKey(wagtail_image_models.Image, on_delete=models.SET_NULL, related_name='+', null=True)
     state = models.IntegerField(choices=(
         (INACTIVE, _('inactive')),
         (ACTIVE, _('active')),
     ), default=INACTIVE)
+
+    def get_user_count(self):
+        """The number of users that have created Goals using this prototype."""
+        # TODO
+        return 0
 
     def __str__(self):
         return self.name
@@ -473,6 +477,12 @@ class GoalPrototype(models.Model):
     class Meta:
         verbose_name = _('goal prototype')
         verbose_name_plural = _('goal prototypes')
+
+
+GoalPrototype.panels = [
+    wagtail_edit_handlers.FieldPanel('name'),
+    wagtail_image_edit.ImageChooserPanel('image'),
+]
 
 
 @python_2_unicode_compatible
