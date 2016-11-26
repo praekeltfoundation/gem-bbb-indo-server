@@ -789,7 +789,9 @@ class TestGoalPrototypesAPI(APITestCase):
 
     def test_goal_proto_list(self):
         user = create_test_regular_user('anon')
-        GoalPrototype.objects.create(name='Proto 1')
+        proto = GoalPrototype.objects.create(name='Proto 1')
+        proto.activate()
+        proto.save()
 
         self.client.force_authenticate(user=user)
         response = self.client.get(reverse('api:goal-prototypes'))

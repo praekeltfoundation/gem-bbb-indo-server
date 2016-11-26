@@ -471,6 +471,16 @@ class GoalPrototype(models.Model):
         # TODO
         return 0
 
+    @property
+    def is_active(self):
+        return self.state == GoalPrototype.ACTIVE
+
+    def activate(self):
+        self.state = GoalPrototype.ACTIVE
+
+    def deactivate(self):
+        self.state = GoalPrototype.INACTIVE
+
     def __str__(self):
         return self.name
 
