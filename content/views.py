@@ -16,14 +16,14 @@ from sendfile import sendfile
 from .exceptions import ImageNotFound
 
 from .models import Challenge, Entry
-from .models import Goal
+from .models import GoalPrototype, Goal
 from .models import Participant, ParticipantAnswer, ParticipantFreeText, ParticipantPicture
 from .models import Tip, TipFavourite
 
 from .permissions import IsAdminOrOwner, IsUserSelf
 
 from .serializers import ChallengeSerializer, EntrySerializer
-from .serializers import GoalSerializer, GoalTransactionSerializer
+from .serializers import GoalPrototypeSerializer, GoalSerializer, GoalTransactionSerializer
 from .serializers import ParticipantAnswerSerializer, ParticipantFreeTextSerializer, ParticipantPictureSerializer, \
     ParticipantRegisterSerializer
 from .serializers import TipSerializer
@@ -376,6 +376,16 @@ class GoalImageView(GenericAPIView):
         if not goal.image:
             raise ImageNotFound()
         return sendfile(request, goal.image.path)
+
+
+class GoalPrototypeView(GenericAPIView):
+    queryset = GoalPrototype.objects.all()
+    serializer_class = GoalPrototypeSerializer
+    permission_classes = (IsAuthenticated,)
+
+    def get(self, request, pk=None, *args, **kwargs):
+        serializer = self.get_serializer(self.get_queryset(), many=True)
+        return Response(serializer.data)
 
 
 # ============ #

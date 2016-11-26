@@ -11,7 +11,7 @@ from wagtail.wagtailcore.models import Page
 
 from users.models import User, RegUser
 from .models import Challenge
-from .models import Goal, GoalTransaction
+from .models import GoalPrototype, Goal, GoalTransaction
 from .models import Tip, TipFavourite
 
 from .serializers import ParticipantRegisterSerializer
@@ -783,6 +783,40 @@ class TestGoalTransactionAPI(APITestCase):
         self.assertEqual(updated_trans[1], trans2, "Unexpected transaction.")
         self.assertEqual(updated_trans[2], trans3, "Unexpected transaction.")
         self.assertEqual(updated_trans[3].value, 300, "Unexpected transaction.")
+
+
+class TestGoalPrototypesAPI(APITestCase):
+
+    def test_goal_proto_list(self):
+        user = create_test_regular_user('anon')
+        GoalPrototype.objects.create(name='Proto 1')
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:goal-prototypes'))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Listing Goal prototypes failed.")
+        self.assertEqual(len(response.data), 1, "No prototypes returned.")
+
+    def test_goal_create_with_proto(self):
+        """Test basic Goal creation from a prototype."""
+        user = create_test_regular_user('anon')
+        proto = GoalPrototype.objects.create(name='Proto 1')
+
+        data = {
+            'name': 'Goal 1',
+            'target': 12000,
+            'start_date': timezone.make_aware(datetime(2016, 11, 1)).strftime('%Y-%m-%d'),
+            'end_date': timezone.make_aware(datetime(2016, 11, 30)).strftime('%Y-%m-%d'),
+            'prototype': proto.id
+        }
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:goals-list'), data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, "Create Goal failed.")
+
+        created_goal = Goal.objects.get(id=response.data['id'])
+        self.assertEqual(created_goal.prototype, proto, "Goal Prototype was not set.")
 
 
 # ============ #

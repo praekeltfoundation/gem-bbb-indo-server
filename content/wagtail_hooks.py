@@ -4,6 +4,12 @@ from wagtail.contrib.modeladmin.options import ModelAdmin, ModelAdminGroup, mode
 
 from .models import Challenge
 from .models import QuizQuestion
+from .models import GoalPrototype
+
+
+# ========== #
+# Challenges #
+# ========== #
 
 
 class ChallengeAdmin(ModelAdmin):
@@ -31,3 +37,21 @@ class CompetitionsAdminGroup(ModelAdminGroup):
 
 
 modeladmin_register(CompetitionsAdminGroup)
+
+
+# ===== #
+# Goals #
+# ===== #
+
+
+class GoalPrototypeAdmin(ModelAdmin):
+    model = GoalPrototype
+    menu_label = _('Goal Prototypes')
+    menu_order = 200
+    add_to_settings_menu = False
+    list_display = ('name',)
+    list_filter = ('state',)
+    search_fields = ('name',)
+
+
+modeladmin_register(GoalPrototypeAdmin)
