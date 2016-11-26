@@ -69,15 +69,15 @@ class Challenge(modelcluster_fields.ClusterableModel):
     CTP_PICTURE = 2
     CTP_FREEFORM = 3
 
-    name = models.CharField(_('challenge name'), max_length=30, null=False, blank=False)
-    subtitle = models.CharField(max_length=30, null=False, blank=True)
-    intro = models.CharField(_('intro dialogue'), max_length=200, blank=True,
+    name = models.CharField(_('challenge name'), max_length=255, null=False, blank=False)
+    subtitle = models.CharField(max_length=255, null=False, blank=True)
+    intro = models.TextField(_('intro dialogue'), blank=True,
                              help_text=_('The opening line said by the Coach when telling the user about the Challenge.'))
-    outro = models.CharField(_('outro dialogue'), max_length=200, blank=True,
+    outro = models.TextField(_('outro dialogue'), blank=True,
                              help_text=_('The line said by the Coach when the user has completed their Challenge submission.'))
-    call_to_action = models.CharField(_('call to action'), max_length=200, blank=True,
+    call_to_action = models.TextField(_('call to action'), blank=True,
                              help_text=_('Displayed on the Challenge popup when it is not available yet.'))
-    instruction = models.CharField(_('instructional text'), max_length=200, blank=True,
+    instruction = models.TextField(_('instructional text'), blank=True,
                              help_text=_('Displayed on the Challenge splash screen when it is available.'))
     activation_date = models.DateTimeField(_('activate on'))
     deactivation_date = models.DateTimeField(_('deactivate on'))
@@ -180,8 +180,7 @@ Challenge.panels = [
     ], heading=_('Dates')),
     wagtail_edit_handlers.InlinePanel('questions', panels=[
         wagtail_edit_handlers.FieldPanel('text'),
-        wagtail_edit_handlers.FieldPanel('hint'),
-    ], label=_('Questions')),
+    ], label=_('Quiz Questions'), help_text=_('Only relevant for Quiz type Challenges.')),
 ]
 
 
@@ -220,6 +219,15 @@ class QuizQuestion(modelcluster_fields.ClusterableModel):
 
     def get_options(self):
         return QuestionOption.objects.filter(question=self)
+
+    def text_truncated(self):
+        return self.text[:75].strip() + '...' if len(self.text) > 75 else self.text
+
+    text_truncated.admin_order_field = 'text'
+
+    @property
+    def option_count(self):
+        return self.options.all().count()
 
 
 QuizQuestion.panels = [
@@ -379,7 +387,7 @@ class TipTag(TaggedItemBase):
 class Tip(wagtail_models.Page):
     cover_image = models.ForeignKey(wagtail_image_models.Image, blank=True, null=True,
                                     on_delete=models.SET_NULL, related_name='+')
-    intro = models.CharField(_('intro dialogue'), max_length=200, blank=True,
+    intro = models.TextField(_('intro dialogue'), blank=True,
                              help_text=_('The opening line said by the Coach when telling the user about the Tip.'))
     body = wagtail_fields.StreamField([
         ('paragraph', wagtail_blocks.RichTextBlock())

@@ -257,7 +257,7 @@ class TipViewSet(viewsets.ModelViewSet):
         return self.get_serializer_class().setup_prefetch_related(queryset)
 
     def list(self, request, *args, **kwargs):
-        serializer = self.get_serializer(self.get_queryset().filter(live=True), many=True)
+        serializer = self.get_serializer(self.get_queryset().order_by('-first_published_at').filter(live=True), many=True)
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None, *args, **kwargs):
@@ -268,7 +268,7 @@ class TipViewSet(viewsets.ModelViewSet):
     def favourites(self, request, *args, **kwargs):
         tips = self.get_queryset().filter(favourites__user_id=request.user.id,
                                           favourites__state=TipFavourite.TFST_ACTIVE,
-                                          live=True)
+                                          live=True).order_by('-first_published_at')
         serializer = self.get_serializer(tips, many=True)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
