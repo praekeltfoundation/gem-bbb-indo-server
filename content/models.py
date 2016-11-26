@@ -462,8 +462,8 @@ class GoalPrototype(models.Model):
     name = models.CharField(max_length=100)
     image = models.ForeignKey(wagtail_image_models.Image, on_delete=models.SET_NULL, related_name='+', null=True)
     state = models.IntegerField(choices=(
-        (INACTIVE, _('inactive')),
-        (ACTIVE, _('active')),
+        (INACTIVE, _('Inactive')),
+        (ACTIVE, _('Active')),
     ), default=INACTIVE)
 
     def get_user_count(self):
@@ -481,6 +481,7 @@ class GoalPrototype(models.Model):
 
 GoalPrototype.panels = [
     wagtail_edit_handlers.FieldPanel('name'),
+    wagtail_edit_handlers.FieldPanel('state'),
     wagtail_image_edit.ImageChooserPanel('image'),
 ]
 
