@@ -384,7 +384,7 @@ class GoalPrototypeView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
 
     def get(self, request, pk=None, *args, **kwargs):
-        serializer = self.get_serializer(self.get_queryset(), many=True)
+        serializer = self.get_serializer(self.get_queryset().filter(state=GoalPrototype.ACTIVE), many=True)
         return Response(serializer.data)
 
 

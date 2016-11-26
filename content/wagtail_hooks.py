@@ -49,7 +49,7 @@ class GoalPrototypeAdmin(ModelAdmin):
     menu_label = _('Goal Prototypes')
     menu_order = 200
     add_to_settings_menu = False
-    list_display = ('name',)
+    list_display = ('name', 'state',)
     list_filter = ('state',)
     search_fields = ('name',)
 
