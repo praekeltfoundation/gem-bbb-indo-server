@@ -10,6 +10,9 @@ def structured_exception_handler(exc, context):
     response = exception_handler(exc, context)
     errors_key = settings.REST_FRAMEWORK['NON_FIELD_ERRORS_KEY']
 
+    if response is None:
+        return None
+
     detail = response.data.pop('detail', '')
     non_field_errors = response.data.pop(errors_key, [])
 
