@@ -181,7 +181,7 @@ Challenge.panels = [
     wagtail_edit_handlers.InlinePanel('questions', panels=[
         wagtail_edit_handlers.FieldPanel('text'),
         wagtail_edit_handlers.FieldPanel('hint'),
-    ], label=_('Questions')),
+    ], label=_('Quiz Questions'), help_text=_('Only relevant for Quiz type Challenges.')),
 ]
 
 
@@ -220,6 +220,14 @@ class QuizQuestion(modelcluster_fields.ClusterableModel):
 
     def get_options(self):
         return QuestionOption.objects.filter(question=self)
+
+    @property
+    def text_truncated(self):
+        return self.text[:75].strip() + '...' if len(self.text) > 75 else self.text
+
+    @property
+    def option_count(self):
+        return self.options.all().count()
 
 
 QuizQuestion.panels = [
