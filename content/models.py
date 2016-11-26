@@ -455,18 +455,50 @@ def get_goal_image_filename(instance, filename):
 
 
 @python_2_unicode_compatible
+class GoalPrototype(models.Model):
+    INACTIVE = 0
+    ACTIVE = 1
+
+    name = models.CharField(max_length=100)
+    image = models.ForeignKey(wagtail_image_models.Image, on_delete=models.SET_NULL, related_name='+',
+                              blank=True, null=True)
+    state = models.IntegerField(choices=(
+        (INACTIVE, _('inactive')),
+        (ACTIVE, _('active')),
+    ), default=INACTIVE)
+
+    def __str__(self):
+        return self.name
+
+    class Meta:
+        verbose_name = _('goal prototype')
+        verbose_name_plural = _('goal prototypes')
+
+
+@python_2_unicode_compatible
 class Goal(models.Model):
-    name = models.CharField(max_length=30)
+    name = models.CharField(max_length=100)
     start_date = models.DateField()
     end_date = models.DateField()
     target = models.DecimalField(max_digits=18, decimal_places=2)
     image = models.ImageField(upload_to=get_goal_image_filename, storage=GoalImgStorage(), null=True, blank=True)
     user = models.ForeignKey(User, related_name='+')
+    prototype = models.OneToOneField('GoalPrototype', related_name='goals', on_delete=models.SET_NULL,
+                                     blank=True, null=True)
+
+    class Meta:
+        verbose_name = _('goal')
+        verbose_name_plural = _('goals')
 
     @property
     def value(self):
         return reduce(lambda acc, el: acc+el['value'],
                       self.transactions.all().order_by('date', 'id').values('value'), 0)
+
+    @property
+    def is_custom(self):
+        """False if Goal was created from a prototype."""
+        return self.prototype is None
 
     @property
     def week_count(self):
@@ -556,10 +588,6 @@ class Goal(models.Model):
             streak += 1
 
         return streak
-
-    class Meta:
-        verbose_name = _('goal')
-        verbose_name_plural = _('goals')
 
     def __str__(self):
         return self.name
