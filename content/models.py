@@ -221,9 +221,10 @@ class QuizQuestion(modelcluster_fields.ClusterableModel):
     def get_options(self):
         return QuestionOption.objects.filter(question=self)
 
-    @property
     def text_truncated(self):
         return self.text[:75].strip() + '...' if len(self.text) > 75 else self.text
+
+    text_truncated.admin_order_field = 'text'
 
     @property
     def option_count(self):
