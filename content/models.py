@@ -494,7 +494,7 @@ class Goal(models.Model):
     image = models.ImageField(upload_to=get_goal_image_filename, storage=GoalImgStorage(), null=True, blank=True)
     user = models.ForeignKey(User, related_name='+')
     prototype = models.OneToOneField('GoalPrototype', related_name='goals', on_delete=models.SET_NULL,
-                                     blank=True, null=True)
+                                     default=None, blank=True, null=True)
 
     class Meta:
         verbose_name = _('goal')
