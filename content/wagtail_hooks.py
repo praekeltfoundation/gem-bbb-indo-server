@@ -30,6 +30,7 @@ class QuizQuestionAdmin(ModelAdmin):
 
 
 class CompetitionsAdminGroup(ModelAdminGroup):
+    # Translators: CMS menu name
     menu_label = _('Competitions')
     menu_icon = 'folder-open-inverse'
     menu_order = 200
@@ -46,6 +47,7 @@ modeladmin_register(CompetitionsAdminGroup)
 
 class GoalPrototypeAdmin(ModelAdmin):
     model = GoalPrototype
+    # Translators: CMS menu name
     menu_label = _('Goal Prototypes')
     menu_order = 200
     add_to_settings_menu = False

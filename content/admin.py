@@ -29,6 +29,7 @@ class ChallengeAdminForm(forms.ModelForm):
             if challenge.state == Challenge.CST_PUBLISHED and \
                     Participant.objects.filter(challenge_id=challenge.id).count() > 0:
                 raise forms.ValidationError(
+                    # Translators: Error message on CMS
                     _('Editing of challenges is disallowed when participants have already answered.'),
                     code='challenge_active_error'
                 )

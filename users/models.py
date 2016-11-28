@@ -35,7 +35,11 @@ class RegUser(User):
 
     class Meta:
         proxy = True
+
+        # Translators: Collection name on CMS
         verbose_name = _('regular user')
+
+        # Translators: Plural collection name on CMS
         verbose_name_plural = _('regular users')
 
 
@@ -45,7 +49,11 @@ class SysAdminUser(User):
 
     class Meta:
         proxy = True
+
+        # Translators: Collection name on CMS
         verbose_name = _('system administrator')
+
+        # Translators: Plural collection name on CMS
         verbose_name_plural = _('system administrators')
 
 
@@ -63,11 +71,14 @@ class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
     age = models.IntegerField(blank=True, null=True)
     gender = models.IntegerField(choices=(
+        # Translators: Gender value
         (GENDER_MALE, _('Male')),
+        # Translators: Gender value
         (GENDER_FEMALE, _('Female')),
     ), blank=True, null=True)
     mobile_regex = RegexValidator(
         regex=r'^\+?1?\d{9,15}$',
+        # Translators: Validation failure message
         message=_("Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed."))
     mobile = models.CharField(validators=[mobile_regex], max_length=15, blank=True)
     profile_image = models.ImageField(upload_to=get_profile_image_filename,
@@ -76,7 +87,10 @@ class Profile(models.Model):
                                       blank=True)
 
     class Meta:
+        # Translators: Collection name on CMS
         verbose_name = _('profile')
+
+        # Translators: Plural collection name on CMS
         verbose_name_plural = _('profiles')
 
     def __str__(self):
