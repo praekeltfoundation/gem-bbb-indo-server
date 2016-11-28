@@ -39,7 +39,10 @@ class Agreement(wagtail_models.Page):
     ]
 
     class Meta:
+        # Translators: Collection name on CMS
         verbose_name = _('agreement')
+
+        # Translators: Plural collection name on CMS
         verbose_name_plural = _('agreements')
 
 
@@ -69,34 +72,65 @@ class Challenge(modelcluster_fields.ClusterableModel):
     CTP_PICTURE = 2
     CTP_FREEFORM = 3
 
+    # Translators: Field name on challenge CMS
     name = models.CharField(_('challenge name'), max_length=255, null=False, blank=False)
-    subtitle = models.CharField(max_length=255, null=False, blank=True)
+
+    # Translators: Field name on CMS
+    subtitle = models.CharField(_('subtitle'), max_length=255, null=False, blank=True)
+
+    # Translators: Field name on CMS
     intro = models.TextField(_('intro dialogue'), blank=True,
+                             # Translators: Help text on CMS
                              help_text=_('The opening line said by the Coach when telling the user about the Challenge.'))
+
+    # Translators: Field name on CMS
     outro = models.TextField(_('outro dialogue'), blank=True,
+                             # Translators: Help text on CMS
                              help_text=_('The line said by the Coach when the user has completed their Challenge submission.'))
+
+    # Translators: Field name on CMS
     call_to_action = models.TextField(_('call to action'), blank=True,
+                             # Translators: Help text on CMS
                              help_text=_('Displayed on the Challenge popup when it is not available yet.'))
+
+    # Translators: Field name on CMS
     instruction = models.TextField(_('instructional text'), blank=True,
+                             # Translators: Help text on CMS
                              help_text=_('Displayed on the Challenge splash screen when it is available.'))
+
+    # Translators: Field name on CMS (pertains to dates)
     activation_date = models.DateTimeField(_('activate on'))
+
+    # Translators: Field name on CMS (pertains to dates)
     deactivation_date = models.DateTimeField(_('deactivate on'))
     # challenge_badge = models.ForeignKey('', null=True, blank=True)
+
     state = models.PositiveIntegerField(
-        'state', choices=(
+        # Translators: Field name on CMS (state of the object, not location)
+        _('state'), choices=(
+            # Translators: CMS state value
             (CST_INCOMPLETE, _('Incomplete')),
+            # Translators: CMS state value
             (CST_REVIEW_READY, _('Ready for review')),
+            # Translators: CMS state value
             (CST_PUBLISHED, _('Published')),
+            # Translators: CMS state value
             (CST_DONE, _('Done')),
         ),
         default=CST_INCOMPLETE)
     type = models.PositiveIntegerField(
-        'type', choices=(
+        # Translators: Field name on challenge CMS (type of object)
+        _('type'), choices=(
+            # Translators: Challenge type
             (CTP_QUIZ, _('Quiz')),
+            # Translators: Challenge type
             (CTP_PICTURE, _('Picture')),
+            # Translators: Challenge type
             (CTP_FREEFORM, _('Free text')),
         ),
         default=CTP_QUIZ)
+
+    # Translators: Field name on CMS
     picture = models.ImageField(_('picture'),
                                 upload_to=get_challenge_image_filename,
                                 storage=ChallengeStorage(),
@@ -104,12 +138,16 @@ class Challenge(modelcluster_fields.ClusterableModel):
                                 blank=True)
 
     # Processed flag to indicate that participant data has been aggregated and stored.
+    # Translators: Whether item has been processed
     end_processed = models.BooleanField(_('processed'), default=False)
 
     terms = models.ForeignKey(Agreement, related_name='+', blank=False, null=True, on_delete=models.DO_NOTHING)
 
     class Meta:
+        # Translators: Collection name on CMS
         verbose_name = _('challenge')
+
+        # Translators: Plural collection name on CMS
         verbose_name_plural = _('challenges')
 
     def __str__(self):
@@ -165,34 +203,49 @@ Challenge.panels = [
         wagtail_edit_handlers.FieldPanel('state'),
         wagtail_edit_handlers.FieldPanel('picture'),
         wagtail_edit_handlers.PageChooserPanel('terms')
+        # Translators: Admin field name
     ], heading=_('Challenge')),
     wagtail_edit_handlers.MultiFieldPanel([
         wagtail_edit_handlers.FieldPanel('instruction'),
         wagtail_edit_handlers.FieldPanel('call_to_action'),
+        # Translators: Admin field name
     ], heading=_('Instructional Text')),
     wagtail_edit_handlers.MultiFieldPanel([
         wagtail_edit_handlers.FieldPanel('intro'),
         wagtail_edit_handlers.FieldPanel('outro'),
+        # Translators: Admin field name
     ], heading=_('Coach UI')),
     wagtail_edit_handlers.MultiFieldPanel([
         wagtail_edit_handlers.FieldPanel('activation_date'),
         wagtail_edit_handlers.FieldPanel('deactivation_date'),
+        # Translators: Admin field name
     ], heading=_('Dates')),
     wagtail_edit_handlers.InlinePanel('questions', panels=[
         wagtail_edit_handlers.FieldPanel('text'),
-    ], label=_('Quiz Questions'), help_text=_('Only relevant for Quiz type Challenges.')),
+        # Translators: Admin field name
+    ], label=_('Quiz Questions'),
+       # Translators: Admin field help
+       help_text=_('Only relevant for Quiz type Challenges.')),
 ]
 
 
 @python_2_unicode_compatible
 class QuizQuestion(modelcluster_fields.ClusterableModel):
+    # Translators: Sorting order
     order = models.PositiveIntegerField(_('order'), default=0)
     challenge = modelcluster_fields.ParentalKey('Challenge', related_name='questions', blank=False, null=True)
+
+    # Translators: Text field
     text = models.TextField(_('text'), blank=True)
+
+    # Translators: Hint text
     hint = models.TextField(_('hint'), blank=True, null=True)
 
     class Meta:
+        # Translators: Collection name on CMS
         verbose_name = _('question')
+
+        # Translators: Plural collection name on CMS
         verbose_name_plural = _('questions')
 
     def __str__(self):
@@ -235,10 +288,12 @@ QuizQuestion.panels = [
         wagtail_edit_handlers.FieldPanel('text'),
         wagtail_edit_handlers.FieldPanel('hint'),
         wagtail_edit_handlers.FieldPanel('challenge'),
+        # Translators: Admin field name
     ], heading=_('Question')),
     wagtail_edit_handlers.InlinePanel('options', panels=[
         wagtail_edit_handlers.FieldPanel('text'),
         wagtail_edit_handlers.FieldPanel('correct'),
+        # Translators: Admin field name
     ], label=_('Question Options'))
 ]
 
@@ -246,12 +301,21 @@ QuizQuestion.panels = [
 @python_2_unicode_compatible
 class QuestionOption(models.Model):
     question = modelcluster_fields.ParentalKey('QuizQuestion', related_name='options', blank=False, null=True)
+
+    # Translators: CMS field name
     picture = models.URLField(_('picture URL'), blank=True, null=True)
+
+    # Translators: CMS field name
     text = models.TextField(_('text'), blank=True)
+
+    # Translators: Is this answer a correct one?
     correct = models.BooleanField(_('correct'), default=False)
 
     class Meta:
+        # Translators: Collection name on CMS
         verbose_name = _('question option')
+
+        # Translators: Plural collection name on CMS
         verbose_name_plural = _('question options')
 
     def __str__(self):
@@ -264,7 +328,10 @@ class PictureQuestion(models.Model):
     text = models.TextField(_('text'), blank=True)
 
     class Meta:
+        # Translators: Collection name on CMS
         verbose_name = _('picture question')
+
+        # Translators: Plural collection name on CMS
         verbose_name_plural = _('picture questions')
 
     def __str__(self):
@@ -277,7 +344,10 @@ class FreeTextQuestion(models.Model):
     text = models.TextField(_('text'), blank=True)
 
     class Meta:
+        # Translators: Collection name on CMS
         verbose_name = _('free text question')
+
+        # Translators: Plural collection name on CMS
         verbose_name_plural = _('free text questions')
 
     def __str__(self):
@@ -288,7 +358,11 @@ class FreeTextQuestion(models.Model):
 class Participant(models.Model):
     user = models.ForeignKey(User, related_name='users', blank=False, null=True)
     challenge = models.ForeignKey(Challenge, related_name='participants', blank=False, null=True)
+
+    # Translators: CMS field name (refers to dates)
     date_created = models.DateTimeField(_('created on'), default=timezone.now)
+
+    # Translators: CMS field name (refers to dates)
     date_completed = models.DateTimeField(_('completed on'), null=True)
 
     @property
@@ -297,7 +371,10 @@ class Participant(models.Model):
         return self.entries.all().exists()
 
     class Meta:
+        # Translators: Collection name on CMS
         verbose_name = _('participant')
+
+        # Translators: Plural collection name on CMS
         verbose_name_plural = _('participants')
 
     def __str__(self):
@@ -307,11 +384,18 @@ class Participant(models.Model):
 @python_2_unicode_compatible
 class Entry(models.Model):
     participant = models.ForeignKey(Participant, null=True, related_name='entries')
+
+    # Translators: CMS field name (refers to dates)
     date_saved = models.DateTimeField(_('saved on'), default=timezone.now)
+
+    # Translators: CMS field name (refers to dates)
     date_completed = models.DateTimeField(_('completed on'), null=True)
 
     class Meta:
+        # Translators: Collection name on CMS
         verbose_name = _('entry')
+
+        # Translators: Plural collection name on CMS
         verbose_name_plural = _('entries')
 
     def __str__(self):
@@ -323,11 +407,18 @@ class ParticipantAnswer(models.Model):
     entry = models.ForeignKey(Entry, null=True, related_name='answers')
     question = models.ForeignKey(QuizQuestion, blank=False, null=True, related_name='+')
     selected_option = models.ForeignKey(QuestionOption, blank=False, null=True, related_name='+')
+
+    # Translators: CMS field name (refers to dates)
     date_answered = models.DateTimeField(_('answered on'))
+
+    # Translators: CMS field name (refers to dates)
     date_saved = models.DateTimeField(_('saved on'), default=timezone.now)
 
     class Meta:
+        # Translators: Collection name on CMS
         verbose_name = _('participant answer')
+
+        # Translators: Plural collection name on CMS
         verbose_name_plural = _('participant answers')
 
     def __str__(self):
@@ -347,11 +438,18 @@ class ParticipantPicture(models.Model):
                                 storage=ParticipantPictureStorage(),
                                 null=True,
                                 blank=True)
+
+    # Translators: CMS field name (refers to dates)
     date_answered = models.DateTimeField(_('answered on'))
+
+    # Translators: CMS field name (refers to dates)
     date_saved = models.DateTimeField(_('saved on'), default=timezone.now)
 
     class Meta:
+        # Translators: Collection name on CMS
         verbose_name = _('picture answer')
+
+        # Translators: Plural collection name on CMS
         verbose_name_plural = _('picture answers')
 
     def __str__(self):
@@ -367,7 +465,10 @@ class ParticipantFreeText(models.Model):
     date_saved = models.DateTimeField(_('saved on'), default=timezone.now)
 
     class Meta:
+        # Translators: Collection name on CMS
         verbose_name = _('free-text answer')
+
+        # Translators: Plural collection name on CMS
         verbose_name_plural = _('free-text answers')
 
     def __str__(self):
@@ -387,7 +488,10 @@ class TipTag(TaggedItemBase):
 class Tip(wagtail_models.Page):
     cover_image = models.ForeignKey(wagtail_image_models.Image, blank=True, null=True,
                                     on_delete=models.SET_NULL, related_name='+')
+
+    # Translators: CMS field name
     intro = models.TextField(_('intro dialogue'), blank=True,
+                             # Translators: CMS help text
                              help_text=_('The opening line said by the Coach when telling the user about the Tip.'))
     body = wagtail_fields.StreamField([
         ('paragraph', wagtail_blocks.RichTextBlock())
@@ -408,7 +512,10 @@ class Tip(wagtail_models.Page):
         return [tag.name for tag in self.tags.all()]
 
     class Meta:
+        # Translators: Collection name on CMS
         verbose_name = _('tip')
+
+        # Translators: Plural collection name on CMS
         verbose_name_plural = _('tips')
 
     def __str__(self):
@@ -424,14 +531,20 @@ class TipFavourite(models.Model):
     user = models.ForeignKey(User, related_name='+')
     tip = models.ForeignKey(Tip, related_name='favourites', on_delete=models.CASCADE)
     state = models.IntegerField(choices=(
+        # Translators: Object state
         (TFST_INACTIVE, _('Disabled')),
+        # Translators: Object state
         (TFST_ACTIVE, _('Enabled')),
     ), default=TFST_ACTIVE)
     date_saved = models.DateTimeField(_('saved on'), default=timezone.now)
 
     class Meta:
+        # Translators: Collection name on CMS
         verbose_name = _('tip favourite')
+
+        # Translators: Plural collection name on CMS
         verbose_name_plural = _('tip favourites')
+
         unique_together = ('user', 'tip')
 
     @property
@@ -462,7 +575,9 @@ class GoalPrototype(models.Model):
     name = models.CharField(max_length=100)
     image = models.ForeignKey(wagtail_image_models.Image, on_delete=models.SET_NULL, related_name='+', null=True)
     state = models.IntegerField(choices=(
+        # Translators: Object state
         (INACTIVE, _('Inactive')),
+        # Translators: Object state
         (ACTIVE, _('Active')),
     ), default=INACTIVE)
 
@@ -485,7 +600,10 @@ class GoalPrototype(models.Model):
         return self.name
 
     class Meta:
+        # Translators: Collection name on CMS
         verbose_name = _('goal prototype')
+
+        # Translators: Plural collection name on CMS
         verbose_name_plural = _('goal prototypes')
 
 
@@ -508,7 +626,10 @@ class Goal(models.Model):
                                      default=None, blank=True, null=True)
 
     class Meta:
+        # Translators: Collection name on CMS
         verbose_name = _('goal')
+
+        # Translators: Plural collection name on CMS
         verbose_name_plural = _('goals')
 
     @property
@@ -636,8 +757,12 @@ class GoalTransaction(models.Model):
         return self.value <= 0
 
     class Meta:
+        # Translators: Collection name on CMS
         verbose_name = _('goal transaction')
+
+        # Translators: Plural collection name on CMS
         verbose_name_plural = _('goal transactions')
+
         unique_together = ('date', 'value', 'goal')
 
     def __str__(self):
