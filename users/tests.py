@@ -3,6 +3,7 @@ import json
 from io import BytesIO
 
 from django import test
+from django.core.files import File
 from django.urls import reverse
 from rest_framework import status
 from rest_framework.authtoken.models import Token
@@ -314,3 +315,15 @@ class TestProfileImage(APITestCase):
         data = RegUserDeepSerializer(user).data
         url = data['profile']['profile_image_url']
         self.assertIsNone(url, "User data includes has url to nonexistent image '%s'" % url)
+
+    def test_basic_retrieve(self):
+        user = self.create_user('anon')
+        user.profile.profile_image.save('profile.png', File(BytesIO(b'foobar')))
+
+        self.client.force_authenticate(user=user)
+
+        # Attempt to retrieve it
+        response = self.client.get(reverse('api:profile-image', kwargs={'user_pk': user.pk}))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Failed retrieving profile image.")
+
