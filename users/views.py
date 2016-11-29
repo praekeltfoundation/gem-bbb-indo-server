@@ -6,7 +6,7 @@ from rest_framework import viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.decorators import detail_route
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, NotFound
 from rest_framework.generics import GenericAPIView
 from rest_framework.parsers import FileUploadParser
 from rest_framework.permissions import IsAuthenticated
@@ -46,7 +46,10 @@ class ProfileImageView(GenericAPIView):
     def get(self, request, user_pk):
         user = get_object_or_404(RegUser, pk=user_pk)
         self.check_object_permissions(request, user)
-        return sendfile(request, user.profile.profile_image.path, attachment=True)
+        if user.profile.profile_image:
+            return sendfile(request, user.profile.profile_image.path, attachment=True)
+        else:
+            raise NotFound('User has no profile image.')
 
 
 class RegUserViewSet(viewsets.ModelViewSet):
