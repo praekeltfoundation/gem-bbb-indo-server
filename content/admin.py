@@ -3,7 +3,7 @@ from django.contrib import admin
 from django.utils.translation import ugettext as _
 from django import forms
 import wagtail.contrib.modeladmin.options as wagadmin
-from .models import Challenge, FreeTextQuestion, QuizQuestion, QuestionOption, Participant
+from .models import Challenge, FreeTextQuestion, Participant, PictureQuestion, QuestionOption, QuizQuestion
 from .models import Goal, GoalTransaction
 from .models import Tip, TipFavourite
 
@@ -112,6 +112,16 @@ class QuestionOptionAdmin(admin.ModelAdmin):
     ]
     list_display = ('question', 'text', 'correct')
     list_filter = ('question', 'text', 'correct')
+
+
+@admin.register(PictureQuestion)
+class QuestionPictureAdmin(admin.ModelAdmin):
+    fieldsets = [
+        (None,
+         {'fields': ['challenge', 'text']})
+    ]
+    list_display = ('challenge', 'text')
+    list_filter = ('challenge', 'text')
 
 
 class TipAdmin(wagadmin.ModelAdmin):

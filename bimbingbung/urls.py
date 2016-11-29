@@ -29,6 +29,7 @@ api_urls = [
     url(r'token/', user_views.ObtainUserAuthTokenView.as_view(), name='token'),
     url(r'challenge-image/(?P<challenge_pk>\d+)/$', content_views.ChallengeImageView.as_view(),
         name='challenge-image'),
+    url(r'participant-image/(?P<participant_pk>\d+)/$', content_views.ParticipantImageView.as_view(), name='participant-image'),
     url(r'goal-image/(?P<goal_pk>\d+)/$', content_views.GoalImageView.as_view(), name='goal-image'),
     url(r'goal-prototypes/$', content_views.GoalPrototypeView.as_view(), name='goal-prototypes'),
     url(r'profile-image/(?P<user_pk>\d+)/$', user_views.ProfileImageView.as_view(), name='profile-image'),
