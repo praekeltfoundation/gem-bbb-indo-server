@@ -44,7 +44,7 @@ class ProfileImageView(GenericAPIView):
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     def get(self, request, user_pk):
-        user = get_object_or_404(RegUser, pk=user_pk)
+        user = get_object_or_404(User, pk=user_pk)
         self.check_object_permissions(request, user)
         if user.profile.profile_image:
             return sendfile(request, user.profile.profile_image.path, attachment=True)
