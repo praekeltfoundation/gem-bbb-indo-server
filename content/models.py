@@ -426,7 +426,7 @@ class ParticipantAnswer(models.Model):
 
 
 def get_participant_image_filename(instance, filename):
-    return '{}-{}'.format(instance.user.pk, filename)
+    return '{}-{}'.format(instance.participant.user.pk, filename)
 
 
 @python_2_unicode_compatible
@@ -440,7 +440,7 @@ class ParticipantPicture(models.Model):
                                 blank=True)
 
     # Translators: CMS field name (refers to dates)
-    date_answered = models.DateTimeField(_('answered on'))
+    date_answered = models.DateTimeField(_('answered on'), default=timezone.now)
 
     # Translators: CMS field name (refers to dates)
     date_saved = models.DateTimeField(_('saved on'), default=timezone.now)
