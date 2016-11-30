@@ -18,6 +18,7 @@ SENDFILE_BACKEND = 'sendfile.backends.development'
 SENDFILE_ROOT = os.path.join(MEDIA_ROOT, 'protected')
 
 LOGGING = {
+    'disable_existing_loggers': False,
     'filters': {
         'require_debug_true': {
             '()': 'django.utils.log.RequireDebugTrue',
