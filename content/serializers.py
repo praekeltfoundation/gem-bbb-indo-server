@@ -405,7 +405,7 @@ class GoalSerializer(serializers.ModelSerializer):
         # Update Goal
         instance.name = validated_data.get('name', instance.name)
         instance.start_date = validated_data.get('start_date', instance.start_date)
-        instance.end_date = validated_data.get('validate_date', instance.end_date)
+        instance.end_date = validated_data.get('end_date', instance.end_date)
         instance.target = validated_data.get('target', instance.target)
         # TODO: Image Field
         # Goal owner can not be updated.

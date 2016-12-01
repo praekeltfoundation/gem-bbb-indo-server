@@ -663,8 +663,8 @@ class TestGoalAPI(APITestCase):
         # Send updates
         data = {
             "name": "Goal 2",
-            "start_date": datetime.utcnow().strftime('%Y-%m-%d'),
-            "end_date": datetime.utcnow().strftime('%Y-%m-%d'),
+            "start_date": '2015-11-01',
+            "end_date": '2015-11-30',
             "target": 9000,
             "image": None
         }
@@ -678,6 +678,7 @@ class TestGoalAPI(APITestCase):
         self.assertEqual(goal.pk, updated_goal.pk, "Returned Goal was not the same instance as the sent goal.")
         self.assertEqual("Goal 2", updated_goal.name, "Name was not updated.")
         self.assertEqual(9000, updated_goal.target, "Target was not updated.")
+        self.assertEqual(date(2015, 11, 30), updated_goal.end_date, "Goal date was not updated.")
 
     def test_user_goal_create_for_other_restricted(self):
         """A User must not be able to create a Goal for another user."""
