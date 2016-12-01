@@ -370,7 +370,7 @@ class GoalViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(goal, data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            return Response(status=status.HTTP_200_OK)
+            return Response(serializer.data, status=status.HTTP_200_OK)
 
     @detail_route(methods=['post', 'get'])
     def transactions(self, request, pk=None, *args, **kwargs):
