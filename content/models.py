@@ -622,7 +622,7 @@ class Goal(models.Model):
     target = models.DecimalField(max_digits=18, decimal_places=2)
     image = models.ImageField(upload_to=get_goal_image_filename, storage=GoalImgStorage(), null=True, blank=True)
     user = models.ForeignKey(User, related_name='+')
-    prototype = models.OneToOneField('GoalPrototype', related_name='goals', on_delete=models.SET_NULL,
+    prototype = models.ForeignKey('GoalPrototype', related_name='goals', on_delete=models.SET_NULL,
                                      default=None, blank=True, null=True)
 
     class Meta:
