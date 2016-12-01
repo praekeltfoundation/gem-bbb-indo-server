@@ -183,6 +183,8 @@ class ParticipantPictureViewSet(viewsets.ModelViewSet):
         return {'request': self.request}
 
     def create(self, request, *args, **kwargs):
+        participant_id = request.query_params.get('participant', None)
+        request.data['participant'] = participant_id
         serial = self.get_serializer(data=request.data)
         # self.check_object_permissions(request, goal)
         if serial.is_valid(raise_exception=True):
@@ -195,6 +197,39 @@ class ParticipantPictureViewSet(viewsets.ModelViewSet):
         if not participantpicture.picture:
             raise ImageNotFound()
         return sendfile(request, participantpicture.picture.path)
+
+
+class ParticipantImageView(GenericAPIView):
+    queryset = Participant.objects.all()
+    lookup_field = 'pk'
+    lookup_url_kwarg = 'participant_pk'
+    parser_classes = (FileUploadParser,)
+    permission_classes = (IsAuthenticated,)
+    serializer_class = ParticipantPictureSerializer
+
+    def check_object_permissions(self, request, obj):
+        if not IsAdminOrOwner().has_object_permission(request, self, obj):
+            raise PermissionDenied("Users can only access their own participant images.")
+
+    def post(self, request, participant_pk=None, *args, **kwargs):
+        participant = get_object_or_404(Participant, pk=participant_pk)
+        self.check_object_permissions(request, participant)
+        print(participant)
+        try:
+            participant_picture = ParticipantPicture.objects.get(participant=participant)
+        except ParticipantPicture.DoesNotExist:
+            participant_picture = ParticipantPicture.objects.create(participant=participant)
+        participant_picture.picture = request.FILES['file']
+        participant_picture.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
+    def get(self, request, participant_pk=None, *args, **kwargs):
+        participant = get_object_or_404(Participant, pk=participant_pk)
+        self.check_object_permissions(request, participant)
+        participant_picture = ParticipantPicture.objects.get(participant=participant)
+        if not participant_picture.picture:
+            raise ImageNotFound()
+        return sendfile(request, participant_picture.picture)
 
 
 class ParticipantFreeTextViewSet(viewsets.ModelViewSet):
