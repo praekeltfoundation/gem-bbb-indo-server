@@ -785,6 +785,27 @@ class TestGoalTransactionAPI(APITestCase):
         self.assertEqual(updated_trans[2], trans3, "Unexpected transaction.")
         self.assertEqual(updated_trans[3].value, 300, "Unexpected transaction.")
 
+    def test_goal_delete(self):
+        user = create_test_regular_user()
+        goal = create_goal('Goal 1', user, 1000)
+
+        self.client.force_authenticate(user=user)
+        response = self.client.delete(reverse('api:goals-detail', kwargs={'pk': goal.pk}))
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, "Goal delete request failed.")
+
+        updated_goal = Goal.objects.get(id=goal.id)
+        self.assertTrue(updated_goal.is_active, "Goal was not marked as inactive.")
+
+    def test_deleted_goal_filter(self):
+        user = create_test_regular_user()
+        goal = create_goal('Goal 1', user, 1000)
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:goals-list'), format=json)
+
+        self.assertEqual(len(response.data), 0, "Deleted Goal included in list.")
+
 
 class TestGoalPrototypesAPI(APITestCase):
 
