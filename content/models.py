@@ -17,6 +17,8 @@ from modelcluster import fields as modelcluster_fields
 from modelcluster.contrib.taggit import ClusterTaggableManager
 from taggit.models import TaggedItemBase
 from wagtail.wagtailadmin import edit_handlers as wagtail_edit_handlers
+from wagtail.wagtailsnippets.models import register_snippet
+from wagtail.wagtailsnippets import edit_handlers as wagtail_snippet_edit_handlers
 from wagtail.wagtailcore import fields as wagtail_fields
 from wagtail.wagtailcore import models as wagtail_models
 from wagtail.wagtailcore import blocks as wagtail_blocks
@@ -195,37 +197,76 @@ class Challenge(modelcluster_fields.ClusterableModel):
         return q.first()
 
 
+
+
+
 Challenge.panels = [
-    wagtail_edit_handlers.MultiFieldPanel([
-        wagtail_edit_handlers.FieldPanel('name'),
-        wagtail_edit_handlers.FieldPanel('subtitle'),
-        wagtail_edit_handlers.FieldPanel('type'),
-        wagtail_edit_handlers.FieldPanel('state'),
-        wagtail_edit_handlers.FieldPanel('picture'),
-        wagtail_edit_handlers.PageChooserPanel('terms')
+    wagtail_edit_handlers.MultiFieldPanel(
+        [
+            wagtail_edit_handlers.FieldPanel('name'),
+            wagtail_edit_handlers.FieldPanel('subtitle'),
+            wagtail_edit_handlers.FieldPanel('type'),
+            wagtail_edit_handlers.FieldPanel('state'),
+            wagtail_edit_handlers.FieldPanel('picture'),
+            wagtail_edit_handlers.PageChooserPanel('terms')
+        ],
         # Translators: Admin field name
-    ], heading=_('Challenge')),
-    wagtail_edit_handlers.MultiFieldPanel([
-        wagtail_edit_handlers.FieldPanel('instruction'),
-        wagtail_edit_handlers.FieldPanel('call_to_action'),
+        heading=_('Challenge')
+    ),
+    wagtail_edit_handlers.MultiFieldPanel(
+        [
+            wagtail_edit_handlers.FieldPanel('instruction'),
+            wagtail_edit_handlers.FieldPanel('call_to_action'),
+        ],
         # Translators: Admin field name
-    ], heading=_('Instructional Text')),
-    wagtail_edit_handlers.MultiFieldPanel([
-        wagtail_edit_handlers.FieldPanel('intro'),
-        wagtail_edit_handlers.FieldPanel('outro'),
+        heading=_('Instructional Text')
+    ),
+    wagtail_edit_handlers.MultiFieldPanel(
+        [
+            wagtail_edit_handlers.FieldPanel('intro'),
+            wagtail_edit_handlers.FieldPanel('outro'),
+        ],
         # Translators: Admin field name
-    ], heading=_('Coach UI')),
-    wagtail_edit_handlers.MultiFieldPanel([
-        wagtail_edit_handlers.FieldPanel('activation_date'),
-        wagtail_edit_handlers.FieldPanel('deactivation_date'),
+        heading=_('Coach UI')
+    ),
+    wagtail_edit_handlers.MultiFieldPanel(
+        [
+            wagtail_edit_handlers.FieldPanel('activation_date'),
+            wagtail_edit_handlers.FieldPanel('deactivation_date'),
+        ],
         # Translators: Admin field name
-    ], heading=_('Dates')),
-    wagtail_edit_handlers.InlinePanel('questions', panels=[
-        wagtail_edit_handlers.FieldPanel('text'),
+        heading=_('Dates')
+    ),
+    wagtail_edit_handlers.InlinePanel(
+        'freetext_question',
+        [
+            wagtail_edit_handlers.FieldPanel('text')
+        ],
         # Translators: Admin field name
-    ], label=_('Quiz Questions'),
-       # Translators: Admin field help
-       help_text=_('Only relevant for Quiz type Challenges.')),
+        label=_('Free Text Question'),
+        # Translators: Admin field help
+        help_text=_('Only relevant for Freeform type Challenges.')
+    ),
+    wagtail_edit_handlers.InlinePanel(
+        'picture_question',
+        [
+            wagtail_edit_handlers.FieldPanel('text')
+        ],
+        # Translators: Admin field name
+        label=_('Picture Question'),
+        # Translators: Admin field help
+        help_text=_('Only relevant for Picture type Challenges.')
+    ),
+    wagtail_edit_handlers.InlinePanel(
+        'questions',
+        panels=[
+            wagtail_edit_handlers.FieldPanel('text'),
+        ],
+        # Translators: Admin field name
+        label=_('Quiz Questions'),
+        # Translators: Admin field help
+        help_text=_('Only relevant for Quiz type Challenges.')
+    ),
 ]
 
 
@@ -324,7 +365,8 @@ class QuestionOption(models.Model):
 
 @python_2_unicode_compatible
 class PictureQuestion(models.Model):
-    challenge = models.OneToOneField(Challenge, related_name='picture_question', blank=False, null=True)
+    challenge = modelcluster_fields.ParentalKey(Challenge, blank=False, null=True, related_name='picture_question',
+                                                unique=True)
     text = models.TextField(_('text'), blank=True)
 
     class Meta:
@@ -337,10 +379,26 @@ class PictureQuestion(models.Model):
     def __str__(self):
         return self.text
 
+    def text_truncated(self):
+        return self.text[:75].strip() + '...' if len(self.text) > 75 else self.text
+
+
+PictureQuestion.panels = [
+    wagtail_edit_handlers.MultiFieldPanel(
+        [
+            wagtail_edit_handlers.FieldPanel('text'),
+            wagtail_edit_handlers.FieldPanel('challenge'),
+        ],
+        # Translators: Admin field name
+        heading=_('Picture Questions')
+    ),
+]
+
 
 @python_2_unicode_compatible
 class FreeTextQuestion(models.Model):
-    challenge = models.OneToOneField(Challenge, related_name='freetext_question', blank=False, null=True)
+    challenge = modelcluster_fields.ParentalKey(Challenge, blank=False, null=True, related_name='freetext_question',
+                                                unique=True)
     text = models.TextField(_('text'), blank=True)
 
     class Meta:
@@ -352,6 +410,21 @@ class FreeTextQuestion(models.Model):
 
     def __str__(self):
         return self.text
+
+    def text_truncated(self):
+        return self.text[:75].strip() + '...' if len(self.text) > 75 else self.text
+
+
+FreeTextQuestion.panels = [
+    wagtail_edit_handlers.MultiFieldPanel(
+        [
+            wagtail_edit_handlers.FieldPanel('challenge'),
+            wagtail_edit_handlers.FieldPanel('text'),
+        ],
+        # Translators: Admin field name
+        heading=_('Free Text Questions')
+    ),
+]
 
 
 @python_2_unicode_compatible
