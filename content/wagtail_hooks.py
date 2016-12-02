@@ -3,7 +3,7 @@ from django.utils.translation import ugettext_lazy as _
 from wagtail.contrib.modeladmin.options import ModelAdmin, ModelAdminGroup, modeladmin_register
 
 from .models import Challenge
-from .models import QuizQuestion
+from .models import FreeTextQuestion, PictureQuestion, QuizQuestion
 from .models import GoalPrototype
 
 
@@ -20,6 +20,23 @@ class ChallengeAdmin(ModelAdmin):
     search_fields = ('name',)
 
 
+class FreeTextQuestionAdmin(ModelAdmin):
+    model = FreeTextQuestion
+    add_to_settings_menu = False
+    list_display = ('challenge', 'text_truncated',)
+    list_filter = ('challenge',)
+    search_fields = ('challenge',)
+
+
+class PictureQuestionAdmin(ModelAdmin):
+    model = PictureQuestion
+    menu_label = _('Picture Questions')
+    add_to_settings_menu = False
+    list_display = ('challenge', 'text_truncated',)
+    list_filter = ('challenge',)
+    search_fields = ('challenge',)
+
+
 class QuizQuestionAdmin(ModelAdmin):
     model = QuizQuestion
     menu_label = _('Quiz Questions')
@@ -34,7 +51,7 @@ class CompetitionsAdminGroup(ModelAdminGroup):
     menu_label = _('Competitions')
     menu_icon = 'folder-open-inverse'
     menu_order = 200
-    items = (ChallengeAdmin, QuizQuestionAdmin)
+    items = (ChallengeAdmin, FreeTextQuestionAdmin, PictureQuestionAdmin, QuizQuestionAdmin)
 
 
 modeladmin_register(CompetitionsAdminGroup)
