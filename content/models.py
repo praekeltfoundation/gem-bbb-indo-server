@@ -616,13 +616,22 @@ GoalPrototype.panels = [
 
 @python_2_unicode_compatible
 class Goal(models.Model):
+    INACTIVE = 0
+    ACTIVE = 1
+
     name = models.CharField(max_length=100)
     start_date = models.DateField()
     end_date = models.DateField()
+    state = models.IntegerField(choices=(
+        # Translators: Object state
+        (INACTIVE, _('Inactive')),
+        # Translators: Object state
+        (ACTIVE, _('Active')),
+    ), default=ACTIVE)
     target = models.DecimalField(max_digits=18, decimal_places=2)
     image = models.ImageField(upload_to=get_goal_image_filename, storage=GoalImgStorage(), null=True, blank=True)
     user = models.ForeignKey(User, related_name='+')
-    prototype = models.OneToOneField('GoalPrototype', related_name='goals', on_delete=models.SET_NULL,
+    prototype = models.ForeignKey('GoalPrototype', related_name='goals', on_delete=models.SET_NULL,
                                      default=None, blank=True, null=True)
 
     class Meta:
@@ -631,6 +640,13 @@ class Goal(models.Model):
 
         # Translators: Plural collection name on CMS
         verbose_name_plural = _('goals')
+
+    def deactivate(self):
+        self.state = Goal.INACTIVE
+
+    @property
+    def is_active(self):
+        return self.state == Goal.ACTIVE
 
     @property
     def value(self):

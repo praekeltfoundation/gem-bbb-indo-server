@@ -349,14 +349,17 @@ class GoalViewSet(viewsets.ModelViewSet):
     queryset = Goal.objects.all()
     serializer_class = GoalSerializer
     permission_classes = (IsAdminOrOwner, IsAuthenticated,)
-    http_method_names = ('options', 'head', 'get', 'post', 'put',)
+    http_method_names = ('options', 'head', 'get', 'post', 'put', 'delete',)
 
     def list(self, request, *args, **kwargs):
-        serializer = self.get_serializer(self.get_queryset().filter(user_id=request.user.id), many=True)
+        serializer = self.get_serializer(self.get_queryset().filter(user_id=request.user.id, state=Goal.ACTIVE), many=True)
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None, *args, **kwargs):
-        serializer = self.get_serializer(self.get_object())
+        goal = self.get_object()
+        if not goal.is_active:
+            raise NotFound('Goal has been deleted')
+        serializer = self.get_serializer(goal)
         return Response(serializer.data)
 
     def create(self, request, *args, **kwargs):
@@ -367,10 +370,18 @@ class GoalViewSet(viewsets.ModelViewSet):
 
     def update(self, request, pk=None, *args, **kwargs):
         goal = self.get_object()
+        if not goal.is_active:
+            raise NotFound('Goal has been deleted')
         serializer = self.get_serializer(goal, data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            return Response(status=status.HTTP_200_OK)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def destroy(self, request, pk=None, *args, **kwargs):
+        goal = self.get_object()
+        goal.deactivate()
+        goal.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
     @detail_route(methods=['post', 'get'])
     def transactions(self, request, pk=None, *args, **kwargs):

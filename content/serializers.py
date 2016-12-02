@@ -405,10 +405,11 @@ class GoalSerializer(serializers.ModelSerializer):
         # Update Goal
         instance.name = validated_data.get('name', instance.name)
         instance.start_date = validated_data.get('start_date', instance.start_date)
-        instance.end_date = validated_data.get('validate_date', instance.end_date)
+        instance.end_date = validated_data.get('end_date', instance.end_date)
         instance.target = validated_data.get('target', instance.target)
         # TODO: Image Field
-        instance.user = validated_data.get('user', instance.user)
+        # Goal owner can not be updated.
+        # instance.user = validated_data.get('user', instance.user)
 
         for t in transactions_data:
             t['goal'] = instance

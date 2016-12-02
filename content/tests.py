@@ -663,8 +663,8 @@ class TestGoalAPI(APITestCase):
         # Send updates
         data = {
             "name": "Goal 2",
-            "start_date": datetime.utcnow().strftime('%Y-%m-%d'),
-            "end_date": datetime.utcnow().strftime('%Y-%m-%d'),
+            "start_date": '2015-11-01',
+            "end_date": '2015-11-30',
             "target": 9000,
             "image": None
         }
@@ -678,6 +678,7 @@ class TestGoalAPI(APITestCase):
         self.assertEqual(goal.pk, updated_goal.pk, "Returned Goal was not the same instance as the sent goal.")
         self.assertEqual("Goal 2", updated_goal.name, "Name was not updated.")
         self.assertEqual(9000, updated_goal.target, "Target was not updated.")
+        self.assertEqual(date(2015, 11, 30), updated_goal.end_date, "Goal date was not updated.")
 
     def test_user_goal_create_for_other_restricted(self):
         """A User must not be able to create a Goal for another user."""
@@ -702,6 +703,29 @@ class TestGoalAPI(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, "Creating Goal failed.")
         self.assertEqual(user_1, goal.user, "User managed to create Goal for someone else.")
+
+    def test_goal_delete(self):
+        user = create_test_regular_user()
+        goal = create_goal('Goal 1', user, 1000)
+
+        self.client.force_authenticate(user=user)
+        response = self.client.delete(reverse('api:goals-detail', kwargs={'pk': goal.pk}))
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, "Goal delete request failed.")
+
+        updated_goal = Goal.objects.get(id=goal.id)
+        self.assertFalse(updated_goal.is_active, "Goal was not marked as inactive.")
+
+    def test_deleted_goal_filter(self):
+        user = create_test_regular_user()
+        goal = create_goal('Goal 1', user, 1000)
+        goal.deactivate()
+        goal.save()
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:goals-list'), format=json)
+
+        self.assertEqual(len(response.data), 0, "Deleted Goal included in list.")
 
 
 class TestGoalTransactionAPI(APITestCase):
