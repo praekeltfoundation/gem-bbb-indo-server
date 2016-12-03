@@ -1,4 +1,3 @@
-
 from uuid import uuid4
 from collections import OrderedDict
 from datetime import timedelta
@@ -16,6 +15,7 @@ from django.utils.translation import ugettext as _
 from modelcluster import fields as modelcluster_fields
 from modelcluster.contrib.taggit import ClusterTaggableManager
 from taggit.models import TaggedItemBase
+from wagtail.contrib.settings.models import BaseSetting, register_setting
 from wagtail.wagtailadmin import edit_handlers as wagtail_edit_handlers
 from wagtail.wagtailsnippets.models import register_snippet
 from wagtail.wagtailsnippets import edit_handlers as wagtail_snippet_edit_handlers
@@ -83,22 +83,24 @@ class Challenge(modelcluster_fields.ClusterableModel):
     # Translators: Field name on CMS
     intro = models.TextField(_('intro dialogue'), blank=True,
                              # Translators: Help text on CMS
-                             help_text=_('The opening line said by the Coach when telling the user about the Challenge.'))
+                             help_text=_(
+                                 'The opening line said by the Coach when telling the user about the Challenge.'))
 
     # Translators: Field name on CMS
     outro = models.TextField(_('outro dialogue'), blank=True,
                              # Translators: Help text on CMS
-                             help_text=_('The line said by the Coach when the user has completed their Challenge submission.'))
+                             help_text=_(
+                                 'The line said by the Coach when the user has completed their Challenge submission.'))
 
     # Translators: Field name on CMS
     call_to_action = models.TextField(_('call to action'), blank=True,
-                             # Translators: Help text on CMS
-                             help_text=_('Displayed on the Challenge popup when it is not available yet.'))
+                                      # Translators: Help text on CMS
+                                      help_text=_('Displayed on the Challenge popup when it is not available yet.'))
 
     # Translators: Field name on CMS
     instruction = models.TextField(_('instructional text'), blank=True,
-                             # Translators: Help text on CMS
-                             help_text=_('Displayed on the Challenge splash screen when it is available.'))
+                                   # Translators: Help text on CMS
+                                   help_text=_('Displayed on the Challenge splash screen when it is available.'))
 
     # Translators: Field name on CMS (pertains to dates)
     activation_date = models.DateTimeField(_('activate on'))
@@ -186,8 +188,8 @@ class Challenge(modelcluster_fields.ClusterableModel):
     def get_current(cls, user=None):
         """Decides which Challenge the user will receive next."""
         q = Challenge.objects \
-            .prefetch_related('participants', 'participants__entries')\
-            .order_by('activation_date')\
+            .prefetch_related('participants', 'participants__entries') \
+            .order_by('activation_date') \
             .filter(state=cls.CST_PUBLISHED, deactivation_date__gt=timezone.now())
 
         if user is not None:
@@ -195,9 +197,6 @@ class Challenge(modelcluster_fields.ClusterableModel):
             q = q.exclude(participants__entries__isnull=False, participants__user__exact=user)
 
         return q.first()
-
-
-
 
 
 Challenge.panels = [
@@ -495,7 +494,8 @@ class ParticipantAnswer(models.Model):
         verbose_name_plural = _('participant answers')
 
     def __str__(self):
-        return str(self.participant.user.username)[:8] + str(self.question.text[:8]) + str(self.selected_option.text[:8])
+        return str(self.participant.user.username)[:8] + str(self.question.text[:8]) + str(
+            self.selected_option.text[:8])
 
 
 def get_participant_image_filename(instance, filename):
@@ -596,7 +596,6 @@ class Tip(wagtail_models.Page):
 
 
 class TipFavourite(models.Model):
-
     # Tip Favourite State
     TFST_INACTIVE = 0
     TFST_ACTIVE = 1
@@ -705,7 +704,7 @@ class Goal(models.Model):
     image = models.ImageField(upload_to=get_goal_image_filename, storage=GoalImgStorage(), null=True, blank=True)
     user = models.ForeignKey(User, related_name='+')
     prototype = models.ForeignKey('GoalPrototype', related_name='goals', on_delete=models.SET_NULL,
-                                     default=None, blank=True, null=True)
+                                  default=None, blank=True, null=True)
 
     class Meta:
         # Translators: Collection name on CMS
@@ -723,7 +722,7 @@ class Goal(models.Model):
 
     @property
     def value(self):
-        return reduce(lambda acc, el: acc+el['value'],
+        return reduce(lambda acc, el: acc + el['value'],
                       self.transactions.all().order_by('date', 'id').values('value'), 0)
 
     @property
@@ -793,8 +792,8 @@ class Goal(models.Model):
 
         since_date = now_date - timedelta(weeks=weeks_back)
 
-        trans = trans_model.objects\
-            .filter(goal__user=user, date__gt=since_date)\
+        trans = trans_model.objects \
+            .filter(goal__user=user, date__gt=since_date) \
             .order_by('-date')
 
         last_monday = Goal._monday(now_date.date())
@@ -856,3 +855,80 @@ class GoalTransaction(models.Model):
 
     def __str__(self):
         return '{} {}'.format(self.date, self.value)
+
+
+# ============ #
+# Achievements #
+# ============ #
+
+
+class Badge(models.Model):
+    INACTIVE = 0
+    ACTIVE = 1
+
+    name = models.CharField(max_length=255)
+    image = models.ForeignKey(wagtail_image_models.Image, blank=True, null=True,
+                              on_delete=models.SET_NULL, related_name='+')
+    state = models.IntegerField(choices=(
+        (INACTIVE, _('Inactive')),
+        (ACTIVE, _('ACTIVE')),
+    ), default=ACTIVE)
+
+
+# class UserBadge(models.Model):
+#     user = models.ForeignKey(User, on_delete=models.CASCADE)
+#
+#     created_on = models.DateTimeField(default=timezone.now)
+
+
+# ======== #
+# Settings #
+# ======== #
+
+
+@register_setting
+class BadgeSettings(BaseSetting):
+    goal_first_created = models.ForeignKey(
+        Badge,
+        verbose_name=_('First Goal Created'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded to users when they create their first Goal."),
+        blank=False, null=True
+    )
+
+    goal_half = models.ForeignKey(
+        Badge,
+        verbose_name=_('First Goal Done'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded to users when they are half-way through their first Goal."),
+        blank=False, null=True
+    )
+
+    goal_week_left = models.ForeignKey(
+        Badge,
+        verbose_name=_('One Week Left'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded to users when they have one week left to save on their first Goal."),
+        blank=False, null=True
+    )
+
+    goal_first_done = models.ForeignKey(
+        Badge,
+        verbose_name=_('First Goal Done'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded to users when they reach their first Goal."),
+        blank=False, null=True
+    )
+
+    transaction_first = models.ForeignKey(
+        Badge,
+        verbose_name=_('First Saving'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded to users when they create their first savings transaction."),
+        blank=False, null=True
+    )
