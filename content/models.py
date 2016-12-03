@@ -875,10 +875,10 @@ class Badge(models.Model):
     ), default=ACTIVE)
 
 
-# class UserBadge(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#
-#     created_on = models.DateTimeField(default=timezone.now)
+class UserBadge(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    badge = models.ForeignKey(Badge, on_delete=models.CASCADE)
+    created_on = models.DateTimeField(default=timezone.now)
 
 
 # ======== #
