@@ -28,6 +28,72 @@ from wagtail.wagtailimages import models as wagtail_image_models
 from .storage import ChallengeStorage, GoalImgStorage, ParticipantPictureStorage
 
 
+# ======== #
+# Settings #
+# ======== #
+
+
+@register_setting
+class BadgeSettings(BaseSetting):
+    goal_first_created = models.ForeignKey(
+        'Badge',
+        verbose_name=_('First Goal Created'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded to users when they create their first Goal."),
+        blank=False, null=True
+    )
+
+    goal_half = models.ForeignKey(
+        'Badge',
+        verbose_name=_('First Goal Done'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded to users when they are half-way through their first Goal."),
+        blank=False, null=True
+    )
+
+    goal_week_left = models.ForeignKey(
+        'Badge',
+        verbose_name=_('One Week Left'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded to users when they have one week left to save on their first Goal."),
+        blank=False, null=True
+    )
+
+    goal_first_done = models.ForeignKey(
+        'Badge',
+        verbose_name=_('First Goal Done'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded to users when they reach their first Goal."),
+        blank=False, null=True
+    )
+
+    transaction_first = models.ForeignKey(
+        'Badge',
+        verbose_name=_('First Saving'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded to users when they create their first savings transaction."),
+        blank=False, null=True
+    )
+
+
+BadgeSettings.panels = [
+    wagtail_edit_handlers.MultiFieldPanel([
+        wagtail_edit_handlers.FieldPanel('goal_first_created'),
+        wagtail_edit_handlers.FieldPanel('goal_half'),
+        wagtail_edit_handlers.FieldPanel('goal_week_left'),
+        wagtail_edit_handlers.FieldPanel('goal_first_done'),
+        wagtail_edit_handlers.FieldPanel('transaction_first'),
+    ],
+        # Translators: Admin field name
+        heading=_("Badge types"))
+]
+
+
 # ========== #
 # Agreements #
 # ========== #
@@ -713,6 +779,18 @@ class Goal(models.Model):
         # Translators: Plural collection name on CMS
         verbose_name_plural = _('goals')
 
+    def add_new_badge(self, badge):
+        if not hasattr(self, '_new_badges'):
+            setattr(self, '_new_badges', [])
+        self._new_badges.append(badge)
+
+    @property
+    def new_badges(self):
+        # FIXME: Overriding __init__ causes an exception during a create query.
+        if not hasattr(self, '_new_badges'):
+            setattr(self, '_new_badges', [])
+        return self._new_badges
+
     def deactivate(self):
         self.state = Goal.INACTIVE
 
@@ -836,14 +914,6 @@ class GoalTransaction(models.Model):
     value = models.DecimalField(max_digits=12, decimal_places=2)
     goal = models.ForeignKey(Goal, related_name='transactions')
 
-    @property
-    def is_deposit(self):
-        return self.value > 0
-
-    @property
-    def is_withdraw(self):
-        return self.value <= 0
-
     class Meta:
         # Translators: Collection name on CMS
         verbose_name = _('goal transaction')
@@ -852,6 +922,14 @@ class GoalTransaction(models.Model):
         verbose_name_plural = _('goal transactions')
 
         unique_together = ('date', 'value', 'goal')
+
+    @property
+    def is_deposit(self):
+        return self.value > 0
+
+    @property
+    def is_withdraw(self):
+        return self.value <= 0
 
     def __str__(self):
         return '{} {}'.format(self.date, self.value)
@@ -862,6 +940,7 @@ class GoalTransaction(models.Model):
 # ============ #
 
 
+@python_2_unicode_compatible
 class Badge(models.Model):
     INACTIVE = 0
     ACTIVE = 1
@@ -871,64 +950,52 @@ class Badge(models.Model):
                               on_delete=models.SET_NULL, related_name='+')
     state = models.IntegerField(choices=(
         (INACTIVE, _('Inactive')),
-        (ACTIVE, _('ACTIVE')),
+        (ACTIVE, _('Active')),
     ), default=ACTIVE)
+    user = models.ManyToManyField(User, through='UserBadge', related_name='badges')
+
+    class Meta:
+        # Translators: Collection name on CMS
+        verbose_name = _('badge')
+
+        # Translators: Plural collection name on CMS
+        verbose_name_plural = _('badges')
+
+    @property
+    def is_active(self):
+        return self.state == Badge.ACTIVE
+
+    def __str__(self):
+        return self.name
+
+
+Badge.panels = [
+    wagtail_edit_handlers.FieldPanel('name'),
+    wagtail_edit_handlers.FieldPanel('state'),
+    wagtail_image_edit.ImageChooserPanel('image'),
+]
 
 
 class UserBadge(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     badge = models.ForeignKey(Badge, on_delete=models.CASCADE)
-    created_on = models.DateTimeField(default=timezone.now)
+    earned_on = models.DateTimeField(default=timezone.now)
 
 
-# ======== #
-# Settings #
-# ======== #
+def award_first_goal(request, goal):
+    badge_settings = BadgeSettings.for_site(request.site)
 
+    if badge_settings.goal_first_created is None:
+        return None
 
-@register_setting
-class BadgeSettings(BaseSetting):
-    goal_first_created = models.ForeignKey(
-        Badge,
-        verbose_name=_('First Goal Created'),
-        related_name='+',
-        on_delete=models.SET_NULL,
-        help_text=_("Awarded to users when they create their first Goal."),
-        blank=False, null=True
-    )
+    if not badge_settings.goal_first_created.is_active:
+        return None
 
-    goal_half = models.ForeignKey(
-        Badge,
-        verbose_name=_('First Goal Done'),
-        related_name='+',
-        on_delete=models.SET_NULL,
-        help_text=_("Awarded to users when they are half-way through their first Goal."),
-        blank=False, null=True
-    )
+    if goal.pk is None:
+        raise ValueError('Goal instance must be saved before it can be awarded badges.')
 
-    goal_week_left = models.ForeignKey(
-        Badge,
-        verbose_name=_('One Week Left'),
-        related_name='+',
-        on_delete=models.SET_NULL,
-        help_text=_("Awarded to users when they have one week left to save on their first Goal."),
-        blank=False, null=True
-    )
-
-    goal_first_done = models.ForeignKey(
-        Badge,
-        verbose_name=_('First Goal Done'),
-        related_name='+',
-        on_delete=models.SET_NULL,
-        help_text=_("Awarded to users when they reach their first Goal."),
-        blank=False, null=True
-    )
-
-    transaction_first = models.ForeignKey(
-        Badge,
-        verbose_name=_('First Saving'),
-        related_name='+',
-        on_delete=models.SET_NULL,
-        help_text=_("Awarded to users when they create their first savings transaction."),
-        blank=False, null=True
-    )
+    if Goal.objects.filter(user=goal.user).count() == 1:
+        user_badge = UserBadge.objects.create(user=goal.user, badge=badge_settings.goal_first_created)
+        return user_badge
+    else:
+        return None

@@ -19,6 +19,7 @@ from .models import Challenge, Entry
 from .models import GoalPrototype, Goal
 from .models import Participant, ParticipantAnswer, ParticipantFreeText, ParticipantPicture
 from .models import Tip, TipFavourite
+from .models import award_first_goal
 
 from .permissions import IsAdminOrOwner, IsUserSelf
 
@@ -365,8 +366,14 @@ class GoalViewSet(viewsets.ModelViewSet):
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+            goal = serializer.save()
+
+            user_badge = award_first_goal(request, serializer.instance)
+            if user_badge is not None:
+                goal.add_new_badge(user_badge)
+                goal.save()
+
+            return Response(self.get_serializer(goal).data, status=status.HTTP_201_CREATED)
 
     def update(self, request, pk=None, *args, **kwargs):
         goal = self.get_object()

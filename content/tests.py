@@ -972,3 +972,21 @@ class TestAchievementAPI(APITestCase):
         response = self.client.get(reverse('api:achievements', kwargs={'user_pk': user.pk}))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK, "Achievement request failed.")
+
+
+class TestBadgeAwarding(APITestCase):
+
+    def test_first_goal(self):
+        user = create_test_regular_user('anon')
+
+        data = {
+            'name': 'Goal 1',
+            'target': 10000,
+            'start_date': '2016-11-01',
+            'end_date': '2016-11-30'
+        }
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:goals-list'), data, format='json')
+
+        self.assertEqual(len(response.data.get('new_badges', [])), 1, "Badge was not added to new Goal.")

@@ -11,6 +11,48 @@ from .models import GoalPrototype, Goal, GoalTransaction
 from .models import Challenge, FreeTextQuestion, QuestionOption, QuizQuestion
 from .models import Participant, Entry, ParticipantAnswer, ParticipantFreeText, ParticipantPicture
 from .models import Tip, TipFavourite
+from .models import Badge, UserBadge
+
+
+# ============ #
+# Achievements #
+# ============ #
+
+
+class BadgeSerializer(serializers.ModelSerializer):
+    name = serializers.CharField()
+    image_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Badge
+        fields = ('name', 'image_url',)
+
+    def get_image_url(self, obj):
+        request = self.context['request']
+        if obj.image:
+            return request.build_absolute_uri(obj.image.file.url)
+        else:
+            return None
+
+
+class UserBadgeSerializer(serializers.ModelSerializer):
+    earned_on = serializers.DateTimeField()
+
+    class Meta:
+        model = UserBadge
+        fields = ('earned_on',)
+
+    def to_representation(self, instance):
+        """Flattens Badge fields and UserBadge linking model, so the earned_on datetime will be inlined."""
+        data = super().to_representation(instance)
+        badge_serial = BadgeSerializer(instance.badge, context=self.context)
+        data.update(badge_serial.data)
+        return data
+
+
+# ========== #
+# Challenges #
+# ========== #
 
 
 def validate_participant(data, errors):
@@ -295,134 +337,6 @@ class CurrentUserDefault(object):
         return self.goal
 
 
-# ===== #
-# Goals #
-# ===== #
-
-
-class GoalPrototypeSerializer(serializers.ModelSerializer):
-    name = serializers.CharField()
-    image_url = serializers.SerializerMethodField()
-
-    class Meta:
-        model = GoalPrototype
-        fields = ('id', 'name', 'image_url')
-
-    def get_image_url(self, obj):
-        request = self.context['request']
-        if obj.image:
-            return request.build_absolute_uri(obj.image.file.url)
-        else:
-            return None
-
-
-class GoalTransactionListSerializer(serializers.ListSerializer):
-    def create(self, validated_data):
-        # TODO: Find alternative to lookup in Python. Possibly direct SQL.
-        # TODO: Get all transactions for Goal instead of using Q object.
-        q = Q()
-        trans = []
-        for t in validated_data:
-            # eg:(date=... AND value=...) OR (date=... AND value=...)
-            q |= Q(goal_id=t['goal'].id) & Q(date=t['date']) & Q(value=t['value'])
-            trans.append(GoalTransaction(**t))
-        exist = {(g.date, g.value, g.goal.id) for g in GoalTransaction.objects.filter(q)}
-
-        created_trans = [gt for gt in trans if (gt.date, gt.value, gt.goal.id) not in exist]
-
-        for t in created_trans:
-            t.save()
-
-        return created_trans
-
-
-class GoalTransactionSerializer(serializers.ModelSerializer):
-    value = serializers.DecimalField(18, 2, coerce_to_string=False)
-
-    class Meta:
-        model = GoalTransaction
-        exclude = ('goal', 'id',)
-        # TODO: Set up ListSerializer
-        list_serializer_class = GoalTransactionListSerializer
-
-
-class GoalSerializer(serializers.ModelSerializer):
-    name = serializers.CharField()
-    prototype = serializers.PrimaryKeyRelatedField(queryset=GoalPrototype.objects.all(), allow_null=True, required=False)
-    start_date = serializers.DateField()
-    end_date = serializers.DateField()
-    value = serializers.ReadOnlyField()
-    target = serializers.DecimalField(18, 2, coerce_to_string=False)
-    week_count = serializers.ReadOnlyField()
-    week_count_to_now = serializers.ReadOnlyField()
-    weekly_average = serializers.ReadOnlyField()
-    weekly_target = serializers.ReadOnlyField()
-    user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
-    image_url = serializers.SerializerMethodField()
-    transactions = GoalTransactionSerializer(required=False, many=True)
-    transactions_url = serializers.HyperlinkedIdentityField('api:goals-transactions')
-    weekly_totals = serializers.SerializerMethodField()
-
-    class Meta:
-        model = Goal
-        fields = '__all__'
-        read_only_fields = ('id', 'weekly_totals')
-        extra_kwargs = {'image': {'write_only': True}}
-
-    def get_image_url(self, obj):
-        if obj.image:
-            return reverse('api:goal-image', kwargs={'goal_pk': obj.pk}, request=self.context['request'])
-        else:
-            return None
-
-    def get_weekly_totals(self, obj):
-        d = OrderedDict()
-        for week in obj.get_weekly_aggregates():
-            d[str(week.id)] = float(week.value)
-        return d
-
-    def validate(self, attrs):
-        data = super().validate(attrs)
-
-        if attrs['end_date'] < attrs['start_date']:
-            raise serializers.ValidationError('End date is earlier than start date.')
-
-        return data
-
-    def create(self, validated_data):
-        transactions = validated_data.pop('transactions', [])
-        goal = Goal.objects.create(**validated_data)
-
-        for trans_data in transactions:
-            GoalTransaction.objects.create(goal=goal, **trans_data)
-
-        return goal
-
-    def update(self, instance, validated_data):
-        # Transactions are ignored on update
-        transactions_data = validated_data.pop('transactions', [])
-
-        # Update Goal
-        instance.name = validated_data.get('name', instance.name)
-        instance.start_date = validated_data.get('start_date', instance.start_date)
-        instance.end_date = validated_data.get('end_date', instance.end_date)
-        instance.target = validated_data.get('target', instance.target)
-        # TODO: Image Field
-        # Goal owner can not be updated.
-        # instance.user = validated_data.get('user', instance.user)
-
-        for t in transactions_data:
-            t['goal'] = instance
-
-        instance.save()
-
-        for t in GoalTransactionSerializer(many=True, context=self.context).create(transactions_data):
-            # Add to instance in memory for return purposes.
-            instance.transactions.add(t)
-
-        return instance
-
-
 class ParticipantPictureSerializer(serializers.ModelSerializer):
     participant = serializers.PrimaryKeyRelatedField(queryset=Participant.objects.all(), required=False)
 
@@ -507,4 +421,138 @@ class ParticipantFreeTextSerializer(serializers.ModelSerializer):
         if validated_data.get('text') is not None:
             instance.text = validated_data.get('text')
         instance.save()
+        return instance
+
+
+# ===== #
+# Goals #
+# ===== #
+
+
+class GoalPrototypeSerializer(serializers.ModelSerializer):
+    name = serializers.CharField()
+    image_url = serializers.SerializerMethodField()
+
+    class Meta:
+        model = GoalPrototype
+        fields = ('id', 'name', 'image_url')
+
+    def get_image_url(self, obj):
+        request = self.context['request']
+        if obj.image:
+            return request.build_absolute_uri(obj.image.file.url)
+        else:
+            return None
+
+
+class GoalTransactionListSerializer(serializers.ListSerializer):
+    def create(self, validated_data):
+        # TODO: Find alternative to lookup in Python. Possibly direct SQL.
+        # TODO: Get all transactions for Goal instead of using Q object.
+        q = Q()
+        trans = []
+        for t in validated_data:
+            # eg:(date=... AND value=...) OR (date=... AND value=...)
+            q |= Q(goal_id=t['goal'].id) & Q(date=t['date']) & Q(value=t['value'])
+            trans.append(GoalTransaction(**t))
+        exist = {(g.date, g.value, g.goal.id) for g in GoalTransaction.objects.filter(q)}
+
+        created_trans = [gt for gt in trans if (gt.date, gt.value, gt.goal.id) not in exist]
+
+        for t in created_trans:
+            t.save()
+
+        return created_trans
+
+
+class GoalTransactionSerializer(serializers.ModelSerializer):
+    value = serializers.DecimalField(18, 2, coerce_to_string=False)
+
+    class Meta:
+        model = GoalTransaction
+        exclude = ('goal', 'id',)
+        # TODO: Set up ListSerializer
+        list_serializer_class = GoalTransactionListSerializer
+
+
+class GoalSerializer(serializers.ModelSerializer):
+    name = serializers.CharField()
+    prototype = serializers.PrimaryKeyRelatedField(queryset=GoalPrototype.objects.all(), allow_null=True, required=False)
+    start_date = serializers.DateField()
+    end_date = serializers.DateField()
+    value = serializers.ReadOnlyField()
+    target = serializers.DecimalField(18, 2, coerce_to_string=False)
+    week_count = serializers.ReadOnlyField()
+    week_count_to_now = serializers.ReadOnlyField()
+    weekly_average = serializers.ReadOnlyField()
+    weekly_target = serializers.ReadOnlyField()
+    user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
+    image_url = serializers.SerializerMethodField()
+    new_badges = UserBadgeSerializer(many=True, required=False, read_only=True)
+    transactions = GoalTransactionSerializer(required=False, many=True)
+    transactions_url = serializers.HyperlinkedIdentityField('api:goals-transactions')
+    weekly_totals = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Goal
+        fields = '__all__'
+        read_only_fields = ('id', 'weekly_totals')
+        extra_kwargs = {'image': {'write_only': True}}
+
+    def get_image_url(self, obj):
+        if obj.image:
+            return reverse('api:goal-image', kwargs={'goal_pk': obj.pk}, request=self.context['request'])
+        else:
+            return None
+
+    def get_weekly_totals(self, obj):
+        d = OrderedDict()
+        for week in obj.get_weekly_aggregates():
+            d[str(week.id)] = float(week.value)
+        return d
+
+    def get_new_badges(self, obj):
+        # Relation handled in method field because it is another level deep
+        user_badges = UserBadge.objects.filter(user=obj.user)
+        return UserBadgeSerializer(user_badges, many=True, context=self.context).data
+
+    def validate(self, attrs):
+        data = super().validate(attrs)
+
+        if attrs['end_date'] < attrs['start_date']:
+            raise serializers.ValidationError('End date is earlier than start date.')
+
+        return data
+
+    def create(self, validated_data):
+        transactions = validated_data.pop('transactions', [])
+        goal = Goal.objects.create(**validated_data)
+
+        for trans_data in transactions:
+            GoalTransaction.objects.create(goal=goal, **trans_data)
+
+        return goal
+
+    def update(self, instance, validated_data):
+        # Transactions are ignored on update
+        transactions_data = validated_data.pop('transactions', [])
+
+        # Update Goal
+        instance.name = validated_data.get('name', instance.name)
+        instance.start_date = validated_data.get('start_date', instance.start_date)
+        instance.end_date = validated_data.get('end_date', instance.end_date)
+        instance.target = validated_data.get('target', instance.target)
+        # TODO: Image Field
+        # Goal owner can not be updated.
+        # instance.user = validated_data.get('user', instance.user)
+
+        for t in transactions_data:
+            t['goal'] = instance
+
+        instance.save()
+
+        for t in GoalTransactionSerializer(many=True, context=self.context).create(transactions_data):
+            # Add to instance in memory for return purposes.
+            instance.transactions.add(t)
+
         return instance

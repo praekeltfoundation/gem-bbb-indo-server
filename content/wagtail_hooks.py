@@ -5,6 +5,7 @@ from wagtail.contrib.modeladmin.options import ModelAdmin, ModelAdminGroup, mode
 from .models import Challenge
 from .models import FreeTextQuestion, PictureQuestion, QuizQuestion
 from .models import GoalPrototype
+from .models import Badge
 
 
 # ========== #
@@ -74,3 +75,28 @@ class GoalPrototypeAdmin(ModelAdmin):
 
 
 modeladmin_register(GoalPrototypeAdmin)
+
+
+# ============ #
+# Achievements #
+# ============ #
+
+
+class BadgeAdmin(ModelAdmin):
+    model = Badge
+    # Translators: CMS menu name
+    menu_label = _('Badges')
+    menu_order = 100
+    add_to_settings_menu = False
+    lest_display = ('name',)
+
+
+class Achievements(ModelAdminGroup):
+    # Translators: CMS menu name
+    menu_label = _('Achievements')
+    menu_icon = 'folder-open-inverse'
+    menu_order = 201
+    items = (BadgeAdmin,)
+
+
+modeladmin_register(Achievements)
