@@ -7,12 +7,14 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
-from wagtail.wagtailcore.models import Page
+from wagtail.wagtailcore.models import Site, Page
 
 from users.models import User, RegUser
 from .models import Challenge
 from .models import GoalPrototype, Goal, GoalTransaction
 from .models import Tip, TipFavourite
+from .models import Badge
+from .models import BadgeSettings
 
 from .serializers import ParticipantRegisterSerializer
 import rest_framework.exceptions as rest_exceptions
@@ -975,6 +977,16 @@ class TestAchievementAPI(APITestCase):
 
 
 class TestBadgeAwarding(APITestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        first_goal = Badge.objects.create(name='First Name')
+
+        site = Site.objects.get(is_default_site=True)
+        BadgeSettings.objects.create(
+            site=site,
+            goal_first_created=first_goal
+        )
 
     def test_first_goal(self):
         user = create_test_regular_user('anon')
