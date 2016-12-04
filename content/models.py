@@ -1008,7 +1008,7 @@ def award_first_goal(request, goal):
         raise ValueError('Goal instance must be saved before it can be awarded badges.')
 
     if Goal.objects.filter(user=goal.user).count() == 1:
-        user_badge = UserBadge.objects.create(user=goal.user, badge=badge_settings.goal_first_created)
+        user_badge, created = UserBadge.objects.get_or_create(user=goal.user, badge=badge_settings.goal_first_created)
         return user_badge
     else:
         return None
