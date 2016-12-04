@@ -13,8 +13,9 @@ from users.models import User, RegUser
 from .models import Challenge
 from .models import GoalPrototype, Goal, GoalTransaction
 from .models import Tip, TipFavourite
-from .models import Badge
+from .models import Badge, UserBadge
 from .models import BadgeSettings
+from .models import award_first_goal
 
 from .serializers import ParticipantRegisterSerializer
 import rest_framework.exceptions as rest_exceptions
@@ -980,12 +981,12 @@ class TestBadgeAwarding(APITestCase):
 
     @classmethod
     def setUpTestData(cls):
-        first_goal = Badge.objects.create(name='First Name')
+        cls.first_goal = Badge.objects.create(name='First Name')
 
         site = Site.objects.get(is_default_site=True)
         BadgeSettings.objects.create(
             site=site,
-            goal_first_created=first_goal
+            goal_first_created=cls.first_goal
         )
 
     def test_first_goal(self):
@@ -1002,3 +1003,28 @@ class TestBadgeAwarding(APITestCase):
         response = self.client.post(reverse('api:goals-list'), data, format='json')
 
         self.assertEqual(len(response.data.get('new_badges', [])), 1, "Badge was not added to new Goal.")
+
+    def test_avoid_first_twice(self):
+        now = timezone.now()
+        user = create_test_regular_user('anon')
+        goal_1 = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=100000,
+            start_date=now - timedelta(days=30),
+            end_date=now
+        )
+        UserBadge.objects.create(user=user, badge=self.first_goal)
+
+        data = {
+            'name': 'Goal 1',
+            'target': 10000,
+            'start_date': '2016-11-01',
+            'end_date': '2016-11-30'
+        }
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:goals-list'), data, format='json')
+
+        self.assertEqual(len(response.data['new_badges']), 0, "Badge was earned on second goal as well")
+
