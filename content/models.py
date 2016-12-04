@@ -976,10 +976,23 @@ Badge.panels = [
 ]
 
 
+@python_2_unicode_compatible
 class UserBadge(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     badge = models.ForeignKey(Badge, on_delete=models.CASCADE)
     earned_on = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        # Translators: Collection name on CMS
+        verbose_name = _('user badge')
+
+        # Translators: Collection name on CMS
+        verbose_name_plural = _('user badges')
+
+        unique_together = ('user', 'badge')
+
+    def __str__(self):
+        return '{}-{}'.format(self.user, self.badge)
 
 
 def award_first_goal(request, goal):
