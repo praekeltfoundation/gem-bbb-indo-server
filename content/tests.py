@@ -981,13 +981,19 @@ class TestBadgeAwarding(APITestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.first_goal = Badge.objects.create(name='First Name')
+        cls.goal_first_created = Badge.objects.create(name='First Goal')
+        cls.goal_first_done = Badge.objects.create(name='First Goal Done')
 
         site = Site.objects.get(is_default_site=True)
         BadgeSettings.objects.create(
             site=site,
-            goal_first_created=cls.first_goal
+            goal_first_created=cls.goal_first_created,
+            goal_first_done=cls.goal_first_done
         )
+
+    # ------------------------ #
+    # Award First Goal Created #
+    # ------------------------ #
 
     def test_first_goal(self):
         user = create_test_regular_user('anon')
@@ -1007,14 +1013,14 @@ class TestBadgeAwarding(APITestCase):
     def test_avoid_first_twice(self):
         now = timezone.now()
         user = create_test_regular_user('anon')
-        goal_1 = Goal.objects.create(
+        Goal.objects.create(
             name='Goal 1',
             user=user,
             target=100000,
             start_date=now - timedelta(days=30),
             end_date=now
         )
-        UserBadge.objects.create(user=user, badge=self.first_goal)
+        UserBadge.objects.create(user=user, badge=self.goal_first_created)
 
         data = {
             'name': 'Goal 1',
@@ -1028,3 +1034,28 @@ class TestBadgeAwarding(APITestCase):
 
         self.assertEqual(len(response.data['new_badges']), 0, "Badge was earned on second goal as well")
 
+    # ------------------------ #
+    # Award First Goal Reached #
+    # ------------------------ #
+
+    def test_first_goal_done(self):
+        now = timezone.now()
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=10000,
+            start_date=now - timedelta(days=30),
+            end_date=now + timedelta(days=30)
+        )
+
+        data = [{
+            'date': timezone.now().isoformat(),
+            'value': 10000
+        }]
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}), data, format='json')
+
+        self.assertEqual(len(response.data['new_badges']), 1, "No new Badges were returned.")
+        self.assertEqual(response.data['new_badges'][0]['name'], self.goal_first_done.name, "Unexpected Badge returned.")

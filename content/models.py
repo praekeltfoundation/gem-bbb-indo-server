@@ -799,6 +799,10 @@ class Goal(models.Model):
         return self.state == Goal.ACTIVE
 
     @property
+    def is_goal_reached(self):
+        return self.value >= self.target
+
+    @property
     def value(self):
         return reduce(lambda acc, el: acc + el['value'],
                       self.transactions.all().order_by('date', 'id').values('value'), 0)
@@ -996,8 +1000,10 @@ class UserBadge(models.Model):
 
 
 def award_first_goal(request, goal):
+    """Awarded to users when they create their first Goal."""
     badge_settings = BadgeSettings.for_site(request.site)
 
+    # TODO: Refactor repeated None guards into reusable function
     if badge_settings.goal_first_created is None:
         return None
 
@@ -1012,3 +1018,34 @@ def award_first_goal(request, goal):
         return user_badge
     else:
         return None
+
+
+def award_goal_done(request, goal):
+    """Awarded to users when they reach their first Goal."""
+    badge_settings = BadgeSettings.for_site(request.site)
+    badge = badge_settings.goal_first_done
+
+    if badge is None:
+        return None
+
+    if not badge.is_active:
+        return None
+
+    if goal.pk is None:
+        raise ValueError('Goal instance must be saved before it can be awarded badges.')
+
+    if goal.is_goal_reached:
+        user_badge, created = UserBadge.objects.get_or_create(user=goal.user, badge=badge)
+        if created:
+            # Created means it's the first Goal to be completed.
+            return user_badge
+
+    return None
+
+
+def award_goal_halfway(request, goal):
+    pass
+
+
+def award_goal_week_left(request, goal):
+    pass
