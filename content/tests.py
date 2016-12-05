@@ -747,7 +747,7 @@ class TestGoalTransactionAPI(APITestCase):
                                     data, format='json')
         transactions = goal.transactions.all()
 
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, "Creating Transactions request failed")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, "Creating Transactions request failed")
         self.assertEqual(len(transactions), 1, "No transactions created.")
         self.assertEqual(transactions[0].value, 100, "Transaction value was not the same")
 
@@ -768,7 +768,7 @@ class TestGoalTransactionAPI(APITestCase):
                                     data, format='json')
         transactions = goal.transactions.all()
 
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, "Creating Transactions request failed")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, "Creating Transactions request failed")
         self.assertEqual(len(transactions), 3, "Duplicate was possibly added.")
         self.assertEqual(trans, transactions[0],
                          "Returned transaction was not the same as the originally created one")
