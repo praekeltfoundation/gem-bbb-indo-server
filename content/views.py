@@ -19,6 +19,7 @@ from .models import Challenge, Entry
 from .models import GoalPrototype, Goal
 from .models import Participant, ParticipantAnswer, ParticipantFreeText, ParticipantPicture
 from .models import Tip, TipFavourite
+from .models import Badge, UserBadge
 from .models import award_first_goal
 
 from .permissions import IsAdminOrOwner, IsUserSelf
@@ -28,6 +29,7 @@ from .serializers import GoalPrototypeSerializer, GoalSerializer, GoalTransactio
 from .serializers import ParticipantAnswerSerializer, ParticipantFreeTextSerializer, ParticipantPictureSerializer, \
     ParticipantRegisterSerializer
 from .serializers import TipSerializer
+from .serializers import UserBadgeSerializer
 
 
 # ========== #
@@ -458,6 +460,8 @@ class AchievementsView(GenericAPIView):
         self.check_object_permissions(request, user)
         data = OrderedDict()
         data['weekly_streak'] = Goal.get_current_streak(user)
-        # TODO: Badges
-        data['badges'] = []
+
+        serial = UserBadgeSerializer(UserBadge.objects.filter(user=user, badge__state=Badge.ACTIVE),
+                                     many=True, context=self.get_serializer_context())
+        data['badges'] = serial.data
         return Response(data=data)
