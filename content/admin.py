@@ -51,6 +51,7 @@ class ChallengeAdmin(admin.ModelAdmin):
     list_filter = ('name', 'type', 'state')
     inlines = [QuestionInline]
 
+
 @admin.register(FreeTextQuestion)
 class QuestionFreeTextAdmin(admin.ModelAdmin):
     fieldsets = [

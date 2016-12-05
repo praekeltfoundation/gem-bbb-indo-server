@@ -7,12 +7,15 @@ from django.urls import reverse
 from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
-from wagtail.wagtailcore.models import Page
+from wagtail.wagtailcore.models import Site, Page
 
 from users.models import User, RegUser
 from .models import Challenge
 from .models import GoalPrototype, Goal, GoalTransaction
 from .models import Tip, TipFavourite
+from .models import Badge, UserBadge
+from .models import BadgeSettings
+from .models import award_first_goal
 
 from .serializers import ParticipantRegisterSerializer
 import rest_framework.exceptions as rest_exceptions
@@ -744,7 +747,7 @@ class TestGoalTransactionAPI(APITestCase):
                                     data, format='json')
         transactions = goal.transactions.all()
 
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, "Creating Transactions request failed")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, "Creating Transactions request failed")
         self.assertEqual(len(transactions), 1, "No transactions created.")
         self.assertEqual(transactions[0].value, 100, "Transaction value was not the same")
 
@@ -765,7 +768,7 @@ class TestGoalTransactionAPI(APITestCase):
                                     data, format='json')
         transactions = goal.transactions.all()
 
-        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, "Creating Transactions request failed")
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, "Creating Transactions request failed")
         self.assertEqual(len(transactions), 3, "Duplicate was possibly added.")
         self.assertEqual(trans, transactions[0],
                          "Returned transaction was not the same as the originally created one")
@@ -972,3 +975,87 @@ class TestAchievementAPI(APITestCase):
         response = self.client.get(reverse('api:achievements', kwargs={'user_pk': user.pk}))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK, "Achievement request failed.")
+
+
+class TestBadgeAwarding(APITestCase):
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.goal_first_created = Badge.objects.create(name='First Goal')
+        cls.goal_first_done = Badge.objects.create(name='First Goal Done')
+
+        site = Site.objects.get(is_default_site=True)
+        BadgeSettings.objects.create(
+            site=site,
+            goal_first_created=cls.goal_first_created,
+            goal_first_done=cls.goal_first_done
+        )
+
+    # ------------------------ #
+    # Award First Goal Created #
+    # ------------------------ #
+
+    def test_first_goal(self):
+        user = create_test_regular_user('anon')
+
+        data = {
+            'name': 'Goal 1',
+            'target': 10000,
+            'start_date': '2016-11-01',
+            'end_date': '2016-11-30'
+        }
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:goals-list'), data, format='json')
+
+        self.assertEqual(len(response.data.get('new_badges', [])), 1, "Badge was not added to new Goal.")
+
+    def test_avoid_first_twice(self):
+        now = timezone.now()
+        user = create_test_regular_user('anon')
+        Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=100000,
+            start_date=now - timedelta(days=30),
+            end_date=now
+        )
+        UserBadge.objects.create(user=user, badge=self.goal_first_created)
+
+        data = {
+            'name': 'Goal 1',
+            'target': 10000,
+            'start_date': '2016-11-01',
+            'end_date': '2016-11-30'
+        }
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:goals-list'), data, format='json')
+
+        self.assertEqual(len(response.data['new_badges']), 0, "Badge was earned on second goal as well")
+
+    # ------------------------ #
+    # Award First Goal Reached #
+    # ------------------------ #
+
+    def test_first_goal_done(self):
+        now = timezone.now()
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=10000,
+            start_date=now - timedelta(days=30),
+            end_date=now + timedelta(days=30)
+        )
+
+        data = [{
+            'date': timezone.now().isoformat(),
+            'value': 10000
+        }]
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}), data, format='json')
+
+        self.assertEqual(len(response.data['new_badges']), 1, "No new Badges were returned.")
+        self.assertEqual(response.data['new_badges'][0]['name'], self.goal_first_done.name, "Unexpected Badge returned.")
