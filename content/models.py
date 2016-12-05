@@ -46,7 +46,7 @@ class BadgeSettings(BaseSetting):
 
     goal_half = models.ForeignKey(
         'Badge',
-        verbose_name=_('First Goal Done'),
+        verbose_name=_('First Goal Half Way'),
         related_name='+',
         on_delete=models.SET_NULL,
         help_text=_("Awarded to users when they are half-way through their first Goal."),
