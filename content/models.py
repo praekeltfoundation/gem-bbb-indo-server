@@ -1074,7 +1074,7 @@ class Feedback(wagtail_models.Page):
     # Translators: CMS field
     text = models.TextField(_('text'), blank=False, null=False)
 
-    type = models.CharField(
+    type = models.PositiveIntegerField(
         # Translators: CMS field
         _('type'),
         blank=False,
@@ -1092,7 +1092,7 @@ class Feedback(wagtail_models.Page):
     )
 
     # Translators: CMS field
-    user = modelcluster_fields.ParentalKey(_('user'), null=True)
+    user = modelcluster_fields.ForeignKey(User, null=True)
 
     class Meta:
         # Translators: Collection name on CMS
