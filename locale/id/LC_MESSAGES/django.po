@@ -22,468 +22,468 @@ msgstr ""
 #: content/admin.py:33 content/admin.py:72 content/admin.py:100
 msgid ""
 "Editing of challenges is disallowed when participants have already answered."
-msgstr ""
+msgstr "Maaf, kamu sudah pernah menjawab dan tidak bisa mengganti tantangan."
 
 #. Translators: Error message on API
 #: content/exceptions.py:10
 msgid "Query param was invalid."
-msgstr ""
+msgstr "Hasil pencarian tidak ditemukan"
 
 #. Translators: Error message on API
 #: content/exceptions.py:16
 msgid "Image file not found"
-msgstr ""
+msgstr "Gambar tidak ditemukan"
 
 #. Translators: Collection name on CMS
 #: content/models.py:43
 msgid "agreement"
-msgstr ""
+msgstr "persetujuan"
 
 #. Translators: Plural collection name on CMS
 #: content/models.py:46
 msgid "agreements"
-msgstr ""
+msgstr "persetujuan"
 
 #. Translators: Field name on challenge CMS
 #: content/models.py:76
 msgid "challenge name"
-msgstr ""
+msgstr "nama tantangan"
 
 #. Translators: Field name on CMS
 #: content/models.py:79
 msgid "subtitle"
-msgstr ""
+msgstr "subtitle"
 
 #. Translators: Field name on CMS
 #. Translators: CMS field name
 #: content/models.py:82 content/models.py:493
 msgid "intro dialogue"
-msgstr ""
+msgstr "introduksi"
 
 #. Translators: Help text on CMS
 #: content/models.py:84
 msgid ""
 "The opening line said by the Coach when telling the user about the Challenge."
-msgstr ""
+msgstr "Kalimat yang diucapkan oleh Coach ketika menjelaskan tentang Tantangan."
 
 #. Translators: Field name on CMS
 #: content/models.py:87
 msgid "outro dialogue"
-msgstr ""
+msgstr "penutup"
 
 #. Translators: Help text on CMS
 #: content/models.py:89
 msgid ""
 "The line said by the Coach when the user has completed their Challenge "
 "submission."
-msgstr ""
+msgstr "Kalimat yang diucapkan oleh Coach saat pengguna menyelesaikan Tantangan."
 
 #. Translators: Field name on CMS
 #: content/models.py:92
 msgid "call to action"
-msgstr ""
+msgstr "ajakan"
 
 #. Translators: Help text on CMS
 #: content/models.py:94
 msgid "Displayed on the Challenge popup when it is not available yet."
-msgstr ""
+msgstr "Ditampilkan di pop up Tantangan saat belum tersedia."
 
 #. Translators: Field name on CMS
 #: content/models.py:97
 msgid "instructional text"
-msgstr ""
+msgstr "teks perintah"
 
 #. Translators: Help text on CMS
 #: content/models.py:99
 msgid "Displayed on the Challenge splash screen when it is available."
-msgstr ""
+msgstr "Ditampilkan di layar tunggu Tantangan saat tersedia."
 
 #. Translators: Field name on CMS (pertains to dates)
 #: content/models.py:102
 msgid "activate on"
-msgstr ""
+msgstr "diaktifkan pada"
 
 #. Translators: Field name on CMS (pertains to dates)
 #: content/models.py:105
 msgid "deactivate on"
-msgstr ""
+msgstr "dinonaktifkan pada"
 
 #. Translators: Field name on CMS (state of the object, not location)
 #: content/models.py:110
 msgid "state"
-msgstr ""
+msgstr "status"
 
 #. Translators: CMS state value
 #: content/models.py:112
 msgid "Incomplete"
-msgstr ""
+msgstr "Belum Lengkap"
 
 #. Translators: CMS state value
 #: content/models.py:114
 msgid "Ready for review"
-msgstr ""
+msgstr "Siap ditinjau"
 
 #. Translators: CMS state value
 #: content/models.py:116
 msgid "Published"
-msgstr ""
+msgstr "Diterbitkan"
 
 #. Translators: CMS state value
 #: content/models.py:118
 msgid "Done"
-msgstr ""
+msgstr "Selesai"
 
 #. Translators: Field name on challenge CMS (type of object)
 #: content/models.py:123
 msgid "type"
-msgstr ""
+msgstr "tipe"
 
 #. Translators: Challenge type
 #: content/models.py:125
 msgid "Quiz"
-msgstr ""
+msgstr "Kuis"
 
 #. Translators: Challenge type
 #: content/models.py:127
 msgid "Picture"
-msgstr ""
+msgstr "Gambar"
 
 #. Translators: Challenge type
 #: content/models.py:129
 msgid "Free text"
-msgstr ""
+msgstr "Teks bebas"
 
 #. Translators: Field name on CMS
 #: content/models.py:134 content/models.py:436
 msgid "picture"
-msgstr ""
+msgstr "gambar"
 
 #. Translators: Whether item has been processed
 #: content/models.py:142
 msgid "processed"
-msgstr ""
+msgstr "diproses"
 
 #. Translators: Collection name on CMS
 #: content/models.py:148
 msgid "challenge"
-msgstr ""
+msgstr "tantangan"
 
 #. Translators: Plural collection name on CMS
 #: content/models.py:151
 msgid "challenges"
-msgstr ""
+msgstr "tantangan"
 
 #. Translators: Admin field name
 #: content/models.py:207
 msgid "Challenge"
-msgstr ""
+msgstr "Tantangan"
 
 #. Translators: Admin field name
 #: content/models.py:212
 msgid "Instructional Text"
-msgstr ""
+msgstr "Teks Perintah"
 
 #. Translators: Admin field name
 #: content/models.py:217
 msgid "Coach UI"
-msgstr ""
+msgstr "User Interface untuk Coach"
 
 #. Translators: Admin field name
 #: content/models.py:222
 msgid "Dates"
-msgstr ""
+msgstr "Tanggal"
 
 #. Translators: Admin field name
 #: content/models.py:226 content/wagtail_hooks.py:25
 msgid "Quiz Questions"
-msgstr ""
+msgstr "Pertanyaan Kuis"
 
 #. Translators: Admin field help
 #: content/models.py:228
 msgid "Only relevant for Quiz type Challenges."
-msgstr ""
+msgstr "Hanya relevan untuk Kuis bertipe Tantangan."
 
 #. Translators: Sorting order
 #: content/models.py:235
 msgid "order"
-msgstr ""
+msgstr "urutan"
 
 #. Translators: Text field
 #. Translators: CMS field name
 #: content/models.py:239 content/models.py:309 content/models.py:328
 #: content/models.py:344 content/models.py:463
 msgid "text"
-msgstr ""
+msgstr "teks"
 
 #. Translators: Hint text
 #: content/models.py:242
 msgid "hint"
-msgstr ""
+msgstr "petunjuk"
 
 #. Translators: Collection name on CMS
 #: content/models.py:246
 msgid "question"
-msgstr ""
+msgstr "pertanyaan"
 
 #. Translators: Plural collection name on CMS
 #: content/models.py:249
 msgid "questions"
-msgstr ""
+msgstr "pertanyaan"
 
 #. Translators: Admin field name
 #: content/models.py:292
 msgid "Question"
-msgstr ""
+msgstr "Pertanyaan"
 
 #. Translators: Admin field name
 #: content/models.py:297
 msgid "Question Options"
-msgstr ""
+msgstr "Pilihan Pertanyaan"
 
 #. Translators: CMS field name
 #: content/models.py:306
 msgid "picture URL"
-msgstr ""
+msgstr "URL gambar"
 
 #. Translators: Is this answer a correct one?
 #: content/models.py:312
 msgid "correct"
-msgstr ""
+msgstr "benar"
 
 #. Translators: Collection name on CMS
 #: content/models.py:316
 msgid "question option"
-msgstr ""
+msgstr "pilihan pertanyaan"
 
 #. Translators: Plural collection name on CMS
 #: content/models.py:319
 msgid "question options"
-msgstr ""
+msgstr "pilihan pertanyaan"
 
 #. Translators: Collection name on CMS
 #: content/models.py:332
 msgid "picture question"
-msgstr ""
+msgstr "pertanyaan gambar"
 
 #. Translators: Plural collection name on CMS
 #: content/models.py:335
 msgid "picture questions"
-msgstr ""
+msgstr "pertanyaan gambar"
 
 #. Translators: Collection name on CMS
 #: content/models.py:348
 msgid "free text question"
-msgstr ""
+msgstr "pertanyaan bebas"
 
 #. Translators: Plural collection name on CMS
 #: content/models.py:351
 msgid "free text questions"
-msgstr ""
+msgstr "pertanyaan bebas"
 
 #. Translators: CMS field name (refers to dates)
 #: content/models.py:363
 msgid "created on"
-msgstr ""
+msgstr "dibuat pada"
 
 #. Translators: CMS field name (refers to dates)
 #: content/models.py:366 content/models.py:392
 msgid "completed on"
-msgstr ""
+msgstr "dilengkapi pada"
 
 #. Translators: Collection name on CMS
 #: content/models.py:375
 msgid "participant"
-msgstr ""
+msgstr "peserta"
 
 #. Translators: Plural collection name on CMS
 #: content/models.py:378
 msgid "participants"
-msgstr ""
+msgstr "peserta"
 
 #. Translators: CMS field name (refers to dates)
 #: content/models.py:389 content/models.py:415 content/models.py:446
 #: content/models.py:465 content/models.py:539
 msgid "saved on"
-msgstr ""
+msgstr "disimpan pada"
 
 #. Translators: Collection name on CMS
 #: content/models.py:396
 msgid "entry"
-msgstr ""
+msgstr "daftar nama"
 
 #. Translators: Plural collection name on CMS
 #: content/models.py:399
 msgid "entries"
-msgstr ""
+msgstr "daftar nama"
 
 #. Translators: CMS field name (refers to dates)
 #: content/models.py:412 content/models.py:443 content/models.py:464
 msgid "answered on"
-msgstr ""
+msgstr "dijawab tanggal"
 
 #. Translators: Collection name on CMS
 #: content/models.py:419
 msgid "participant answer"
-msgstr ""
+msgstr "jawaban peserta"
 
 #. Translators: Plural collection name on CMS
 #: content/models.py:422
 msgid "participant answers"
-msgstr ""
+msgstr "jawaban peserta"
 
 #. Translators: Collection name on CMS
 #: content/models.py:450
 msgid "picture answer"
-msgstr ""
+msgstr "jawaban gambar"
 
 #. Translators: Plural collection name on CMS
 #: content/models.py:453
 msgid "picture answers"
-msgstr ""
+msgstr "jawaban gambar"
 
 #. Translators: Collection name on CMS
 #: content/models.py:469
 msgid "free-text answer"
-msgstr ""
+msgstr "jawaban bebas"
 
 #. Translators: Plural collection name on CMS
 #: content/models.py:472
 msgid "free-text answers"
-msgstr ""
+msgstr "jawaban bebas"
 
 #. Translators: CMS help text
 #: content/models.py:495
 msgid "The opening line said by the Coach when telling the user about the Tip."
-msgstr ""
+msgstr "Kalimat awal yang diucapkan oleh Coach saat menjelaskan tentang Tips."
 
 #. Translators: Collection name on CMS
 #: content/models.py:516
 msgid "tip"
-msgstr ""
+msgstr "tips"
 
 #. Translators: Plural collection name on CMS
 #: content/models.py:519
 msgid "tips"
-msgstr ""
+msgstr "tips"
 
 #. Translators: Object state
 #: content/models.py:535
 msgid "Disabled"
-msgstr ""
+msgstr "Tidak Diizinkan"
 
 #. Translators: Object state
 #: content/models.py:537
 msgid "Enabled"
-msgstr ""
+msgstr "Diizinkan"
 
 #. Translators: Collection name on CMS
 #: content/models.py:543
 msgid "tip favourite"
-msgstr ""
+msgstr "tips favorit"
 
 #. Translators: Plural collection name on CMS
 #: content/models.py:546
 msgid "tip favourites"
-msgstr ""
+msgstr "tips favorit"
 
 #. Translators: Object state
 #: content/models.py:579
 msgid "Inactive"
-msgstr ""
+msgstr "Non Aktif"
 
 #. Translators: Object state
 #: content/models.py:581
 msgid "Active"
-msgstr ""
+msgstr "Aktif"
 
 #. Translators: Collection name on CMS
 #: content/models.py:604
 msgid "goal prototype"
-msgstr ""
+msgstr "draft tujuan"
 
 #. Translators: Plural collection name on CMS
 #: content/models.py:607
 msgid "goal prototypes"
-msgstr ""
+msgstr "draft tujuan"
 
 #. Translators: Collection name on CMS
 #: content/models.py:630
 msgid "goal"
-msgstr ""
+msgstr "tujuan"
 
 #. Translators: Plural collection name on CMS
 #: content/models.py:633
 msgid "goals"
-msgstr ""
+msgstr "tujuan"
 
 #. Translators: Collection name on CMS
 #: content/models.py:761
 msgid "goal transaction"
-msgstr ""
+msgstr "tujuan transaksi"
 
 #. Translators: Plural collection name on CMS
 #: content/models.py:764
 msgid "goal transactions"
-msgstr ""
+msgstr "tujuan transaksi"
 
 #. Translators: CMS menu name
 #: content/wagtail_hooks.py:34
 msgid "Competitions"
-msgstr ""
+msgstr "Kompetisi"
 
 #. Translators: CMS menu name
 #: content/wagtail_hooks.py:51
 msgid "Goal Prototypes"
-msgstr ""
+msgstr "Draft Tujuan"
 
 #. Translators: API warning
 #: users/exceptions.py:10
 msgid "Provided old password did not match existing password."
-msgstr ""
+msgstr "Sandi yang Anda masukkan tidak cocok."
 
 #. Translators: Collection name on CMS
 #: users/models.py:40
 msgid "regular user"
-msgstr ""
+msgstr "pengguna"
 
 #. Translators: Plural collection name on CMS
 #: users/models.py:43
 msgid "regular users"
-msgstr ""
+msgstr "pengguna"
 
 #. Translators: Collection name on CMS
 #: users/models.py:54
 msgid "system administrator"
-msgstr ""
+msgstr "sistem administrator"
 
 #. Translators: Plural collection name on CMS
 #: users/models.py:57
 msgid "system administrators"
-msgstr ""
+msgstr "sistem administrator"
 
 #. Translators: Gender value
 #: users/models.py:75
 msgid "Male"
-msgstr ""
+msgstr "Laki-laki"
 
 #. Translators: Gender value
 #: users/models.py:77
 msgid "Female"
-msgstr ""
+msgstr "Perempuan"
 
 #. Translators: Validation failure message
 #: users/models.py:82
 msgid ""
 "Phone number must be entered in the format: '+999999999'. Up to 15 digits "
 "allowed."
-msgstr ""
+msgstr "Nomor telepon harus dimasukkan dalam format: '+999999999'. Diperbolehkan untuk mengisi lebih dari 15 digit."
 
 #. Translators: Collection name on CMS
 #: users/models.py:91
 msgid "profile"
-msgstr ""
+msgstr "profil"
 
 #. Translators: Plural collection name on CMS
 #: users/models.py:94
 msgid "profiles"
-msgstr ""
+msgstr "profil"
