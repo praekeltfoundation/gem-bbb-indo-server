@@ -196,10 +196,10 @@ class TestChallengeModel(TestCase):
 
 class TestChallengeAPI(APITestCase):
 
-    def test_date_filtering(self):
-        """When the current date is outside the Challenge's activation and deactivation time, it should not be available.
-        """
-        self.skipTest('TODO')
+    # def test_date_filtering(self):
+    #     """When the current date is outside the Challenge's activation and deactivation time, it should not be available.
+    #     """
+    #     self.skipTest('TODO')
 
     def test_no_challenge_available(self):
         user = create_test_regular_user('anon')
@@ -334,19 +334,19 @@ class TestTipModel(TestCase):
         self.assertIsNotNone(tip, 'Tip not created')
         self.assertEqual(tip.title, 'Test tip', 'Test tip title was not set.')
 
-    def test_cover_image_url(self):
-        self.skipTest('Needs to instantiate a wagtail Image')
-        # TODO: Instatiate Image
-        # from django.core.files.images import ImageFile
-        # from wagtail.wagtailimages.models import Image
-        #
-        # image = Image(
-        #     title="Image title",
-        #
-        #     # image_file is your StringIO/BytesIO object
-        #     file=ImageFile(image_file, name="image-filename.jpg"),
-        # )
-        # image.save()
+    # def test_cover_image_url(self):
+    #     self.skipTest('Needs to instantiate a wagtail Image')
+    #     # TODO: Instatiate Image
+    #     from django.core.files.images import ImageFile
+    #     from wagtail.wagtailimages.models import Image
+    #
+    #     image = Image(
+    #         title="Image title",
+    #
+    #         # image_file is your StringIO/BytesIO object
+    #         file=ImageFile(image_file, name="image-filename.jpg"),
+    #     )
+    #     image.save()
 
 
 class TestTipAPI(APITestCase):
