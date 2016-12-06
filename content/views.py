@@ -497,3 +497,4 @@ class FeedbackViewSet(viewsets.ModelViewSet):
         serial = self.get_serializer(data=data)
         if serial.is_valid(raise_exception=True):
             serial.save()
+            return Response(serial.data)
