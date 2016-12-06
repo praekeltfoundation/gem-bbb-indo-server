@@ -1,24 +1,35 @@
-
 import json
 from datetime import datetime, date, timedelta
 
+# django imports
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
+
+# REST framework imports
 from rest_framework import status
 from rest_framework.test import APITestCase
+import rest_framework.exceptions as rest_exceptions
+
+# wagtail imports
 from wagtail.wagtailcore.models import Site, Page
 
+# auth imports?
 from users.models import User, RegUser
-from .models import Challenge
-from .models import GoalPrototype, Goal, GoalTransaction
-from .models import Tip, TipFavourite
-from .models import Badge, UserBadge
-from .models import BadgeSettings
+
+# content function imports
 from .models import award_first_goal
 
+# content model imports
+from .models import Badge, BadgeSettings, UserBadge
+from .models import Challenge
+from .models import Feedback
+from .models import GoalPrototype, Goal, GoalTransaction
+from .models import Tip, TipFavourite
+
+# content serializer imports
+from .serializers import FeedbackSerializer
 from .serializers import ParticipantRegisterSerializer
-import rest_framework.exceptions as rest_exceptions
 
 
 # TODO: Mock datetime.now instead of using timedelta
