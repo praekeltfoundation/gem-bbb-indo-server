@@ -845,8 +845,8 @@ class TestGoalPrototypesAPI(APITestCase):
         data = {
             'name': 'Goal 1',
             'target': 12000,
-            'start_date': timezone.make_aware(datetime(2016, 11, 1)).strftime('%Y-%m-%d'),
-            'end_date': timezone.make_aware(datetime(2016, 11, 30)).strftime('%Y-%m-%d'),
+            'start_date': datetime(2016, 11, 1, tzinfo=timezone.utc).strftime('%Y-%m-%d'),
+            'end_date': datetime(2016, 11, 30, tzinfo=timezone.utc).strftime('%Y-%m-%d'),
             'prototype': proto.id
         }
 
@@ -867,7 +867,7 @@ class TestGoalPrototypesAPI(APITestCase):
 class TestWeeklyStreaks(TestCase):
 
     def test_basic_streak(self):
-        now = timezone.make_aware(datetime(2016, 11, 30))
+        now = datetime(2016, 11, 30, tzinfo=timezone.utc)
 
         user = create_test_regular_user('anon')
         goal = Goal.objects.create(
@@ -899,7 +899,7 @@ class TestWeeklyStreaks(TestCase):
         self.assertEqual(streak, 3, "Unexpected weekly streak.")
 
     def test_broken_streak(self):
-        now = timezone.make_aware(datetime(2016, 11, 30))
+        now = datetime(2016, 11, 30, tzinfo=timezone.utc)
 
         user = create_test_regular_user('anon')
         goal = Goal.objects.create(
@@ -932,7 +932,7 @@ class TestWeeklyStreaks(TestCase):
 
     def test_inactivity(self):
         """When the user has saved before, but has been inactive since, the streak should be 0."""
-        now = timezone.make_aware(datetime(2016, 11, 30))
+        now = datetime(2016, 11, 30, tzinfo=timezone.utc)
 
         user = create_test_regular_user('anon')
         goal = Goal.objects.create(
@@ -960,7 +960,7 @@ class TestWeeklyStreaks(TestCase):
         self.assertEqual(streak, 0, "Unexpected weekly streak.")
 
     def test_no_savings(self):
-        now = timezone.make_aware(datetime(2016, 11, 30))
+        now = datetime(2016, 11, 30, tzinfo=timezone.utc)
 
         user = create_test_regular_user('anon')
         goal = Goal.objects.create(
@@ -1070,3 +1070,60 @@ class TestBadgeAwarding(APITestCase):
 
         self.assertEqual(len(response.data['new_badges']), 1, "No new Badges were returned.")
         self.assertEqual(response.data['new_badges'][0]['name'], self.goal_first_done.name, "Unexpected Badge returned.")
+
+
+class TestFeedback(APITestCase):
+    def test_create_feedback(self):
+        user = create_test_regular_user()
+        feedback = Feedback.objects.create(
+            text='How does this work?',
+            type=Feedback.FT_ASK,
+            user=user
+        )
+        self.assertIsNotNone(feedback.date_created)
+
+    def test_create_feedback_anon(self):
+        feedback = Feedback.objects.create(
+            text='How does this work?',
+            type=Feedback.FT_ASK
+        )
+        self.assertIsNotNone(feedback.date_created)
+
+    def test_serialize_feedback(self):
+        user = create_test_regular_user()
+        data = {
+            'text': 'How does this work?',
+            'type': 'ask',
+            'user': user.id
+        }
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:feedback-list'), data, format='json')
+
+        self.assertEquals(response.data['text'], data['text'])
+
+    def test_serialize_feedback_anon(self):
+        user = create_test_regular_user()
+        data = {
+            'text': 'How does this work?',
+            'type': 'ask',
+        }
+
+        response = self.client.post(reverse('api:feedback-list'), data, format='json')
+        print(response.data)
+
+        self.assertEquals(response.data['text'], data['text'])
+
+    def test_serialize_feedback_wrong_user(self):
+        user1 = create_test_regular_user('anon1')
+        user2 = create_test_regular_user('anon2')
+        data = {
+            'text': 'How does this work?',
+            'type': 'ask',
+            'user': user1.id
+        }
+
+        self.client.force_authenticate(user=user2)
+        response = self.client.post(reverse('api:feedback-list'), data, format='json')
+
+        self.assertEquals(response.data['text'], data['text'])
