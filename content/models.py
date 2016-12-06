@@ -1063,6 +1063,9 @@ class Feedback(wagtail_models.Page):
     date_created = models.DateTimeField(_('date created'), default=timezone.now())
 
     # Translators: CMS field
+    is_read = models.BooleanField(_('has been read'), default=False)
+
+    # Translators: CMS field
     text = models.TextField(_('text'), blank=False, null=False)
 
     type = models.CharField(
