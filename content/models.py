@@ -1051,8 +1051,14 @@ def award_goal_week_left(request, goal):
     pass
 
 
+############
+# Feedback #
+############
+
 @python_2_unicode_compatible
 class Feedback(wagtail_models.Page):
+    """Model for feedback left by users. Can be anonymous."""
+
     # Feedback types
     FT_ASK = 1
     FT_REPORT = 2
