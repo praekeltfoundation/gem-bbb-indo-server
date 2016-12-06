@@ -914,8 +914,8 @@ class Goal(models.Model):
 
 @python_2_unicode_compatible
 class GoalTransaction(models.Model):
-    date = models.DateTimeField()
-    value = models.DecimalField(max_digits=12, decimal_places=2)
+    date = models.DateTimeField(_('date'))
+    value = models.DecimalField(_('value'), max_digits=12, decimal_places=2)
     goal = models.ForeignKey(Goal, related_name='transactions')
 
     class Meta:
@@ -1056,7 +1056,7 @@ def award_goal_week_left(request, goal):
 ############
 
 @python_2_unicode_compatible
-class Feedback(wagtail_models.Page):
+class Feedback(models.Model):
     """Model for feedback left by users. Can be anonymous."""
 
     # Feedback types
@@ -1066,7 +1066,7 @@ class Feedback(wagtail_models.Page):
     FT_PARTNER = 4
 
     # Translators: CMS field
-    date_created = models.DateTimeField(_('date created'), default=timezone.now())
+    date_created = models.DateTimeField(_('date created'), default=timezone.now)
 
     # Translators: CMS field
     is_read = models.BooleanField(_('has been read'), default=False)
