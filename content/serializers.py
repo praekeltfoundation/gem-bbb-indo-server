@@ -570,13 +570,12 @@ class FeedbackSerializer(serializers.ModelSerializer):
         Feedback.FT_REPORT: 'report',
     }
 
-    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all())
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False)
     type = KeyValueField(labels=feedback_types)
 
     class Meta:
         model = Feedback
         fields = ('date_created', 'text', 'type', 'user',)
-        extra_kwargs = {'user': {'required': False}}
 
     def create(self, validated_data):
-        Feedback.create(**validated_data)
+        return Feedback.objects.create(**validated_data)
