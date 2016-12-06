@@ -12,6 +12,9 @@ SECRET_KEY = 'eh+r*5&#=5a_w!ln_5yux2_d69v73q71n6j!=+x16^6z48p^w$'
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 
 
+ALLOWED_HOSTS = ['10.0.2.2']
+
+
 # SENDFILE settings
 
 SENDFILE_BACKEND = 'sendfile.backends.development'
