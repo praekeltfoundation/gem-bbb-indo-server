@@ -7,11 +7,12 @@ from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
-from .models import GoalPrototype, Goal, GoalTransaction
 from .models import Challenge, FreeTextQuestion, QuestionOption, QuizQuestion
-from .models import Participant, Entry, ParticipantAnswer, ParticipantFreeText, ParticipantPicture
-from .models import Tip, TipFavourite
+from .models import Entry, Participant, ParticipantAnswer, ParticipantFreeText, ParticipantPicture
+from .models import Feedback
+from .models import Goal, GoalPrototype, GoalTransaction
 from .models import Badge, UserBadge
+from .models import Tip, TipFavourite
 
 
 # ============ #
@@ -556,3 +557,17 @@ class GoalSerializer(serializers.ModelSerializer):
             instance.transactions.add(t)
 
         return instance
+
+
+############
+# Feedback #
+############
+
+class FeedbackSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Feedback
+        fields = ('date_created', 'text', 'type', 'user',)
+        extra_kwargs = {'user': {'required': False}}
+
+    def create(self, validated_data):
+        Feedback.create(**validated_data)
