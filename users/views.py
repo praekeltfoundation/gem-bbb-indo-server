@@ -79,7 +79,7 @@ class RegUserViewSet(viewsets.ModelViewSet):
             serializer.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
-    @detail_route(methods=['post'])
+    @detail_route(methods=['post'], permission_classes=[IsAuthenticated, IsUserSelf])
     def password(self, request, pk=None, *args, **kwargs):
         serializer = PasswordChangeSerializer(data=request.data, context=self.get_serializer_context())
         if serializer.is_valid(raise_exception=True):
