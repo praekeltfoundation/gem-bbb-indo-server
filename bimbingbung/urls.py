@@ -27,15 +27,21 @@ router.register(r'tips', content_views.TipViewSet, base_name='tips')
 router.register(r'users', user_views.RegUserViewSet, base_name='users')
 
 api_urls = [
+    # authentication endpoints
     url(r'token/', user_views.ObtainUserAuthTokenView.as_view(), name='token'),
-    url(r'challenge-image/(?P<challenge_pk>\d+)/$', content_views.ChallengeImageView.as_view(),
-        name='challenge-image'),
-    url(r'participant-image/(?P<participant_pk>\d+)/$', content_views.ParticipantImageView.as_view(), name='participant-image'),
-    url(r'goal-image/(?P<goal_pk>\d+)/$', content_views.GoalImageView.as_view(), name='goal-image'),
-    url(r'goal-prototypes/$', content_views.GoalPrototypeView.as_view(), name='goal-prototypes'),
-    url(r'profile-image/(?P<user_pk>\d+)/$', user_views.ProfileImageView.as_view(), name='profile-image'),
-    url(r'achievements/(?P<user_pk>\d+)/$', content_views.AchievementsView.as_view(), name='achievements'),
 
+    # image endpoints
+    url(r'challenge-image/(?P<challenge_pk>\d+)/$', content_views.ChallengeImageView.as_view(), name='challenge-image'),
+    url(r'goal-image/(?P<goal_pk>\d+)/$', content_views.GoalImageView.as_view(), name='goal-image'),
+    url(r'participant-image/(?P<participant_pk>\d+)/$', content_views.ParticipantImageView.as_view(),
+        name='participant-image'),
+    url(r'profile-image/(?P<user_pk>\d+)/$', user_views.ProfileImageView.as_view(), name='profile-image'),
+
+    # misc endpoints
+    url(r'achievements/(?P<user_pk>\d+)/$', content_views.AchievementsView.as_view(), name='achievements'),
+    url(r'goal-prototypes/$', content_views.GoalPrototypeView.as_view(), name='goal-prototypes'),
+
+    # include viewset routes
     url(r'', include(router.urls)),
 ]
 
