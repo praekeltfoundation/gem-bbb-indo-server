@@ -1049,3 +1049,46 @@ def award_goal_halfway(request, goal):
 
 def award_goal_week_left(request, goal):
     pass
+
+
+@python_2_unicode_compatible
+class Feedback(wagtail_models.Page):
+    # Feedback types
+    FT_ASK = 1
+    FT_REPORT = 2
+    FT_GENERAL = 3
+    FT_PARTNER = 4
+
+    # Translators: CMS field
+    date_created = models.DateTimeField(_('date created'), default=timezone.now())
+
+    # Translators: CMS field
+    text = models.TextField(_('text'), blank=False, null=False)
+
+    type = models.CharField(
+        # Translators: CMS field
+        _('type'),
+        blank=False,
+        choices=(
+            # Translators: Feedback type
+            (FT_ASK,        _('Ask a question')),
+            # Translators: Feedback type
+            (FT_REPORT,     _('Report a problem')),
+            # Translators: Feedback type
+            (FT_GENERAL,    _('General feedback')),
+            # Translators: Feedback type
+            (FT_PARTNER,    _('Sponsorship and partnership requests')),
+        ),
+        null=False
+    )
+
+    # Translators: CMS field
+    user = modelcluster_fields.ParentalKey(_('user'), null=True)
+
+    class Meta:
+        # Translators: Collection name on CMS
+        verbose_name = _('feedback entry')
+
+        # Translators: Collection name on CMS
+        verbose_name_plural = _('feedback entries')
+
