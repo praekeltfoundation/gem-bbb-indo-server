@@ -500,8 +500,11 @@ class GoalSerializer(serializers.ModelSerializer):
         extra_kwargs = {'image': {'write_only': True}}
 
     def get_image_url(self, obj):
+        request = self.context['request']
         if obj.image:
-            return reverse('api:goal-image', kwargs={'goal_pk': obj.pk}, request=self.context['request'])
+            return reverse('api:goal-image', kwargs={'goal_pk': obj.pk}, request=request)
+        elif obj.prototype and obj.prototype.image:
+            return request.build_absolute_uri(obj.prototype.image.file.url)
         else:
             return None
 
