@@ -1,6 +1,6 @@
 from django.utils.translation import ugettext as _
 from django.contrib.auth.models import User
-from django.core.validators import RegexValidator
+from django.core.validators import MinLengthValidator, RegexValidator
 from django.db import models
 from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
@@ -64,6 +64,9 @@ def get_profile_image_filename(instance, filename):
 # user profile information
 @python_2_unicode_compatible
 class Profile(models.Model):
+    # constants
+    text_min_length = 6
+
     # gender enum
     GENDER_MALE = 0
     GENDER_FEMALE = 1
@@ -73,6 +76,7 @@ class Profile(models.Model):
         regex=r'^\+?1?\d{9,15}$',
         # Translators: Validation failure message
         message=_("Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed."))
+
 
     # Translators: CMS field
     age = models.IntegerField(_('age'), blank=True, null=True)
@@ -94,6 +98,28 @@ class Profile(models.Model):
                                       null=True,
                                       blank=True)
 
+    # Translators: CMS field name
+    security_question = models.TextField(
+        _('security question'),
+        blank=False,
+        null=True,
+        validators=[
+            MinLengthValidator(
+                text_min_length,
+                # Translators: Validation failure message
+                _('Security question must be at least %d characters long') % (text_min_length,))])
+
+    # Translators: CMS field name
+    security_question_answer = models.TextField(
+        _('security question answer'),
+        blank=False,
+        null=True,
+        validators=[
+            MinLengthValidator(
+                text_min_length,
+                # Translators: Validation failure message
+                _('Security question answer must be at least %d characters long') % (text_min_length,))])
+
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
     class Meta:
@@ -105,6 +131,14 @@ class Profile(models.Model):
 
     def __str__(self):
         return self.mobile
+
+    def set_security_question(self, new_question, new_answer):
+        self.security_question = new_question
+        self.security_question_answer = new_answer
+        self.save()
+
+    def validate_security_question(self, answer):
+        return answer == self.security_question_answer
 
 
 def reset_token(sender, instance, **kwargs):
