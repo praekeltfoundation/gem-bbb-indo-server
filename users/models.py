@@ -113,12 +113,7 @@ class Profile(models.Model):
     security_question_answer = models.TextField(
         _('security question answer'),
         blank=False,
-        null=True,
-        validators=[
-            MinLengthValidator(
-                text_min_length,
-                # Translators: Validation failure message
-                _('Security question answer must be at least %d characters long') % (text_min_length,))])
+        null=True)
 
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
@@ -137,7 +132,7 @@ class Profile(models.Model):
         self.security_question_answer = new_answer
         self.save()
 
-    def validate_security_question(self, answer):
+    def verify_security_question(self, answer):
         return answer == self.security_question_answer
 
 
