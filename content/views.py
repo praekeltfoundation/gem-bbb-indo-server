@@ -15,16 +15,17 @@ from sendfile import sendfile
 
 from .exceptions import ImageNotFound
 
-from .models import Challenge, Entry
-from .models import GoalPrototype, Goal
+from .models import Badge, Challenge, Entry, UserBadge
+from .models import Feedback
+from .models import Goal, GoalPrototype
 from .models import Participant, ParticipantAnswer, ParticipantFreeText, ParticipantPicture
 from .models import Tip, TipFavourite
-from .models import Badge, UserBadge
 from .models import award_first_goal, award_goal_done, award_goal_halfway, award_goal_week_left
 
 from .permissions import IsAdminOrOwner, IsUserSelf
 
 from .serializers import ChallengeSerializer, EntrySerializer
+from .serializers import FeedbackSerializer
 from .serializers import GoalPrototypeSerializer, GoalSerializer, GoalTransactionSerializer
 from .serializers import ParticipantAnswerSerializer, ParticipantFreeTextSerializer, ParticipantPictureSerializer, \
     ParticipantRegisterSerializer
@@ -473,3 +474,27 @@ class AchievementsView(GenericAPIView):
                                      many=True, context=self.get_serializer_context())
         data['badges'] = serial.data
         return Response(data=data)
+
+
+############
+# Feedback #
+############
+
+class FeedbackViewSet(viewsets.ModelViewSet):
+    queryset = Feedback.objects.all()
+    serializer_class = FeedbackSerializer
+    http_method_names = ('options', 'head', 'post',)
+    permission_classes = (IsAuthenticated,)
+
+    def check_permissions(self, request):
+        if not IsUserSelf().has_permission(request, self):
+            raise PermissionDenied('Users can only post feedback as themselves or anonymously.')
+
+    def create(self, request, *args, **kwargs):
+        data = request.data
+        if data.get('user', None) is not None:
+            self.check_permissions(request)
+        serial = self.get_serializer(data=data)
+        if serial.is_valid(raise_exception=True):
+            serial.save()
+            return Response(serial.data)

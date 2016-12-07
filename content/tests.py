@@ -1,24 +1,35 @@
-
 import json
 from datetime import datetime, date, timedelta
 
+# django imports
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
+
+# REST framework imports
 from rest_framework import status
 from rest_framework.test import APITestCase
+import rest_framework.exceptions as rest_exceptions
+
+# wagtail imports
 from wagtail.wagtailcore.models import Site, Page
 
+# auth imports?
 from users.models import User, RegUser
-from .models import Challenge
-from .models import GoalPrototype, Goal, GoalTransaction
-from .models import Tip, TipFavourite
-from .models import Badge, UserBadge
-from .models import BadgeSettings
+
+# content function imports
 from .models import award_first_goal
 
+# content model imports
+from .models import Badge, BadgeSettings, UserBadge
+from .models import Challenge
+from .models import Feedback
+from .models import GoalPrototype, Goal, GoalTransaction
+from .models import Tip, TipFavourite
+
+# content serializer imports
+from .serializers import FeedbackSerializer
 from .serializers import ParticipantRegisterSerializer
-import rest_framework.exceptions as rest_exceptions
 
 
 # TODO: Mock datetime.now instead of using timedelta
@@ -196,10 +207,10 @@ class TestChallengeModel(TestCase):
 
 class TestChallengeAPI(APITestCase):
 
-    def test_date_filtering(self):
-        """When the current date is outside the Challenge's activation and deactivation time, it should not be available.
-        """
-        self.skipTest('TODO')
+    # def test_date_filtering(self):
+    #     """When the current date is outside the Challenge's activation and deactivation time, it should not be available.
+    #     """
+    #     self.skipTest('TODO')
 
     def test_no_challenge_available(self):
         user = create_test_regular_user('anon')
@@ -334,19 +345,19 @@ class TestTipModel(TestCase):
         self.assertIsNotNone(tip, 'Tip not created')
         self.assertEqual(tip.title, 'Test tip', 'Test tip title was not set.')
 
-    def test_cover_image_url(self):
-        self.skipTest('Needs to instantiate a wagtail Image')
-        # TODO: Instatiate Image
-        # from django.core.files.images import ImageFile
-        # from wagtail.wagtailimages.models import Image
-        #
-        # image = Image(
-        #     title="Image title",
-        #
-        #     # image_file is your StringIO/BytesIO object
-        #     file=ImageFile(image_file, name="image-filename.jpg"),
-        # )
-        # image.save()
+    # def test_cover_image_url(self):
+    #     self.skipTest('Needs to instantiate a wagtail Image')
+    #     # TODO: Instatiate Image
+    #     from django.core.files.images import ImageFile
+    #     from wagtail.wagtailimages.models import Image
+    #
+    #     image = Image(
+    #         title="Image title",
+    #
+    #         # image_file is your StringIO/BytesIO object
+    #         file=ImageFile(image_file, name="image-filename.jpg"),
+    #     )
+    #     image.save()
 
 
 class TestTipAPI(APITestCase):
@@ -834,8 +845,8 @@ class TestGoalPrototypesAPI(APITestCase):
         data = {
             'name': 'Goal 1',
             'target': 12000,
-            'start_date': timezone.make_aware(datetime(2016, 11, 1)).strftime('%Y-%m-%d'),
-            'end_date': timezone.make_aware(datetime(2016, 11, 30)).strftime('%Y-%m-%d'),
+            'start_date': datetime(2016, 11, 1, tzinfo=timezone.utc).strftime('%Y-%m-%d'),
+            'end_date': datetime(2016, 11, 30, tzinfo=timezone.utc).strftime('%Y-%m-%d'),
             'prototype': proto.id
         }
 
@@ -856,7 +867,7 @@ class TestGoalPrototypesAPI(APITestCase):
 class TestWeeklyStreaks(TestCase):
 
     def test_basic_streak(self):
-        now = timezone.make_aware(datetime(2016, 11, 30))
+        now = datetime(2016, 11, 30, tzinfo=timezone.utc)
 
         user = create_test_regular_user('anon')
         goal = Goal.objects.create(
@@ -888,7 +899,7 @@ class TestWeeklyStreaks(TestCase):
         self.assertEqual(streak, 3, "Unexpected weekly streak.")
 
     def test_broken_streak(self):
-        now = timezone.make_aware(datetime(2016, 11, 30))
+        now = datetime(2016, 11, 30, tzinfo=timezone.utc)
 
         user = create_test_regular_user('anon')
         goal = Goal.objects.create(
@@ -921,7 +932,7 @@ class TestWeeklyStreaks(TestCase):
 
     def test_inactivity(self):
         """When the user has saved before, but has been inactive since, the streak should be 0."""
-        now = timezone.make_aware(datetime(2016, 11, 30))
+        now = datetime(2016, 11, 30, tzinfo=timezone.utc)
 
         user = create_test_regular_user('anon')
         goal = Goal.objects.create(
@@ -949,7 +960,7 @@ class TestWeeklyStreaks(TestCase):
         self.assertEqual(streak, 0, "Unexpected weekly streak.")
 
     def test_no_savings(self):
-        now = timezone.make_aware(datetime(2016, 11, 30))
+        now = datetime(2016, 11, 30, tzinfo=timezone.utc)
 
         user = create_test_regular_user('anon')
         goal = Goal.objects.create(
@@ -1059,3 +1070,60 @@ class TestBadgeAwarding(APITestCase):
 
         self.assertEqual(len(response.data['new_badges']), 1, "No new Badges were returned.")
         self.assertEqual(response.data['new_badges'][0]['name'], self.goal_first_done.name, "Unexpected Badge returned.")
+
+
+class TestFeedback(APITestCase):
+    def test_create_feedback(self):
+        user = create_test_regular_user()
+        feedback = Feedback.objects.create(
+            text='How does this work?',
+            type=Feedback.FT_ASK,
+            user=user
+        )
+        self.assertIsNotNone(feedback.date_created)
+
+    def test_create_feedback_anon(self):
+        feedback = Feedback.objects.create(
+            text='How does this work?',
+            type=Feedback.FT_ASK
+        )
+        self.assertIsNotNone(feedback.date_created)
+
+    def test_serialize_feedback(self):
+        user = create_test_regular_user()
+        data = {
+            'text': 'How does this work?',
+            'type': 'ask',
+            'user': user.id
+        }
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:feedback-list'), data, format='json')
+
+        self.assertEquals(response.data['text'], data['text'])
+
+    def test_serialize_feedback_anon(self):
+        user = create_test_regular_user()
+        data = {
+            'text': 'How does this work?',
+            'type': 'ask',
+        }
+
+        response = self.client.post(reverse('api:feedback-list'), data, format='json')
+        print(response.data)
+
+        self.assertEquals(response.data['text'], data['text'])
+
+    def test_serialize_feedback_wrong_user(self):
+        user1 = create_test_regular_user('anon1')
+        user2 = create_test_regular_user('anon2')
+        data = {
+            'text': 'How does this work?',
+            'type': 'ask',
+            'user': user1.id
+        }
+
+        self.client.force_authenticate(user=user2)
+        response = self.client.post(reverse('api:feedback-list'), data, format='json')
+
+        self.assertEquals(response.data['text'], data['text'])

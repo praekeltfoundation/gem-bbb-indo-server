@@ -17,24 +17,31 @@ from wagtail.wagtaildocs import urls as wagtaildocs_urls
 router = DefaultRouter()
 router.register(r'challenges', content_views.ChallengeViewSet, base_name='challenges')
 router.register(r'entries', content_views.EntryViewSet, base_name='entries')
+router.register(r'feedback', content_views.FeedbackViewSet, base_name='feedback')
+router.register(r'goals', content_views.GoalViewSet, base_name='goals')
 router.register(r'participantanswers', content_views.ParticipantAnswerViewSet, base_name='participantanswers')
 router.register(r'participantfreetext', content_views.ParticipantFreeTextViewSet, base_name='participantfreetext')
 router.register(r'participantpicture', content_views.ParticipantPictureViewSet, base_name='participantpicture')
 router.register(r'participants', content_views.ParticipantViewSet, base_name='participants')
 router.register(r'tips', content_views.TipViewSet, base_name='tips')
-router.register(r'goals', content_views.GoalViewSet, base_name='goals')
 router.register(r'users', user_views.RegUserViewSet, base_name='users')
 
 api_urls = [
+    # authentication endpoints
     url(r'token/', user_views.ObtainUserAuthTokenView.as_view(), name='token'),
-    url(r'challenge-image/(?P<challenge_pk>\d+)/$', content_views.ChallengeImageView.as_view(),
-        name='challenge-image'),
-    url(r'participant-image/(?P<participant_pk>\d+)/$', content_views.ParticipantImageView.as_view(), name='participant-image'),
-    url(r'goal-image/(?P<goal_pk>\d+)/$', content_views.GoalImageView.as_view(), name='goal-image'),
-    url(r'goal-prototypes/$', content_views.GoalPrototypeView.as_view(), name='goal-prototypes'),
-    url(r'profile-image/(?P<user_pk>\d+)/$', user_views.ProfileImageView.as_view(), name='profile-image'),
-    url(r'achievements/(?P<user_pk>\d+)/$', content_views.AchievementsView.as_view(), name='achievements'),
 
+    # image endpoints
+    url(r'challenge-image/(?P<challenge_pk>\d+)/$', content_views.ChallengeImageView.as_view(), name='challenge-image'),
+    url(r'goal-image/(?P<goal_pk>\d+)/$', content_views.GoalImageView.as_view(), name='goal-image'),
+    url(r'participant-image/(?P<participant_pk>\d+)/$', content_views.ParticipantImageView.as_view(),
+        name='participant-image'),
+    url(r'profile-image/(?P<user_pk>\d+)/$', user_views.ProfileImageView.as_view(), name='profile-image'),
+
+    # misc endpoints
+    url(r'achievements/(?P<user_pk>\d+)/$', content_views.AchievementsView.as_view(), name='achievements'),
+    url(r'goal-prototypes/$', content_views.GoalPrototypeView.as_view(), name='goal-prototypes'),
+
+    # include viewset routes
     url(r'', include(router.urls)),
 ]
 
