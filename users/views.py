@@ -5,7 +5,7 @@ from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import detail_route, list_route
 from rest_framework.exceptions import PermissionDenied, NotFound
 from rest_framework.generics import GenericAPIView
 from rest_framework.parsers import FileUploadParser
@@ -14,9 +14,14 @@ from rest_framework.response import Response
 from sendfile import sendfile
 
 from .exceptions import PasswordNotMatching
-from .models import RegUser, User
+from .models import Profile, RegUser, User
 from .permissions import IsUserSelf, IsRegisteringOrSelf
-from .serializers import RegUserDeepSerializer, PasswordChangeSerializer
+from .serializers import PasswordChangeSerializer, RegUserDeepSerializer, SecurityQuestionSerializer
+
+import logging
+
+
+logger = logging.getLogger('dooit.users.views')
 
 
 class ProfileImageView(GenericAPIView):
@@ -88,6 +93,63 @@ class RegUserViewSet(viewsets.ModelViewSet):
             request.user.set_password(serializer.validated_data['new_password'])
             request.user.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @list_route(methods=['post'], permission_classes=[IsAuthenticated])
+    def change_security_question(self, request, *args, **kwargs):
+        user = request.user
+        if not user.is_authenticated:
+            logger.log(logging.DEBUG, 'Security question change not authorised.')
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
+
+        logger.log(logging.DEBUG, 'Security question change authorised.')
+        serializer = SecurityQuestionSerializer(data=request.data, context=self.get_serializer_context())
+        if serializer.is_valid(raise_exception=True):
+            user = request.user
+            data = request.data
+            user.profile.set_security_question(data.get('new_question'), data.get('new_answer'))
+            user.profile.save()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @detail_route(methods=['get', 'post'])
+    def verify_security_question(self, request, pk=None, *args, **kwargs):
+        if request.method == 'GET':
+            user = get_object_or_404(User, pk=pk)
+            return Response(data=user.profile.security_question, status=status.HTTP_204_NO_CONTENT)
+        elif request.method == 'POST':
+            user = get_object_or_404(User, pk=pk)
+            data = request.data
+            answer = data.get('answer')
+            if user.profile.verify_security_question(answer):
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            else:
+                return Response(status=status.HTTP_401_UNAUTHORIZED)
+        return Response(status=status.HTTP_400_BAD_REQUEST)
+
+
+class SecurityQuestionView(GenericAPIView):
+    """View to get and verify security question."""
+    queryset = Profile.objects.all()
+
+    def get(self, request, *args, **kwarg):
+        logger.log(logging.DEBUG, 'Getting security question')
+        username = request.query_params.get('username')
+        logger.log(logging.DEBUG, 'Username: ' + (username if username else 'NULL'))
+        profile = get_object_or_404(self.get_queryset(), user__username=username)
+        logger.log(logging.DEBUG, 'Profile fetched')
+        return Response(data=profile.security_question)
+
+    def post(self, request, *args, **kwarg):
+        username = request.query_params.get('username', None) or request.data.get('username', None)
+        profile = get_object_or_404(self.get_queryset(), user__username=username)
+        data = request.data
+        answer = data.get('answer')
+        if profile.verify_security_question(answer):
+            password = request.data.get('new_password')
+            profile.user.set_password(raw_password=password)
+            profile.user.save()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        else:
+            return Response(status=status.HTTP_401_UNAUTHORIZED)
 
 
 class ObtainUserAuthTokenView(ObtainAuthToken):
