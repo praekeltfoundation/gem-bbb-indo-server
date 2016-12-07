@@ -914,8 +914,8 @@ class Goal(models.Model):
 
 @python_2_unicode_compatible
 class GoalTransaction(models.Model):
-    date = models.DateTimeField()
-    value = models.DecimalField(max_digits=12, decimal_places=2)
+    date = models.DateTimeField(_('date'))
+    value = models.DecimalField(_('value'), max_digits=12, decimal_places=2)
     goal = models.ForeignKey(Goal, related_name='transactions')
 
     class Meta:
@@ -1049,3 +1049,55 @@ def award_goal_halfway(request, goal):
 
 def award_goal_week_left(request, goal):
     pass
+
+
+############
+# Feedback #
+############
+
+@python_2_unicode_compatible
+class Feedback(models.Model):
+    """Model for feedback left by users. Can be anonymous."""
+
+    # Feedback types
+    FT_ASK = 1
+    FT_REPORT = 2
+    FT_GENERAL = 3
+    FT_PARTNER = 4
+
+    # Translators: CMS field
+    date_created = models.DateTimeField(_('date created'), default=timezone.now)
+
+    # Translators: CMS field
+    is_read = models.BooleanField(_('has been read'), default=False)
+
+    # Translators: CMS field
+    text = models.TextField(_('text'), blank=False, null=False)
+
+    type = models.PositiveIntegerField(
+        # Translators: CMS field
+        _('type'),
+        blank=False,
+        choices=(
+            # Translators: Feedback type
+            (FT_ASK,        _('Ask a question')),
+            # Translators: Feedback type
+            (FT_REPORT,     _('Report a problem')),
+            # Translators: Feedback type
+            (FT_GENERAL,    _('General feedback')),
+            # Translators: Feedback type
+            (FT_PARTNER,    _('Sponsorship and partnership requests')),
+        ),
+        null=False
+    )
+
+    # Translators: CMS field
+    user = modelcluster_fields.ForeignKey(User, null=True)
+
+    class Meta:
+        # Translators: Collection name on CMS
+        verbose_name = _('feedback entry')
+
+        # Translators: Collection name on CMS
+        verbose_name_plural = _('feedback entries')
+

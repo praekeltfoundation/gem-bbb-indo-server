@@ -7,11 +7,12 @@ from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
-from .models import GoalPrototype, Goal, GoalTransaction
 from .models import Challenge, FreeTextQuestion, QuestionOption, QuizQuestion
-from .models import Participant, Entry, ParticipantAnswer, ParticipantFreeText, ParticipantPicture
-from .models import Tip, TipFavourite
+from .models import Entry, Participant, ParticipantAnswer, ParticipantFreeText, ParticipantPicture
+from .models import Feedback
+from .models import Goal, GoalPrototype, GoalTransaction
 from .models import Badge, UserBadge
+from .models import Tip, TipFavourite
 
 
 # ============ #
@@ -109,8 +110,7 @@ def validate_participant(data, errors):
 
 
 class KeyValueField(serializers.Field):
-    """ A field that takes a field's value as the key and returns
-    the associated value for serialization """
+    """A field that takes a field's value as the key and returns the associated value for serialization."""
 
     labels = {}
     inverted_labels = {}
@@ -205,7 +205,6 @@ class ChallengeSerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(obj.terms.url)
         else:
             return None
-
 
 
 class ParticipantRegisterSerializer(serializers.ModelSerializer):
@@ -556,3 +555,27 @@ class GoalSerializer(serializers.ModelSerializer):
             instance.transactions.add(t)
 
         return instance
+
+
+############
+# Feedback #
+############
+
+class FeedbackSerializer(serializers.ModelSerializer):
+    # feedback types enum mapping
+    feedback_types = {
+        Feedback.FT_ASK: 'ask',
+        Feedback.FT_GENERAL: 'general',
+        Feedback.FT_PARTNER: 'partner',
+        Feedback.FT_REPORT: 'report',
+    }
+
+    user = serializers.PrimaryKeyRelatedField(queryset=User.objects.all(), required=False)
+    type = KeyValueField(labels=feedback_types)
+
+    class Meta:
+        model = Feedback
+        fields = ('date_created', 'text', 'type', 'user',)
+
+    def create(self, validated_data):
+        return Feedback.objects.create(**validated_data)
