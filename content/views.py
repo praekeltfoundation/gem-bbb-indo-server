@@ -356,7 +356,9 @@ class GoalViewSet(viewsets.ModelViewSet):
     http_method_names = ('options', 'head', 'get', 'post', 'put', 'delete',)
 
     def list(self, request, *args, **kwargs):
-        serializer = self.get_serializer(self.get_queryset().filter(user_id=request.user.id, state=Goal.ACTIVE), many=True)
+        serializer = self.get_serializer(self.get_queryset()
+                                         .filter(user_id=request.user.id, state=Goal.ACTIVE)
+                                         .order_by('start_date'), many=True)
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None, *args, **kwargs):
