@@ -15,7 +15,7 @@
 
         <ul id="tip-tags" class="clearfix">
         {% for tag in page.tags.all %}
-            <li az class="tip-tag">{{ tag.name.upper }}</li>
+            <li class="tip-tag">{{ tag.name.upper }}</li>
         {% endfor %}
         </ul>
 
@@ -31,21 +31,23 @@
             </div>
         </div>
 
-        <div>
-        {% if page.body %}
-        <div id="tip-nav" onload="initEmpDot();">
-            <button onclick="mySwipe.prev();empDot(-1);">PREV</button>
-            <ul>
-                {% for block in page.body %}
-                    {% if block.block_type == 'paragraph' %}
-                       <li>&#8226</li>
-                    {% endif %}
-                {% endfor %}
-            </ul>
-            <button onclick="mySwipe.next();empDot(1);">NEXT</button>
-        </div>
-        {% endif %}
-        </div>
+        <div id="space">
+            {% if page.body %}
+            <div id="footer">
+                <div id="tip-nav">
+                    <button onclick="mySwipe.prev();empDot(-1);">PREV</button>
+                    <ul>
+                        {% for block in page.body %}
+                            {% if block.block_type == 'paragraph' %}
+                               <li>&#8226</li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                    <button onclick="mySwipe.next();empDot(1);">NEXT</button>
+                </div>
+            </div>
+            {% endif %}
+            </div>
     </div>
 
     <script language="JavaScript" src="{% static 'vendor/swipe.min.js' %}"></script>

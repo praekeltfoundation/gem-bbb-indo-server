@@ -30,7 +30,7 @@ li#tip-tags {
 	display : table;
 	margin : 0 auto;
 	position : relative;
-	margin-top: 60%;
+	margin-top: 7%;
 	left: 50%;
 	margin-right: -50%;
 	transform: translate(-50%, -50%);
@@ -46,6 +46,20 @@ li#tip-tags {
 	margin-left : 0.1em;
 	margin : auto;
 	display : inline-block;
+}
+
+#footer{
+    float: left;
+    left: 0;
+    position: fixed;
+    bottom: 0px;
+    background-color: rgb(242, 242, 242);
+    width: 100%;
+    height: 7%;
+}
+
+#space{
+    margin-bottom: 20%;
 }
 
 #activated{
@@ -76,8 +90,9 @@ li#tip-tags {
 
 #slider {
 	margin-bottom : 1em;
+	height: intrinsic !important;
 }
- 
+
 .swipe {
   overflow: hidden;
   visibility: hidden;

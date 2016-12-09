@@ -6,9 +6,11 @@ function empDot(int){
         list[currIndex].removeAttribute("id");
         currIndex = ((currIndex + list.length)-1) % list.length;
         list[currIndex].setAttribute("id", "activated");
+        scroll(0,0);
     }else{
         list[currIndex].removeAttribute("id");
         currIndex = (currIndex+1) % list.length;
         list[currIndex].setAttribute("id", "activated");
+        scroll(0,0);
     }
 }
