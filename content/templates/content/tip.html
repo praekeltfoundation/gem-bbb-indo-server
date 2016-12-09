@@ -15,7 +15,7 @@
 
         <ul id="tip-tags" class="clearfix">
         {% for tag in page.tags.all %}
-            <li class="tip-tag">{{ tag.name.upper }}</li>
+            <li az class="tip-tag">{{ tag.name.upper }}</li>
         {% endfor %}
         </ul>
 
@@ -33,23 +33,27 @@
 
         <div>
         {% if page.body %}
-        <div id="tip-nav">
-            <button onclick="mySwipe.prev()">PREV</button>
+        <div id="tip-nav" onload="initEmpDot();">
+            <button onclick="mySwipe.prev();empDot(-1);">PREV</button>
             <ul>
-            {% for block in page.body %}
-                {% if block.block_type == 'paragraph' %}
-                    <li>&#8226</li>
-                {% endif %}
-            {% endfor %}
+                {% for block in page.body %}
+                    {% if block.block_type == 'paragraph' %}
+                       <li>&#8226</li>
+                    {% endif %}
+                {% endfor %}
             </ul>
-            <button onclick="mySwipe.next()">NEXT</button>
+            <button onclick="mySwipe.next();empDot(1);">NEXT</button>
         </div>
         {% endif %}
         </div>
     </div>
 
     <script language="JavaScript" src="{% static 'vendor/swipe.min.js' %}"></script>
+    <script language="JavaScript" src="{% static 'js/bimbingbung.js' %}"></script>
     <script language="JavaScript">
         window.mySwipe = new Swipe(document.getElementById('slider'));
+    </script>
+    <script>
+        list[0].setAttribute("id", "activated");
     </script>
 {% endblock %}
