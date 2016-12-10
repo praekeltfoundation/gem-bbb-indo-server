@@ -149,7 +149,7 @@ class GoalAdmin(admin.ModelAdmin):
     readonly_fields = ('value', 'week_count', 'week_count_to_now', 'weekly_target', 'weekly_average',)
     fieldsets = (
         (None, {
-            'fields': ('name', 'start_date', 'end_date', 'target', 'image', 'user')
+            'fields': ('name', 'state', 'start_date', 'end_date', 'target', 'image', 'user')
         }),
         ('Calculated', {
             'fields': ('value', 'week_count', 'week_count_to_now', 'weekly_target', 'weekly_average',)
