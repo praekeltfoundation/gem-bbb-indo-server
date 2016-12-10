@@ -20,7 +20,7 @@ from .models import Feedback
 from .models import Goal, GoalPrototype
 from .models import Participant, ParticipantAnswer, ParticipantFreeText, ParticipantPicture
 from .models import Tip, TipFavourite
-from .models import award_first_goal, award_goal_done, award_goal_halfway, award_goal_week_left
+from .models import award_first_goal, award_goal_done, award_goal_halfway, award_goal_week_left, award_transaction_first
 
 from .permissions import IsAdminOrOwner, IsUserSelf
 
@@ -405,9 +405,14 @@ class GoalViewSet(viewsets.ModelViewSet):
                 serializer.save(goal=goal)
 
                 new_badges = []
+
                 first_goal_done = award_goal_done(request, goal)
                 if first_goal_done is not None:
                     new_badges.append(first_goal_done)
+
+                first_transaction = award_transaction_first(request, goal)
+                if first_transaction is not None:
+                    new_badges.append(first_transaction)
 
                 data = {'new_badges': UserBadgeSerializer(instance=new_badges, many=True, context=self.get_serializer_context()).data}
 
