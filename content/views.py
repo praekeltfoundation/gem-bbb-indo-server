@@ -20,7 +20,7 @@ from .models import Feedback
 from .models import Goal, GoalPrototype
 from .models import Participant, ParticipantAnswer, ParticipantFreeText, ParticipantPicture
 from .models import Tip, TipFavourite
-from .models import award_first_goal, award_goal_done, award_goal_halfway, award_goal_week_left
+from .models import award_first_goal, award_goal_done, award_goal_halfway, award_goal_week_left, award_transaction_first
 
 from .permissions import IsAdminOrOwner, IsUserSelf
 
@@ -356,7 +356,9 @@ class GoalViewSet(viewsets.ModelViewSet):
     http_method_names = ('options', 'head', 'get', 'post', 'put', 'delete',)
 
     def list(self, request, *args, **kwargs):
-        serializer = self.get_serializer(self.get_queryset().filter(user_id=request.user.id, state=Goal.ACTIVE), many=True)
+        serializer = self.get_serializer(self.get_queryset()
+                                         .filter(user_id=request.user.id, state=Goal.ACTIVE)
+                                         .order_by('start_date'), many=True)
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None, *args, **kwargs):
@@ -403,9 +405,14 @@ class GoalViewSet(viewsets.ModelViewSet):
                 serializer.save(goal=goal)
 
                 new_badges = []
+
                 first_goal_done = award_goal_done(request, goal)
                 if first_goal_done is not None:
                     new_badges.append(first_goal_done)
+
+                first_transaction = award_transaction_first(request, goal)
+                if first_transaction is not None:
+                    new_badges.append(first_transaction)
 
                 data = {'new_badges': UserBadgeSerializer(instance=new_badges, many=True, context=self.get_serializer_context()).data}
 
