@@ -29,6 +29,7 @@ router.register(r'users', user_views.RegUserViewSet, base_name='users')
 api_urls = [
     # authentication endpoints
     url(r'token/', user_views.ObtainUserAuthTokenView.as_view(), name='token'),
+    url(r'^security_question/', user_views.SecurityQuestionView.as_view(), name='security_question'),
 
     # image endpoints
     url(r'challenge-image/(?P<challenge_pk>\d+)/$', content_views.ChallengeImageView.as_view(), name='challenge-image'),

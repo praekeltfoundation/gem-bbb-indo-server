@@ -31,10 +31,19 @@ LOGGING = {
             '()': 'django.utils.log.RequireDebugTrue',
         }
     },
+    'formatters': {
+        'simple': {
+            'format': '%(levelname)s %(message)s',
+        },
+        'verbose': {
+            'format': '[%(asctime)s] %(levelname)s | %(module)s # %(message)s',
+        },
+    },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
             'filters': ['require_debug_true'],
+            'formatter': 'verbose',
             'level': 'DEBUG',
         },
     },

@@ -99,3 +99,8 @@ class PasswordChangeSerializer(serializers.Serializer):
             'old_password': {'write_only': True},
             'new_password': {'write_only': True}
         }
+
+
+class SecurityQuestionSerializer(serializers.Serializer):
+    new_question = serializers.CharField()
+    new_answer = serializers.CharField()
