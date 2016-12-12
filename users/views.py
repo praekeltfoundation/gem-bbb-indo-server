@@ -1,12 +1,13 @@
 
 from django.shortcuts import get_object_or_404
+from django.utils.translation import ugettext as _
 
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.authtoken.models import Token
 from rest_framework.authtoken.views import ObtainAuthToken
 from rest_framework.decorators import detail_route, list_route
-from rest_framework.exceptions import PermissionDenied, NotFound
+from rest_framework.exceptions import PermissionDenied, NotFound, ValidationError
 from rest_framework.generics import GenericAPIView
 from rest_framework.parsers import FileUploadParser
 from rest_framework.permissions import IsAuthenticated
@@ -132,24 +133,69 @@ class SecurityQuestionView(GenericAPIView):
 
     def get(self, request, *args, **kwarg):
         logger.log(logging.DEBUG, 'Getting security question')
-        username = request.query_params.get('username')
+        username = request.query_params.get('username', None)
+        if username is None:
+            return Response(
+                data={
+                    'field_errors': {
+                        'username': [_('Required.')]}},
+                status=status.HTTP_400_BAD_REQUEST)
+
         logger.log(logging.DEBUG, 'Username: ' + (username if username else 'NULL'))
-        profile = get_object_or_404(self.get_queryset(), user__username=username)
+        try:
+            profile = self.get_queryset().get(user__username=username)
+        except Profile.DoesNotExist:
+            return Response(
+                data={
+                    'field_errors': {
+                        'username': [_('No such username exists.')]}},
+                status=status.HTTP_404_NOT_FOUND)
+
         logger.log(logging.DEBUG, 'Profile fetched')
         return Response(data=profile.security_question)
 
     def post(self, request, *args, **kwarg):
-        username = request.query_params.get('username', None) or request.data.get('username', None)
-        profile = get_object_or_404(self.get_queryset(), user__username=username)
+        valid = True
+        errors = {'field_errors': {}}
         data = request.data
-        answer = data.get('answer')
-        if profile.verify_security_question(answer):
-            password = request.data.get('new_password')
-            profile.user.set_password(raw_password=password)
-            profile.user.save()
-            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        username = request.query_params.get('username', None) or data.get('username', None)
+        if not username:
+            valid = False
+            profile = None
+            errors['field_errors']['username'] = [_('Required.')]
         else:
-            return Response(status=status.HTTP_401_UNAUTHORIZED)
+            try:
+                profile = get_object_or_404(self.get_queryset(), user__username=username)
+            except Profile.DoesNotExist:
+                valid = False
+                profile = None
+                errors['field_errors']['username'] = [_('No such username exists.')]
+            except:
+                valid = False
+                profile = None
+                errors['field_errors']['username'] = [_('Unknown username error.')]
+
+        answer = data.get('answer', None)
+        if not answer:
+            valid = False
+            errors['field_errors']['answer'] = [_('Required.')]
+        elif profile and not profile.verify_security_question(answer):
+            valid = False
+            errors['field_errors']['answer'] = [_('Incorrect answer (remember capital letters).')]
+
+        password = request.data.get('new_password', None)
+        if not password:
+            valid = False
+            errors['field_errors']['new_password'] = [_('Required.')]
+
+        if not valid:
+            return Response(data=errors, status=status.HTTP_400_BAD_REQUEST)
+
+        user = profile.user
+        User.set_password(user, password)
+        user.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ObtainUserAuthTokenView(ObtainAuthToken):
