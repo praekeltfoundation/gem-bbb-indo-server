@@ -8,10 +8,10 @@ li#tip-tags {
 }
 
 .tip-tag {
-	//background-color : #FDDF5B;
+	background-color : #FDDF5B;
 	background-image : url("/static/img/tag.png");
 	background-position : center;
-	background-size : 100% 100%;
+	background-size : cover;
 	background-repeat : no-repeat;
 	font-size : 0.6em;
 	font-weight : bold;
@@ -26,8 +26,14 @@ li#tip-tags {
  */
  
 #tip-nav {
+    float: left;
 	display : table;
 	margin : 0 auto;
+	position : relative;
+	margin-top: 7%;
+	left: 50%;
+	margin-right: -50%;
+	transform: translate(-50%, -50%);
 }
 
 #tip-nav > ul {
@@ -35,24 +41,49 @@ li#tip-tags {
 	margin-left : -0.1em;
 }
  
-#tip-nav li {
+#tip-nav  li {
 	float : left;
 	margin-left : 0.1em;
+	margin : auto;
+	display : inline-block;
+	bottom: 5px;
+}
+
+#footer{
+    float: left;
+    left: 0;
+    position: fixed;
+    bottom: 0px;
+    background-color: rgb(242, 242, 242);
+    width: 100%;
+    height: 7%;
+}
+
+#space{
+    margin-bottom: 20%;
+}
+
+#activated{
+    font-size: 150%;
+    color: #FDDF5B;
+    transform: translate(0px, -5px);
 }
 
 #tip-nav > button {
-	font-family : "Lato";
-	background-color : #FDDF5B;
-	background-position : center;
-	background-size : 100% 100%;
-	background-repeat : no-repeat;
-	border : none;
-	padding : 0.5em;
-	margin : 0 0.5em;
-	text-align: center;
-    text-decoration: none;
     display: inline-block;
-	float : left;
+    font-family: "Lato";
+    background-color: #FDDF5B;
+    background-position: center;
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
+    border: none;
+    padding: 0.5em;
+    margin: 0 0.5em;
+    text-align: center;
+    text-decoration: none;
+    float: left;
+    position: relative;
+    bottom: 5px;
 }
 
 /*
@@ -62,7 +93,7 @@ li#tip-tags {
 #slider {
 	margin-bottom : 1em;
 }
- 
+
 .swipe {
   overflow: hidden;
   visibility: hidden;
@@ -79,4 +110,8 @@ li#tip-tags {
   width: 100%;
   position: relative;
   overflow: hidden;
+}
+
+p{
+    line-height : 1.5;
 }

@@ -31,25 +31,31 @@
             </div>
         </div>
 
-        <div>
-        {% if page.body %}
-        <div id="tip-nav">
-            <button onclick="mySwipe.prev()">PREV</button>
-            <ul>
-            {% for block in page.body %}
-                {% if block.block_type == 'paragraph' %}
-                    <li>&#8226</li>
-                {% endif %}
-            {% endfor %}
-            </ul>
-            <button onclick="mySwipe.next()">NEXT</button>
-        </div>
-        {% endif %}
-        </div>
+        <div id="space">
+            {% if page.body %}
+            <div id="footer">
+                <div id="tip-nav">
+                    <button onclick="mySwipe.prev();empDot(-1);">PREV</button>
+                    <ul>
+                        {% for block in page.body %}
+                            {% if block.block_type == 'paragraph' %}
+                               <li>&#8226;</li>
+                            {% endif %}
+                        {% endfor %}
+                    </ul>
+                    <button onclick="mySwipe.next();empDot(1);">NEXT</button>
+                </div>
+            </div>
+            {% endif %}
+            </div>
     </div>
 
     <script language="JavaScript" src="{% static 'vendor/swipe.min.js' %}"></script>
+    <script language="JavaScript" src="{% static 'js/bimbingbung.js' %}"></script>
     <script language="JavaScript">
         window.mySwipe = new Swipe(document.getElementById('slider'));
+    </script>
+    <script>
+        list[0].setAttribute("id", "activated");
     </script>
 {% endblock %}
