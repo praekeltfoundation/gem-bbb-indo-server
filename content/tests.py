@@ -994,12 +994,14 @@ class TestBadgeAwarding(APITestCase):
     def setUpTestData(cls):
         cls.goal_first_created = Badge.objects.create(name='First Goal')
         cls.goal_first_done = Badge.objects.create(name='First Goal Done')
+        cls.transaction_first = Badge.objects.create(name='First Savings Created')
 
         site = Site.objects.get(is_default_site=True)
         BadgeSettings.objects.create(
             site=site,
             goal_first_created=cls.goal_first_created,
-            goal_first_done=cls.goal_first_done
+            goal_first_done=cls.goal_first_done,
+            transaction_first=cls.transaction_first
         )
 
     # ------------------------ #
@@ -1068,8 +1070,64 @@ class TestBadgeAwarding(APITestCase):
         self.client.force_authenticate(user=user)
         response = self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}), data, format='json')
 
-        self.assertEqual(len(response.data['new_badges']), 1, "No new Badges were returned.")
-        self.assertEqual(response.data['new_badges'][0]['name'], self.goal_first_done.name, "Unexpected Badge returned.")
+        self.assertNotEqual(len(response.data['new_badges']), 0, "No new Badges were returned.")
+
+        badges = [b for b in response.data['new_badges'] if b['name'] == self.goal_first_done.name]
+        self.assertEqual(len(badges), 1, "Expected badge was not included")
+
+    # --------------------------- #
+    # Award First Savings Created #
+    # --------------------------- #
+
+    def test_first_savings_created(self):
+        now = timezone.now()
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=10000,
+            start_date=now - timedelta(days=30),
+            end_date=now + timedelta(days=30)
+        )
+
+        data = [{
+            'date': timezone.now().isoformat(),
+            'value': 100
+        }]
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}), data, format='json')
+
+        self.assertNotEqual(len(response.data), 0, "No new Badges were returned.")
+
+        badges = [b for b in response.data['new_badges'] if b['name'] == self.transaction_first.name]
+        self.assertEqual(len(badges), 1, "Expected badge was not included")
+
+    def test_first_savings_created_avoid_duplicate(self):
+        now = timezone.now()
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=10000,
+            start_date=now - timedelta(days=30),
+            end_date=now + timedelta(days=30)
+        )
+        goal.transactions.create(
+            date=now,
+            value=100
+        )
+
+        data = [{
+            'date': timezone.now().isoformat(),
+            'value': 200
+        }]
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}), data, format='json')
+
+        badges = [b for b in response.data['new_badges'] if b['name'] == self.transaction_first.name]
+        self.assertEqual(len(badges), 0, "First savings was unexpectedly awarded.")
 
 
 class TestFeedback(APITestCase):

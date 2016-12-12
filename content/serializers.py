@@ -564,6 +564,7 @@ class GoalSerializer(serializers.ModelSerializer):
 # Feedback #
 ############
 
+
 class FeedbackSerializer(serializers.ModelSerializer):
     # feedback types enum mapping
     feedback_types = {
