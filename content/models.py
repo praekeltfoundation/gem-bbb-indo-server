@@ -1051,6 +1051,27 @@ def award_goal_week_left(request, goal):
     pass
 
 
+def award_transaction_first(request, goal):
+    """Award to users who have created their first savings transaction."""
+    badge_settings = BadgeSettings.for_site(request.site)
+    badge = badge_settings.transaction_first
+
+    if badge is None:
+        return None
+
+    if not badge.is_active:
+        return None
+
+    if goal.pk is None:
+        raise ValueError('Goal instance must be saved before it can be awarded badges.')
+
+    if GoalTransaction.objects.filter(goal__user=goal.user).count() == 1:
+        user_badge, created = UserBadge.objects.get_or_create(user=goal.user, badge=badge)
+        return user_badge
+
+    return None
+
+
 ############
 # Feedback #
 ############
