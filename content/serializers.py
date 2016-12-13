@@ -171,7 +171,7 @@ class ChallengeSerializer(serializers.ModelSerializer):
     terms_url = serializers.SerializerMethodField(required=False)
     is_active = serializers.BooleanField(read_only=True)
     questions = QuestionSerializer(many=True, read_only=True, required=False)
-    freetext_question = FreeTextSerializer(read_only=True, required=False)
+    freetext_question = FreeTextSerializer(many=True, read_only=True, required=False)
     type = KeyValueField(read_only=True, labels=challenge_types)
 
     class Meta:
@@ -191,6 +191,21 @@ class ChallengeSerializer(serializers.ModelSerializer):
                 self.fields.pop('questions', None)
             if self.instance.type != Challenge.CTP_FREEFORM:
                 self.fields.pop('freetext_question', None)
+
+    def to_representation(self, instance):
+        rep_dict = super(ChallengeSerializer, self).to_representation(instance)
+
+        if instance.type != Challenge.CTP_QUIZ:
+            rep_dict.pop('questions', None)
+        if instance.type != Challenge.CTP_FREEFORM:
+            rep_dict.pop('freetext_question', None)
+
+        freetext = rep_dict.pop('freetext_question', None)
+        if freetext is not None:
+            if len(freetext) > 0:
+                rep_dict['freetext_question'] = freetext[0]
+
+        return rep_dict
 
     def get_image_url(self, obj):
         request = self.context['request']
