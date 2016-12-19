@@ -1,5 +1,5 @@
 
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, reverse
 from django.utils.translation import ugettext as _
 
 from rest_framework import status
@@ -47,7 +47,9 @@ class ProfileImageView(GenericAPIView):
         self.check_object_permissions(request, user)
         user.profile.profile_image = request.FILES['file']
         user.profile.save()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+        response = Response(status=status.HTTP_204_NO_CONTENT)
+        response['Location'] = request.build_absolute_uri(reverse('api:profile-image', kwargs={'user_pk': user.pk}))
+        return response
 
     def get(self, request, user_pk):
         user = get_object_or_404(User, pk=user_pk)
