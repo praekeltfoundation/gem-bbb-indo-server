@@ -67,7 +67,7 @@ class RegUserViewSet(viewsets.ModelViewSet):
     http_method_names = ('options', 'head', 'get', 'post', 'patch',)
 
     def list(self, request, *args, **kwargs):
-        serializer = self.get_serializer(self.get_queryset(pk=request.user.pk), many=True)
+        serializer = self.get_serializer(self.get_queryset().filter(pk=request.user.pk), many=True)
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None, *args, **kwargs):
