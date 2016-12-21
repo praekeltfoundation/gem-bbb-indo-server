@@ -9,23 +9,26 @@ from wagtailsurveys.models import AbstractSurvey, AbstractFormField
 
 
 class CoachSurvey(AbstractSurvey):
-    # Translators: Field name on CMS
     intro = models.TextField(
+        # Translators: Field name on CMS
         verbose_name=_('intro dialogue'),
+        # Translators: Help text on CMS
         help_text=_("The opening line said by the Coach when introducing the Survey."),
         blank=True, null=False
     )
 
-    # Translators: Field name on CMS
     outro = models.TextField(
+        # Translators: Field name on CMS
         verbose_name=_('outro dialogue'),
+        # Translators: Help text on CMS
         help_text=_("The closing line said by the Coach when finishing the Survey."),
         blank=True, null=False
     )
 
-    # Translators: Field name on CMS
     deliver_after = models.PositiveIntegerField(
+        # Translators: Field name on CMS
         verbose_name=_('days to deliver'),
+        # Translators: Help text on CMS
         help_text=_("The number of days after user registration that the Survey will be available."),
         default=1
     )
