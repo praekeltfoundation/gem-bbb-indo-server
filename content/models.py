@@ -803,6 +803,11 @@ class Goal(models.Model):
         return self.value >= self.target
 
     @property
+    def progress(self):
+        """Returns the progress of the Goal's savings as percentage."""
+        return int((self.value / self.target) * 100)
+
+    @property
     def value(self):
         return reduce(lambda acc, el: acc + el['value'],
                       self.transactions.all().order_by('date', 'id').values('value'), 0)
@@ -1044,7 +1049,24 @@ def award_goal_done(request, goal):
 
 
 def award_goal_halfway(request, goal):
-    pass
+    """Award to users who are halfway to reaching their Goal."""
+    badge_settings = BadgeSettings.for_site(request.site)
+    badge = badge_settings.goal_half
+
+    if badge is None:
+        return None
+
+    if not badge.is_active:
+        return None
+
+    if goal.pk is None:
+        raise ValueError(_('Goal instance must be saved before it can be awarded badges.'))
+
+    if goal.progress >= 50:
+        user_badge, created = UserBadge.objects.get_or_create(user=goal.user, badge=badge)
+        if created:
+            # Created means it's the first time the user has reached a Goal halfway
+            return user_badge
 
 
 def award_goal_week_left(request, goal):

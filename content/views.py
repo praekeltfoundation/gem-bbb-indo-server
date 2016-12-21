@@ -410,6 +410,10 @@ class GoalViewSet(viewsets.ModelViewSet):
                 if first_goal_done is not None:
                     new_badges.append(first_goal_done)
 
+                goal_halfway = award_goal_halfway(request, goal)
+                if goal_halfway is not None:
+                    new_badges.append(goal_halfway)
+
                 first_transaction = award_transaction_first(request, goal)
                 if first_transaction is not None:
                     new_badges.append(first_transaction)
@@ -417,6 +421,7 @@ class GoalViewSet(viewsets.ModelViewSet):
                 data = {'new_badges': UserBadgeSerializer(instance=new_badges, many=True, context=self.get_serializer_context()).data}
 
                 return Response(data, status=status.HTTP_201_CREATED)
+
         elif request.method == 'GET':
             serializer = GoalTransactionSerializer(goal.transactions.all(), many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)

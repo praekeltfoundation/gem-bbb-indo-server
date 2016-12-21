@@ -993,6 +993,7 @@ class TestBadgeAwarding(APITestCase):
     @classmethod
     def setUpTestData(cls):
         cls.goal_first_created = Badge.objects.create(name='First Goal')
+        cls.goal_halfway = Badge.objects.create(name='First Goal Halfway')
         cls.goal_first_done = Badge.objects.create(name='First Goal Done')
         cls.transaction_first = Badge.objects.create(name='First Savings Created')
 
@@ -1000,6 +1001,7 @@ class TestBadgeAwarding(APITestCase):
         BadgeSettings.objects.create(
             site=site,
             goal_first_created=cls.goal_first_created,
+            goal_half=cls.goal_halfway,
             goal_first_done=cls.goal_first_done,
             transaction_first=cls.transaction_first
         )
@@ -1074,6 +1076,82 @@ class TestBadgeAwarding(APITestCase):
 
         badges = [b for b in response.data['new_badges'] if b['name'] == self.goal_first_done.name]
         self.assertEqual(len(badges), 1, "Expected badge was not included")
+
+    # ------------------------ #
+    # Award First Goal Halfway #
+    # ------------------------ #
+
+    def test_goal_halfway(self):
+        now = timezone.now()
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=10000,
+            start_date=now - timedelta(days=30),
+            end_date=now + timedelta(days=30)
+        )
+
+        data = [{
+            'date': now.isoformat(),
+            'value': 5000
+        }]
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}), data, format='json')
+
+        self.assertNotEqual(len(response.data), 0, "No new Badges were returned.")
+
+        badges = [b for b in response.data['new_badges'] if b['name'] == self.goal_halfway.name]
+        self.assertEqual(len(badges), 1, "Expected badge was not included")
+
+    def test_goal_halfway_early(self):
+        """User should not receive this badge before the halfway mark"""
+        now = timezone.now()
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=10000,
+            start_date=now - timedelta(days=30),
+            end_date=now + timedelta(days=30)
+        )
+
+        data = [{
+            'date': now.isoformat(),
+            'value': 3000  # Short of halfway
+        }]
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}), data, format='json')
+
+        badges = [b for b in response.data['new_badges'] if b['name'] == self.goal_halfway.name]
+        self.assertEqual(len(badges), 0, "Badge was included unexpectedly")
+
+    def test_goal_halfway_avoid_duplicate(self):
+        now = timezone.now()
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=10000,
+            start_date=now - timedelta(days=30),
+            end_date=now + timedelta(days=30)
+        )
+
+        self.client.force_authenticate(user=user)
+        self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}), [{
+            'date': (now - timedelta(days=1)).isoformat(),
+            'value': 5500  # Halfway
+        }], format='json')
+
+        response = self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}), [{
+            'date': now.isoformat(),
+            'value': 1000  # Further over half
+        }], format='json')
+
+        badges = [b for b in response.data['new_badges'] if b['name'] == self.goal_halfway.name]
+        self.assertEqual(len(badges), 0, "Badge was included unexpectedly")
 
     # --------------------------- #
     # Award First Savings Created #
