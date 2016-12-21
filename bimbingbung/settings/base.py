@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'search',
     'users',
     'content',
+    'survey',
     'core',
 
     'wagtail.wagtailforms',
