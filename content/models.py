@@ -833,6 +833,16 @@ class Goal(models.Model):
         return int(((monday2 - monday1).days / 7) + 1)
 
     @property
+    def weeks_left(self):
+        monday1 = Goal._monday(timezone.now().date())
+        monday2 = Goal._monday(self.end_date)
+        return max(int((monday2 - monday1).days / 7), 0)
+
+    @property
+    def days_left(self):
+        return max((self.end_date - timezone.now().date()).days, 0)
+
+    @property
     def weekly_average(self):
         return ceil(self.value / self.week_count_to_now)
 
