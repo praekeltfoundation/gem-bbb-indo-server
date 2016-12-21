@@ -33,6 +33,11 @@ from .storage import ChallengeStorage, GoalImgStorage, ParticipantPictureStorage
 # ======== #
 
 
+WEEK_STREAK_2 = 2
+WEEK_STREAK_4 = 4
+WEEK_STREAK_6 = 6
+
+
 @register_setting
 class BadgeSettings(BaseSetting):
     goal_first_created = models.ForeignKey(
@@ -79,6 +84,43 @@ class BadgeSettings(BaseSetting):
         help_text=_("Awarded to users when they create their first savings transaction."),
         blank=False, null=True
     )
+
+    streak_2 = models.ForeignKey(
+        'Badge',
+        verbose_name=_('2 Week Streak'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded when a user has saved for 2 weeks."),
+        blank=False, null=True
+    )
+
+    streak_4 = models.ForeignKey(
+        'Badge',
+        verbose_name=_('4 Week Streak'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded when a user has saved for 4 weeks."),
+        blank=False, null=True
+    )
+
+    streak_6 = models.ForeignKey(
+        'Badge',
+        verbose_name=_('6 Week Streak'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded when a user has save for 6 weeks."),
+        blank=False, null=True
+    )
+
+    def get_streak_badge(self, weeks):
+        if weeks == WEEK_STREAK_2:
+            return self.streak_2
+        elif weeks == WEEK_STREAK_4:
+            return self.streak_4
+        elif weeks == WEEK_STREAK_6:
+            return self.streak_6
+        else:
+            return None
 
 
 BadgeSettings.panels = [
@@ -803,6 +845,11 @@ class Goal(models.Model):
         return self.value >= self.target
 
     @property
+    def progress(self):
+        """Returns the progress of the Goal's savings as percentage."""
+        return int((self.value / self.target) * 100)
+
+    @property
     def value(self):
         return reduce(lambda acc, el: acc + el['value'],
                       self.transactions.all().order_by('date', 'id').values('value'), 0)
@@ -826,6 +873,16 @@ class Goal(models.Model):
         monday1 = Goal._monday(self.start_date)
         monday2 = Goal._monday(timezone.now().date())
         return int(((monday2 - monday1).days / 7) + 1)
+
+    @property
+    def weeks_left(self):
+        monday1 = Goal._monday(timezone.now().date())
+        monday2 = Goal._monday(self.end_date)
+        return max(int((monday2 - monday1).days / 7), 0)
+
+    @property
+    def days_left(self):
+        return max((self.end_date - timezone.now().date()).days, 0)
 
     @property
     def weekly_average(self):
@@ -1011,7 +1068,7 @@ def award_first_goal(request, goal):
         return None
 
     if goal.pk is None:
-        raise ValueError('Goal instance must be saved before it can be awarded badges.')
+        raise ValueError(_('Goal instance must be saved before it can be awarded badges.'))
 
     if Goal.objects.filter(user=goal.user).count() == 1:
         user_badge, created = UserBadge.objects.get_or_create(user=goal.user, badge=badge_settings.goal_first_created)
@@ -1032,7 +1089,7 @@ def award_goal_done(request, goal):
         return None
 
     if goal.pk is None:
-        raise ValueError('Goal instance must be saved before it can be awarded badges.')
+        raise ValueError(_('Goal instance must be saved before it can be awarded badges.'))
 
     if goal.is_goal_reached:
         user_badge, created = UserBadge.objects.get_or_create(user=goal.user, badge=badge)
@@ -1044,11 +1101,45 @@ def award_goal_done(request, goal):
 
 
 def award_goal_halfway(request, goal):
-    pass
+    """Award to users who are halfway to reaching their Goal."""
+    badge_settings = BadgeSettings.for_site(request.site)
+    badge = badge_settings.goal_half
+
+    if badge is None:
+        return None
+
+    if not badge.is_active:
+        return None
+
+    if goal.pk is None:
+        raise ValueError(_('Goal instance must be saved before it can be awarded badges.'))
+
+    if goal.progress >= 50:
+        user_badge, created = UserBadge.objects.get_or_create(user=goal.user, badge=badge)
+        if created:
+            # Created means it's the first time the user has reached a Goal halfway
+            return user_badge
 
 
 def award_goal_week_left(request, goal):
-    pass
+    badge_settings = BadgeSettings.for_site(request.site)
+    badge = badge_settings.goal_week_left
+
+    if badge is None:
+        return None
+
+    if not badge.is_active:
+        return None
+
+    if goal.pk is None:
+        raise ValueError(_('Goal instance must be saved before it can be awarded badges.'))
+
+    # One week left
+    if goal.days_left <= 7:
+        user_badge, created = UserBadge.objects.get_or_create(user=goal.user, badge=badge)
+        if created:
+            # Created means it's the first time a user's Goal has reached the week left mark
+            return user_badge
 
 
 def award_transaction_first(request, goal):
@@ -1063,11 +1154,31 @@ def award_transaction_first(request, goal):
         return None
 
     if goal.pk is None:
-        raise ValueError('Goal instance must be saved before it can be awarded badges.')
+        raise ValueError(_('Goal instance must be saved before it can be awarded badges.'))
 
     if GoalTransaction.objects.filter(goal__user=goal.user).count() == 1:
         user_badge, created = UserBadge.objects.get_or_create(user=goal.user, badge=badge)
         return user_badge
+
+    return None
+
+
+def award_week_streak(site, user, weeks):
+    """Award to users have saved a number of weeks."""
+    badge_settings = BadgeSettings.for_site(site)
+    badge = badge_settings.get_streak_badge(weeks)  # Badge is chosen depending on passed in int
+
+    if badge is None:
+        return None
+
+    if not badge.is_active:
+        return None
+
+    if Goal.get_current_streak(user, timezone.now()) == weeks:
+        user_badge, created = UserBadge.objects.get_or_create(user=user, badge=badge)
+        if created:
+            # Created means it's the first time a user has reached this streak
+            return user_badge
 
     return None
 
