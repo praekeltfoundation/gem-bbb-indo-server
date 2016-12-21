@@ -20,7 +20,9 @@ from .models import Feedback
 from .models import Goal, GoalPrototype
 from .models import Participant, ParticipantAnswer, ParticipantFreeText, ParticipantPicture
 from .models import Tip, TipFavourite
-from .models import award_first_goal, award_goal_done, award_goal_halfway, award_goal_week_left, award_transaction_first
+from .models import award_first_goal, award_goal_done, award_goal_halfway, award_goal_week_left, \
+    award_transaction_first, award_week_streak
+from .models import WEEK_STREAK_2, WEEK_STREAK_4, WEEK_STREAK_6
 
 from .permissions import IsAdminOrOwner, IsUserSelf
 
@@ -403,23 +405,30 @@ class GoalViewSet(viewsets.ModelViewSet):
             serializer = GoalTransactionSerializer(data=request.data, many=True)
             if serializer.is_valid(raise_exception=True):
                 serializer.save(goal=goal)
-
-                new_badges = []
-
-                first_goal_done = award_goal_done(request, goal)
-                if first_goal_done is not None:
-                    new_badges.append(first_goal_done)
-
-                first_transaction = award_transaction_first(request, goal)
-                if first_transaction is not None:
-                    new_badges.append(first_transaction)
-
-                data = {'new_badges': UserBadgeSerializer(instance=new_badges, many=True, context=self.get_serializer_context()).data}
-
+                data = {
+                    'new_badges': UserBadgeSerializer(instance=self.award_badges(request, goal),
+                                                      many=True,
+                                                      context=self.get_serializer_context()).data
+                }
                 return Response(data, status=status.HTTP_201_CREATED)
+
         elif request.method == 'GET':
             serializer = GoalTransactionSerializer(goal.transactions.all(), many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
+
+    @staticmethod
+    def award_badges(request, goal):
+        new_badges = [
+            award_goal_done(request, goal),
+            award_goal_halfway(request, goal),
+            award_goal_week_left(request, goal),
+            award_transaction_first(request, goal),
+            award_week_streak(request.site, request.user, WEEK_STREAK_2),
+            award_week_streak(request.site, request.user, WEEK_STREAK_4),
+            award_week_streak(request.site, request.user, WEEK_STREAK_6)
+        ]
+
+        return [b for b in new_badges if b is not None]
 
 
 class GoalImageView(GenericAPIView):

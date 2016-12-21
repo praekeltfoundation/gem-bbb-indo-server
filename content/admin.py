@@ -146,13 +146,15 @@ class GoalTransactionInline(admin.StackedInline):
 
 @admin.register(Goal)
 class GoalAdmin(admin.ModelAdmin):
-    readonly_fields = ('value', 'week_count', 'week_count_to_now', 'weekly_target', 'weekly_average',)
+    readonly_fields = ('value', 'week_count', 'week_count_to_now', 'weeks_left', 'days_left', 'weekly_target',
+                       'weekly_average',)
     fieldsets = (
         (None, {
             'fields': ('name', 'state', 'start_date', 'end_date', 'target', 'image', 'user')
         }),
         ('Calculated', {
-            'fields': ('value', 'week_count', 'week_count_to_now', 'weekly_target', 'weekly_average',)
+            'fields': ('value', 'week_count', 'week_count_to_now', 'weeks_left', 'days_left', 'weekly_target',
+                       'weekly_average',)
         })
     )
     list_display = ('name', 'user', 'target', 'value')
