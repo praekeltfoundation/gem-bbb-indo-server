@@ -33,6 +33,11 @@ from .storage import ChallengeStorage, GoalImgStorage, ParticipantPictureStorage
 # ======== #
 
 
+WEEK_STREAK_2 = 2
+WEEK_STREAK_4 = 4
+WEEK_STREAK_6 = 6
+
+
 @register_setting
 class BadgeSettings(BaseSetting):
     goal_first_created = models.ForeignKey(
@@ -106,6 +111,16 @@ class BadgeSettings(BaseSetting):
         help_text=_("Awarded when a user has save for 6 weeks."),
         blank=False, null=True
     )
+
+    def get_streak_badge(self, weeks):
+        if weeks == WEEK_STREAK_2:
+            return self.streak_2
+        elif weeks == WEEK_STREAK_4:
+            return self.streak_4
+        elif weeks == WEEK_STREAK_6:
+            return self.streak_6
+        else:
+            return None
 
 
 BadgeSettings.panels = [
@@ -1144,6 +1159,29 @@ def award_transaction_first(request, goal):
     if GoalTransaction.objects.filter(goal__user=goal.user).count() == 1:
         user_badge, created = UserBadge.objects.get_or_create(user=goal.user, badge=badge)
         return user_badge
+
+    return None
+
+
+def award_week_streak(request, goal, weeks):
+    """Award to users have saved a number of weeks."""
+
+    badge_settings = BadgeSettings.for_site(request.site)
+    badge = badge_settings.get_streak_badge(weeks)
+
+    if badge is None:
+        return None
+
+    if not badge.is_active:
+        return None
+
+    if goal.pk is None:
+        raise ValueError(_('Goal instance must be saved before it can be awarded badges.'))
+
+    if Goal.get_current_streak(goal.user, timezone.now()) == weeks:
+        user_badge, created = UserBadge.objects.get_or_create(user=goal.user, badge=badge)
+        if created:
+            return user_badge
 
     return None
 
