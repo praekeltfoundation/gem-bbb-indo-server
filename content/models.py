@@ -1011,7 +1011,7 @@ def award_first_goal(request, goal):
         return None
 
     if goal.pk is None:
-        raise ValueError('Goal instance must be saved before it can be awarded badges.')
+        raise ValueError(_('Goal instance must be saved before it can be awarded badges.'))
 
     if Goal.objects.filter(user=goal.user).count() == 1:
         user_badge, created = UserBadge.objects.get_or_create(user=goal.user, badge=badge_settings.goal_first_created)
@@ -1032,7 +1032,7 @@ def award_goal_done(request, goal):
         return None
 
     if goal.pk is None:
-        raise ValueError('Goal instance must be saved before it can be awarded badges.')
+        raise ValueError(_('Goal instance must be saved before it can be awarded badges.'))
 
     if goal.is_goal_reached:
         user_badge, created = UserBadge.objects.get_or_create(user=goal.user, badge=badge)
@@ -1063,7 +1063,7 @@ def award_transaction_first(request, goal):
         return None
 
     if goal.pk is None:
-        raise ValueError('Goal instance must be saved before it can be awarded badges.')
+        raise ValueError(_('Goal instance must be saved before it can be awarded badges.'))
 
     if GoalTransaction.objects.filter(goal__user=goal.user).count() == 1:
         user_badge, created = UserBadge.objects.get_or_create(user=goal.user, badge=badge)
