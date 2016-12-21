@@ -6,3 +6,4 @@ psycopg2
 dj_database_url
 raven
 markdown
+wagtailsurveys==0.1.1
