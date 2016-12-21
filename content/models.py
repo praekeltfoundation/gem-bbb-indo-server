@@ -1080,7 +1080,24 @@ def award_goal_halfway(request, goal):
 
 
 def award_goal_week_left(request, goal):
-    pass
+    badge_settings = BadgeSettings.for_site(request.site)
+    badge = badge_settings.goal_week_left
+
+    if badge is None:
+        return None
+
+    if not badge.is_active:
+        return None
+
+    if goal.pk is None:
+        raise ValueError(_('Goal instance must be saved before it can be awarded badges.'))
+
+    # One week left
+    if goal.days_left <= 7:
+        user_badge, created = UserBadge.objects.get_or_create(user=goal.user, badge=badge)
+        if created:
+            # Created means it's the first time a user's Goal has reached the week left mark
+            return user_badge
 
 
 def award_transaction_first(request, goal):

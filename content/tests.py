@@ -994,6 +994,7 @@ class TestBadgeAwarding(APITestCase):
     def setUpTestData(cls):
         cls.goal_first_created = Badge.objects.create(name='First Goal')
         cls.goal_halfway = Badge.objects.create(name='First Goal Halfway')
+        cls.goal_week_left = Badge.objects.create(name='First Goal Halfway')
         cls.goal_first_done = Badge.objects.create(name='First Goal Done')
         cls.transaction_first = Badge.objects.create(name='First Savings Created')
 
@@ -1002,6 +1003,7 @@ class TestBadgeAwarding(APITestCase):
             site=site,
             goal_first_created=cls.goal_first_created,
             goal_half=cls.goal_halfway,
+            goal_week_left=cls.goal_week_left,
             goal_first_done=cls.goal_first_done,
             transaction_first=cls.transaction_first
         )
@@ -1152,6 +1154,32 @@ class TestBadgeAwarding(APITestCase):
 
         badges = [b for b in response.data['new_badges'] if b['name'] == self.goal_halfway.name]
         self.assertEqual(len(badges), 0, "Badge was included unexpectedly")
+
+    # ------------------ #
+    # Goal One Week Left #
+    # ------------------ #
+
+    def test_goal_week_left(self):
+        now = timezone.now()
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=10000,
+            start_date=now - timedelta(days=30),
+            end_date=now + timedelta(days=3)  # Less than a week left
+        )
+
+        data = [{
+            'date': now.isoformat(),
+            'value': 1000
+        }]
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}), data, format='json')
+
+        badges = [b for b in response.data['new_badges'] if b['name'] == self.goal_week_left.name]
+        self.assertEqual(len(badges), 1, "Expected badge was not included")
 
     # --------------------------- #
     # Award First Savings Created #

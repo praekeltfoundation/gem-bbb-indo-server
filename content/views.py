@@ -414,6 +414,10 @@ class GoalViewSet(viewsets.ModelViewSet):
                 if goal_halfway is not None:
                     new_badges.append(goal_halfway)
 
+                goal_week_left = award_goal_week_left(request, goal)
+                if goal_week_left is not None:
+                    new_badges.append(goal_week_left)
+
                 first_transaction = award_transaction_first(request, goal)
                 if first_transaction is not None:
                     new_badges.append(first_transaction)
