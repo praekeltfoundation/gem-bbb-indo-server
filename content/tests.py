@@ -997,6 +997,7 @@ class TestBadgeAwarding(APITestCase):
         cls.goal_week_left = Badge.objects.create(name='First Goal Halfway')
         cls.goal_first_done = Badge.objects.create(name='First Goal Done')
         cls.transaction_first = Badge.objects.create(name='First Savings Created')
+        cls.streak_2 = Badge.objects.create(name='2 Week Streak')
 
         site = Site.objects.get(is_default_site=True)
         BadgeSettings.objects.create(
@@ -1005,7 +1006,8 @@ class TestBadgeAwarding(APITestCase):
             goal_half=cls.goal_halfway,
             goal_week_left=cls.goal_week_left,
             goal_first_done=cls.goal_first_done,
-            transaction_first=cls.transaction_first
+            transaction_first=cls.transaction_first,
+            streak_2=cls.streak_2
         )
 
     # ------------------------ #
@@ -1234,6 +1236,35 @@ class TestBadgeAwarding(APITestCase):
 
         badges = [b for b in response.data['new_badges'] if b['name'] == self.transaction_first.name]
         self.assertEqual(len(badges), 0, "First savings was unexpectedly awarded.")
+
+    # -------------------------- #
+    # Award Week Savings Streaks #
+    # -------------------------- #
+
+    def test_streak_2(self):
+        now = timezone.now()
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=10000,
+            start_date=now - timedelta(days=30),
+            end_date=now + timedelta(days=30)
+        )
+        goal.transactions.create(
+            date=now - timedelta(days=7),  # One Week back
+            value=100
+        )
+        data = [{
+            'date': now.isoformat(),
+            'value': 200
+        }]
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}), data, format='json')
+
+        badges = [b for b in response.data['new_badges'] if b['name'] == self.streak_2.name]
+        self.assertEqual(len(badges), 1, "Expected badge was not included")
 
 
 class TestFeedback(APITestCase):

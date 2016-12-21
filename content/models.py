@@ -1163,9 +1163,9 @@ def award_transaction_first(request, goal):
     return None
 
 
-def award_week_streak(request, goal, weeks):
+def award_week_streak(site, user, weeks):
     """Award to users have saved a number of weeks."""
-    badge_settings = BadgeSettings.for_site(request.site)
+    badge_settings = BadgeSettings.for_site(site)
     badge = badge_settings.get_streak_badge(weeks)  # Badge is chosen depending on passed in int
 
     if badge is None:
@@ -1174,11 +1174,8 @@ def award_week_streak(request, goal, weeks):
     if not badge.is_active:
         return None
 
-    if goal.pk is None:
-        raise ValueError(_('Goal instance must be saved before it can be awarded badges.'))
-
-    if Goal.get_current_streak(goal.user, timezone.now()) == weeks:
-        user_badge, created = UserBadge.objects.get_or_create(user=goal.user, badge=badge)
+    if Goal.get_current_streak(user, timezone.now()) == weeks:
+        user_badge, created = UserBadge.objects.get_or_create(user=user, badge=badge)
         if created:
             # Created means it's the first time a user has reached this streak
             return user_badge
