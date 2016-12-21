@@ -80,6 +80,33 @@ class BadgeSettings(BaseSetting):
         blank=False, null=True
     )
 
+    streak_2 = models.ForeignKey(
+        'Badge',
+        verbose_name=_('2 Week Streak'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded when a user has saved for 2 weeks."),
+        blank=False, null=True
+    )
+
+    streak_4 = models.ForeignKey(
+        'Badge',
+        verbose_name=_('4 Week Streak'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded when a user has saved for 4 weeks."),
+        blank=False, null=True
+    )
+
+    streak_6 = models.ForeignKey(
+        'Badge',
+        verbose_name=_('6 Week Streak'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded when a user has save for 6 weeks."),
+        blank=False, null=True
+    )
+
 
 BadgeSettings.panels = [
     wagtail_edit_handlers.MultiFieldPanel([
