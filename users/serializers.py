@@ -101,6 +101,18 @@ class PasswordChangeSerializer(serializers.Serializer):
         }
 
 
+class EmailChangeSerializer(serializers.Serializer):
+    email = serializers.CharField(validators=[serializers.EmailValidator], write_only=True)
+
+    def validate_email(self, value):
+        if RegUser.objects.filter(email=value).count() != 0:
+            raise serializers.ValidationError('E-mail address already used.')
+        return value
+
+    class Meta:
+        fields = '__all__'
+
+
 class SecurityQuestionSerializer(serializers.Serializer):
     new_question = serializers.CharField()
     new_answer = serializers.CharField()
