@@ -17,7 +17,7 @@ from sendfile import sendfile
 from .exceptions import PasswordNotMatching
 from .models import Profile, RegUser, User
 from .permissions import IsUserSelf, IsRegisteringOrSelf
-from .serializers import PasswordChangeSerializer, RegUserDeepSerializer, SecurityQuestionSerializer
+from .serializers import EmailChangeSerializer, PasswordChangeSerializer, RegUserDeepSerializer, SecurityQuestionSerializer
 
 import logging
 
@@ -94,6 +94,14 @@ class RegUserViewSet(viewsets.ModelViewSet):
             if not request.user.check_password(serializer.validated_data['old_password']):
                 raise PasswordNotMatching()
             request.user.set_password(serializer.validated_data['new_password'])
+            request.user.save()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @detail_route(methods=['post'], permission_classes=[IsAuthenticated, IsUserSelf])
+    def email(self, request, pk=None, *args, **kwargs):
+        serializer = EmailChangeSerializer(data=request.data, context=self.get_serializer_context())
+        if serializer.is_valid(raise_exception=True):
+            request.user.email = serializer.validated_data['email']
             request.user.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
 
