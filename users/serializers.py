@@ -1,3 +1,4 @@
+from django.core.validators import EmailValidator
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 from .models import Profile, RegUser
@@ -102,7 +103,7 @@ class PasswordChangeSerializer(serializers.Serializer):
 
 
 class EmailChangeSerializer(serializers.Serializer):
-    email = serializers.CharField(validators=[serializers.EmailValidator], write_only=True)
+    email = serializers.CharField(validators=[EmailValidator], write_only=True)
 
     def validate_email(self, value):
         if RegUser.objects.filter(email=value).count() != 0:
