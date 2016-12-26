@@ -2,7 +2,8 @@
 from collections import OrderedDict
 
 from django.contrib.auth.models import User
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
+from django.http import Http404
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.decorators import list_route, detail_route
@@ -490,6 +491,16 @@ class AchievementsView(GenericAPIView):
                                      many=True, context=self.get_serializer_context())
         data['badges'] = serial.data
         return Response(data=data)
+
+
+def badge_social_view(request, pk):
+    """An HTML view to be used for sharing Badges as links"""
+    badge = get_object_or_404(Badge, pk=pk)
+
+    if not badge.is_active:
+        raise Http404("Badge is inactive")
+
+    return render(request, 'content/badge_social.html', context={'badge': badge})
 
 
 ############
