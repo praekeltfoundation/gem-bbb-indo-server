@@ -3,10 +3,24 @@
 
 {% load static %}
 {% load wagtailcore_tags %}
+{% load content_page_helpers %}
+
+{% block meta %}
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="{% absolute_page_url page %}" />
+    <meta property="og:title" content="{{ page.title }}" />
+    {% if page.cover_image %}
+        <meta property="og:image" content="{% absolute_url page.cover_image.file.url %}" />
+    {% endif %}
+    {% if page.intro %}
+        <meta property="og:description" content="{{ page.intro }}" />
+    {% endif %}
+{% endblock %}
 
 {% block title %}
     {{ page.title }}
 {% endblock %}
+
 
 {% block content %}
     <div id="article">
