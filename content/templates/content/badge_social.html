@@ -1,12 +1,42 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
 
-    <p>{{ badge.name }}</p>
+{% extends 'content/app_base.html' %}
 
-</body>
-</html>
+{% load static %}
+{% load wagtailcore_tags %}
+{% load wagtailimages_tags %}
+{% load content_page_helpers %}
+
+{% block title %}{{ badge.name }}{% endblock %}
+
+<!-- Required for Facebook meta tags -->
+{% block head_prefix %}
+    prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# article: http://ogp.me/ns/article#"
+{% endblock %}
+
+{% block meta %}
+
+    <!-- Facebook -->
+    {% if settings.content.SocialMediaSettings.facebook_app_id %}
+        <!-- App ID is used for analytics -->
+        <meta property="fb:app_id" content="{{ settings.content.SocialMediaSettings.facebook_app_id }}" />
+    {% endif %}
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="{% absolute_url 'social:badges-detail' slug=badge.slug %}" />
+    <meta property="og:title" content="{{ badge.name }}" />
+    {% if badge.image %}
+        <meta property="og:image" content="{% absolute_path badge.image.file.url %}" />
+    {% endif %}
+    {% if badge.intro %}
+        <meta property="og:description" content="{{ badge.intro }}" />
+    {% endif %}
+    <!-- END: Facebook -->
+
+{% endblock %}
+
+{% block content %}
+<div>
+    {% image badge.image original %}
+    <h1>{{ badge.name }}</h1>
+    <h3>{{ badge.intro }}</h3>
+</div>
+{% endblock %}

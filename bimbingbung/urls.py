@@ -47,7 +47,7 @@ api_urls = [
 ]
 
 social_urls = [
-    url(r'^badges/(?P<pk>\d+)/$', content_views.badge_social_view, name='badges-detail'),
+    url(r'^badges/(?P<slug>[a-zA-Z0-9\-\_]+)/$', content_views.badge_social_view, name='badges-detail'),
 ]
 
 urlpatterns = [

@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en" >
+<head {% block head_prefix %}{% endblock %}>
     <meta charset="UTF-8">
     <title>{% block title %}{% endblock %}</title>
 
@@ -12,11 +12,6 @@
     <link rel="stylesheet" href="{% static 'css/dooit.css' %}" />
     <link rel="stylesheet" href="{% static 'css/agreements.css' %}" />
     <link rel="stylesheet" href="{% static 'css/tips.css' %}" />
-
-    {% if settings.content.SocialMediaSettings.facebook_app_id %}
-        <!-- App ID is used for analytics -->
-        <meta property="fb:app_id" content="{{ settings.content.SocialMediaSettings.facebook_app_id }}" />
-    {% endif %}
 
     {% block meta %}{% endblock %}
 

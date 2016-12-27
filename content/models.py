@@ -125,6 +125,10 @@ class BadgeSettings(BaseSetting):
         else:
             return None
 
+    @classmethod
+    def get_field_verbose_name(cls, field_name):
+        return cls._meta.get_field(field_name).verbose_name
+
 
 BadgeSettings.panels = [
     wagtail_edit_handlers.MultiFieldPanel([
@@ -1033,12 +1037,29 @@ class Badge(models.Model):
     ACTIVE = 1
 
     name = models.CharField(max_length=255)
+
+    slug = models.SlugField(
+        # Translators: CMS field name
+        verbose_name=_('slug'),
+        allow_unicode=True,
+        max_length=255,
+        # Translators: Help text on CMS
+        help_text=_("The name of the page as it will appear in URLs e.g http://domain.com/blog/[my-slug]/")
+    )
+
+    intro = models.TextField(
+        # Translators: CMS field name
+        _('intro dialogue'),
+        # Translators: Help text on CMS
+        help_text=_("The opening line said by the Coach when presenting the user with their Badge."),
+        blank=True)
     image = models.ForeignKey(wagtail_image_models.Image, blank=True, null=True,
                               on_delete=models.SET_NULL, related_name='+')
     state = models.IntegerField(choices=(
         (INACTIVE, _('Inactive')),
         (ACTIVE, _('Active')),
     ), default=ACTIVE)
+
     user = models.ManyToManyField(User, through='UserBadge', related_name='badges')
 
     class Meta:
@@ -1057,9 +1078,19 @@ class Badge(models.Model):
 
 
 Badge.panels = [
-    wagtail_edit_handlers.FieldPanel('name'),
-    wagtail_edit_handlers.FieldPanel('state'),
-    wagtail_image_edit.ImageChooserPanel('image'),
+    wagtail_edit_handlers.MultiFieldPanel([
+        wagtail_edit_handlers.FieldPanel('name'),
+        wagtail_edit_handlers.FieldPanel('slug'),
+        wagtail_edit_handlers.FieldPanel('state'),
+        wagtail_image_edit.ImageChooserPanel('image'),
+    ],
+        # Translators: Admin field name
+        heading=_('Badge')),
+    wagtail_edit_handlers.MultiFieldPanel([
+        wagtail_edit_handlers.FieldPanel('intro'),
+    ],
+        # Translators: Admin field name
+        heading=_('Coach UI')),
 ]
 
 
