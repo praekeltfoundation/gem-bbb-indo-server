@@ -125,6 +125,10 @@ class BadgeSettings(BaseSetting):
         else:
             return None
 
+    @classmethod
+    def get_field_verbose_name(cls, field_name):
+        return cls._meta.get_field(field_name).verbose_name
+
 
 BadgeSettings.panels = [
     wagtail_edit_handlers.MultiFieldPanel([
