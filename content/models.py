@@ -133,13 +133,25 @@ class BadgeSettings(BaseSetting):
 BadgeSettings.panels = [
     wagtail_edit_handlers.MultiFieldPanel([
         wagtail_edit_handlers.FieldPanel('goal_first_created'),
+    ],
+        # Translators: Admin field name
+        heading=_("goal badges")),
+    wagtail_edit_handlers.MultiFieldPanel([
         wagtail_edit_handlers.FieldPanel('goal_half'),
         wagtail_edit_handlers.FieldPanel('goal_week_left'),
         wagtail_edit_handlers.FieldPanel('goal_first_done'),
         wagtail_edit_handlers.FieldPanel('transaction_first'),
+        wagtail_edit_handlers.FieldPanel('streak_2'),
+        wagtail_edit_handlers.FieldPanel('streak_4'),
+        wagtail_edit_handlers.FieldPanel('streak_6'),
     ],
         # Translators: Admin field name
-        heading=_("Badge types"))
+        heading=_("savings badges")),
+    wagtail_edit_handlers.MultiFieldPanel([
+
+    ],
+        # Translators: Admin field name
+        heading=_("challenge badges")),
 ]
 
 
