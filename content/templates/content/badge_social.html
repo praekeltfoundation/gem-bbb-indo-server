@@ -1,12 +1,32 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Title</title>
-</head>
-<body>
 
-    <p>{{ badge.name }}</p>
+{% extends 'content/app_base.html' %}
 
-</body>
-</html>
+{% load static %}
+{% load wagtailcore_tags %}
+{% load wagtailimages_tags %}
+{% load content_page_helpers %}
+
+{% load content_page_helpers %}
+
+{% block title %}
+    {{ badge.name }}
+{% endblock %}
+
+{% block meta %}
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="{% absolute_url 'social:badges-detail' pk=badge.pk %}" />
+    <meta property="og:title" content="{{ badge.name }}" />
+    {% if badge.image %}
+        <meta property="og:image" content="{% absolute_path badge.image.file.url %}" />
+    {% endif %}
+    {% if badge.intro %}
+        <meta property="og:description" content="{{ badge.intro }}" />
+    {% endif %}
+{% endblock %}
+
+{% block content %}
+<div>
+    {% image badge.image original %}
+    <h1>{{ badge.name }}</h1>
+</div>
+{% endblock %}
