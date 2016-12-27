@@ -8,13 +8,11 @@
 
 {% load content_page_helpers %}
 
-{% block title %}
-    {{ badge.name }}
-{% endblock %}
+{% block title %}{{ badge.name }}{% endblock %}
 
 {% block meta %}
     <meta property="og:type" content="article" />
-    <meta property="og:url" content="{% absolute_url 'social:badges-detail' pk=badge.pk %}" />
+    <meta property="og:url" content="{% absolute_url 'social:badges-detail' slug=badge.slug %}" />
     <meta property="og:title" content="{{ badge.name }}" />
     {% if badge.image %}
         <meta property="og:image" content="{% absolute_path badge.image.file.url %}" />
@@ -28,5 +26,6 @@
 <div>
     {% image badge.image original %}
     <h1>{{ badge.name }}</h1>
+    <h3>{{ badge.intro }}</h3>
 </div>
 {% endblock %}

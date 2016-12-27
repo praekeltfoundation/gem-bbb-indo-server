@@ -1033,6 +1033,16 @@ class Badge(models.Model):
     ACTIVE = 1
 
     name = models.CharField(max_length=255)
+
+    slug = models.SlugField(
+        # Translators: CMS field name
+        verbose_name=_('slug'),
+        allow_unicode=True,
+        max_length=255,
+        # Translators: Help text on CMS
+        help_text=_("The name of the page as it will appear in URLs e.g http://domain.com/blog/[my-slug]/")
+    )
+
     intro = models.TextField(
         # Translators: CMS field name
         _('intro dialogue'),
@@ -1066,6 +1076,7 @@ class Badge(models.Model):
 Badge.panels = [
     wagtail_edit_handlers.MultiFieldPanel([
         wagtail_edit_handlers.FieldPanel('name'),
+        wagtail_edit_handlers.FieldPanel('slug'),
         wagtail_edit_handlers.FieldPanel('state'),
         wagtail_image_edit.ImageChooserPanel('image'),
     ],
