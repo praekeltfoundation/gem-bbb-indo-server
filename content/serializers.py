@@ -38,7 +38,10 @@ class BadgeSerializer(serializers.ModelSerializer):
 
     def get_social_url(self, obj):
         request = self.context['request']
-        return request.build_absolute_uri(reverse('social:badges-detail', kwargs={'slug': obj.slug}))
+        if obj.slug:
+            return request.build_absolute_uri(reverse('social:badges-detail', kwargs={'slug': obj.slug}))
+        else:
+            return None
 
 
 class UserBadgeSerializer(serializers.ModelSerializer):
