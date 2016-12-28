@@ -87,6 +87,7 @@ class BadgeAdmin(ModelAdmin):
     # Translators: CMS menu name
     menu_label = _('Badges')
     menu_order = 100
+    list_display = ('name', 'is_active',)
     add_to_settings_menu = False
     lest_display = ('name',)
 

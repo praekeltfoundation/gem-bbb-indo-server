@@ -112,6 +112,9 @@ class BadgeSettings(BaseSetting):
         blank=False, null=True
     )
 
+    class Meta:
+        verbose_name = 'Badge Setup'
+
     def get_streak_badge(self, weeks):
         if weeks == WEEK_STREAK_2:
             return self.streak_2
@@ -121,6 +124,10 @@ class BadgeSettings(BaseSetting):
             return self.streak_6
         else:
             return None
+
+    @classmethod
+    def get_field_verbose_name(cls, field_name):
+        return cls._meta.get_field(field_name).verbose_name
 
 
 BadgeSettings.panels = [
@@ -133,6 +140,29 @@ BadgeSettings.panels = [
     ],
         # Translators: Admin field name
         heading=_("Badge types"))
+]
+
+
+@register_setting
+class SocialMediaSettings(BaseSetting):
+    facebook_app_id = models.CharField(
+        # Translators: Field name on CMS
+        verbose_name=_('Facebook App Id'),
+        max_length=255,
+        # Translators: Help text on CMS
+        help_text=_("The App Id provided by Facebook via the Developer Console."),
+        blank=True, null=False
+    )
+
+    class Meta:
+        verbose_name = 'social media accounts'
+
+SocialMediaSettings.panels = [
+    wagtail_edit_handlers.MultiFieldPanel([
+        wagtail_edit_handlers.FieldPanel('facebook_app_id'),
+    ],
+        # Translators: Admin field name
+        heading=_("Facebook")),
 ]
 
 
@@ -689,15 +719,15 @@ class Tip(wagtail_models.Page):
         wagtail_edit_handlers.FieldPanel('tags'),
     ]
 
-    def get_tag_name_list(self):
-        return [tag.name for tag in self.tags.all()]
-
     class Meta:
         # Translators: Collection name on CMS
         verbose_name = _('tip')
 
         # Translators: Plural collection name on CMS
         verbose_name_plural = _('tips')
+
+    def get_tag_name_list(self):
+        return [tag.name for tag in self.tags.all()]
 
     def __str__(self):
         return self.title
@@ -1007,12 +1037,29 @@ class Badge(models.Model):
     ACTIVE = 1
 
     name = models.CharField(max_length=255)
+
+    slug = models.SlugField(
+        # Translators: CMS field name
+        verbose_name=_('slug'),
+        allow_unicode=True,
+        max_length=255,
+        # Translators: Help text on CMS
+        help_text=_("The name of the page as it will appear in URLs e.g http://domain.com/blog/[my-slug]/")
+    )
+
+    intro = models.TextField(
+        # Translators: CMS field name
+        _('intro dialogue'),
+        # Translators: Help text on CMS
+        help_text=_("The opening line said by the Coach when presenting the user with their Badge."),
+        blank=True)
     image = models.ForeignKey(wagtail_image_models.Image, blank=True, null=True,
                               on_delete=models.SET_NULL, related_name='+')
     state = models.IntegerField(choices=(
         (INACTIVE, _('Inactive')),
         (ACTIVE, _('Active')),
     ), default=ACTIVE)
+
     user = models.ManyToManyField(User, through='UserBadge', related_name='badges')
 
     class Meta:
@@ -1031,9 +1078,19 @@ class Badge(models.Model):
 
 
 Badge.panels = [
-    wagtail_edit_handlers.FieldPanel('name'),
-    wagtail_edit_handlers.FieldPanel('state'),
-    wagtail_image_edit.ImageChooserPanel('image'),
+    wagtail_edit_handlers.MultiFieldPanel([
+        wagtail_edit_handlers.FieldPanel('name'),
+        wagtail_edit_handlers.FieldPanel('slug'),
+        wagtail_edit_handlers.FieldPanel('state'),
+        wagtail_image_edit.ImageChooserPanel('image'),
+    ],
+        # Translators: Admin field name
+        heading=_('Badge')),
+    wagtail_edit_handlers.MultiFieldPanel([
+        wagtail_edit_handlers.FieldPanel('intro'),
+    ],
+        # Translators: Admin field name
+        heading=_('Coach UI')),
 ]
 
 

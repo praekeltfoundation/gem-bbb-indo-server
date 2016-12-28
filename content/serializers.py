@@ -23,10 +23,11 @@ from .models import Tip, TipFavourite
 class BadgeSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     image_url = serializers.SerializerMethodField()
+    social_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Badge
-        fields = ('name', 'image_url',)
+        fields = ('name', 'image_url', 'social_url',)
 
     def get_image_url(self, obj):
         request = self.context['request']
@@ -34,6 +35,10 @@ class BadgeSerializer(serializers.ModelSerializer):
             return request.build_absolute_uri(obj.image.file.url)
         else:
             return None
+
+    def get_social_url(self, obj):
+        request = self.context['request']
+        return request.build_absolute_uri(reverse('social:badges-detail', kwargs={'slug': obj.slug}))
 
 
 class UserBadgeSerializer(serializers.ModelSerializer):

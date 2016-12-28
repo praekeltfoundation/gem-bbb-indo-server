@@ -1,8 +1,10 @@
 
 from collections import OrderedDict
 
+from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import User
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
+from django.http import Http404
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.decorators import list_route, detail_route
@@ -15,6 +17,7 @@ from sendfile import sendfile
 
 from .exceptions import ImageNotFound
 
+from .models import BadgeSettings
 from .models import Badge, Challenge, Entry, UserBadge
 from .models import Feedback
 from .models import Goal, GoalPrototype
@@ -490,6 +493,12 @@ class AchievementsView(GenericAPIView):
                                      many=True, context=self.get_serializer_context())
         data['badges'] = serial.data
         return Response(data=data)
+
+
+def badge_social_view(request, slug):
+    """An HTML view to be used for sharing Badges as links"""
+    badge = get_object_or_404(Badge, slug=slug, state=Badge.ACTIVE)
+    return render(request, 'content/badge_social.html', context={'badge': badge})
 
 
 ############
