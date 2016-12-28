@@ -112,6 +112,51 @@ class BadgeSettings(BaseSetting):
         blank=False, null=True
     )
 
+    weekly_target_2 = models.ForeignKey(
+        'Badge',
+        verbose_name=_('2 Week On Target'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded when a user has reached their weekly target 2 weeks in a row."),
+        blank=False, null=True
+    )
+
+    weekly_target_4 = models.ForeignKey(
+        'Badge',
+        verbose_name=_('4 Week On Target'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded when a user has reached their weekly target 4 weeks in a row."),
+        blank=False, null=True
+    )
+
+    weekly_target_8 = models.ForeignKey(
+        'Badge',
+        verbose_name=_('8 Week On Target'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded when a user has reached their weekly target 8 weeks in a row."),
+        blank=False, null=True
+    )
+
+    challenge_entry = models.ForeignKey(
+        'Badge',
+        verbose_name=_('Challenge Participation'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded when a user has participated in a Challenge."),
+        blank=False, null=True
+    )
+
+    challenge_win = models.ForeignKey(
+        'Badge',
+        verbose_name=_('Challenge Winner'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded when a user has won a Challenge."),
+        blank=False, null=True
+    )
+
     class Meta:
         verbose_name = 'Badge Setup'
 
@@ -133,13 +178,29 @@ class BadgeSettings(BaseSetting):
 BadgeSettings.panels = [
     wagtail_edit_handlers.MultiFieldPanel([
         wagtail_edit_handlers.FieldPanel('goal_first_created'),
+    ],
+        # Translators: Admin field name
+        heading=_("goal badges")),
+    wagtail_edit_handlers.MultiFieldPanel([
         wagtail_edit_handlers.FieldPanel('goal_half'),
         wagtail_edit_handlers.FieldPanel('goal_week_left'),
         wagtail_edit_handlers.FieldPanel('goal_first_done'),
         wagtail_edit_handlers.FieldPanel('transaction_first'),
+        wagtail_edit_handlers.FieldPanel('streak_2'),
+        wagtail_edit_handlers.FieldPanel('streak_4'),
+        wagtail_edit_handlers.FieldPanel('streak_6'),
+        wagtail_edit_handlers.FieldPanel('weekly_target_2'),
+        wagtail_edit_handlers.FieldPanel('weekly_target_4'),
+        wagtail_edit_handlers.FieldPanel('weekly_target_8'),
     ],
         # Translators: Admin field name
-        heading=_("Badge types"))
+        heading=_("savings badges")),
+    wagtail_edit_handlers.MultiFieldPanel([
+        wagtail_edit_handlers.FieldPanel('challenge_entry'),
+        wagtail_edit_handlers.FieldPanel('challenge_win'),
+    ],
+        # Translators: Admin field name
+        heading=_("challenge badges")),
 ]
 
 
