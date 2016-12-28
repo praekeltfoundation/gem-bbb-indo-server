@@ -327,3 +327,20 @@ class TestProfileImage(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK, "Failed retrieving profile image.")
 
+
+class TestEmailAPI(APITestCase):
+
+    def test_email_change(self):
+        user = RegUser.objects.create(username='anon', email='first@email.com')
+        new_email = 'second@email.com'
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:users-email', kwargs={'pk': user.pk}), {
+            'email': new_email
+        }, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, "Email change request failed.")
+
+        updated_user = RegUser.objects.get(pk=user.pk)
+        self.assertEqual(updated_user.email, new_email, "Email was not changed.")
+
