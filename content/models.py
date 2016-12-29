@@ -1188,7 +1188,7 @@ class AchievementStat:
 
         # User savings inactivity
         self.last_saving_datetime = None
-        self.weeks_since_saved = None
+        self.weeks_since_saved = 0
 
         # TODO: Only consider deposits (transactions of positive values)
         last_trans = GoalTransaction.objects.filter(goal__user=user).order_by('-date').first()
