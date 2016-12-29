@@ -2,7 +2,7 @@ from uuid import uuid4
 from collections import OrderedDict
 from datetime import timedelta
 from functools import reduce
-from math import ceil
+from math import ceil, floor
 from os.path import splitext
 
 from django.apps import apps
@@ -1172,6 +1172,29 @@ class UserBadge(models.Model):
 
     def __str__(self):
         return '{}-{}'.format(self.user, self.badge)
+
+
+class AchievementStat:
+    """Helper object to aggregate User savings achievements."""
+
+    def __init__(self, user):
+        self.user = user
+
+        # Streaks
+        self.weekly_streak = Goal.get_current_streak(user)
+
+        # User badges
+        self.badges = UserBadge.objects.filter(user=user, badge__state=Badge.ACTIVE)
+
+        # User savings inactivity
+        self.last_saving_datetime = None
+        self.weeks_since_saved = 0
+
+        # TODO: Only consider deposits (transactions of positive values)
+        last_trans = GoalTransaction.objects.filter(goal__user=user).order_by('-date').first()
+        if last_trans:
+            self.last_saving_datetime = last_trans.date
+            self.weeks_since_saved = floor((timezone.now() - last_trans.date).days / 7)
 
 
 def award_first_goal(request, goal):

@@ -583,6 +583,16 @@ class GoalSerializer(serializers.ModelSerializer):
         return instance
 
 
+class AchievementStatSerializer(serializers.Serializer):
+    weekly_streak = serializers.ReadOnlyField()
+    badges = UserBadgeSerializer(many=True, read_only=True)
+    last_saving_datetime = serializers.ReadOnlyField()
+    weeks_since_saved = serializers.ReadOnlyField()
+
+    class Meta:
+        fields = '__all__'
+
+
 ############
 # Feedback #
 ############
