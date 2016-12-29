@@ -1174,6 +1174,30 @@ class UserBadge(models.Model):
         return '{}-{}'.format(self.user, self.badge)
 
 
+class AchievementStat:
+    """Helper object to aggregate User savings achievements."""
+
+    def __init__(self, user):
+        self.user = user
+
+        # Streaks
+        self.weekly_streak = Goal.get_current_streak(user)
+
+        # User badges
+        self.badges = UserBadge.objects.filter(user=user, badge__state=Badge.ACTIVE)
+
+        # User savings inactivity
+        self.last_saving_datetime = None
+        self.weeks_since_saved = None
+
+        last_trans = GoalTransaction.objects.filter(goal__user=user).order_by('-date').first()
+        if last_trans:
+            self.last_saving_datetime = last_trans.date
+            self.weeks_since_saved = int((timezone.now() - last_trans.date).days / 7)
+
+
+
+
 def award_first_goal(request, goal):
     """Awarded to users when they create their first Goal."""
     badge_settings = BadgeSettings.for_site(request.site)
