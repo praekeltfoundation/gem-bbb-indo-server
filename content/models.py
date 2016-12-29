@@ -2,7 +2,7 @@ from uuid import uuid4
 from collections import OrderedDict
 from datetime import timedelta
 from functools import reduce
-from math import ceil
+from math import ceil, floor
 from os.path import splitext
 
 from django.apps import apps
@@ -1193,9 +1193,7 @@ class AchievementStat:
         last_trans = GoalTransaction.objects.filter(goal__user=user).order_by('-date').first()
         if last_trans:
             self.last_saving_datetime = last_trans.date
-            self.weeks_since_saved = int((timezone.now() - last_trans.date).days / 7)
-
-
+            self.weeks_since_saved = floor((timezone.now() - last_trans.date).days / 7)
 
 
 def award_first_goal(request, goal):
