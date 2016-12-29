@@ -22,12 +22,13 @@ from .models import Tip, TipFavourite
 
 class BadgeSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
+    intro = serializers.CharField()
     image_url = serializers.SerializerMethodField()
     social_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Badge
-        fields = ('name', 'image_url', 'social_url',)
+        fields = ('name', 'intro', 'image_url', 'social_url')
 
     def get_image_url(self, obj):
         request = self.context['request']
