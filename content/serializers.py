@@ -500,7 +500,7 @@ class GoalTransactionSerializer(serializers.ModelSerializer):
 
 class GoalSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
-    prototype = serializers.PrimaryKeyRelatedField(queryset=GoalPrototype.objects.all(), allow_null=True, required=False)
+    prototype_id = serializers.PrimaryKeyRelatedField(queryset=GoalPrototype.objects.all(), allow_null=True, required=False)
     start_date = serializers.DateField()
     end_date = serializers.DateField()
     value = serializers.ReadOnlyField()
