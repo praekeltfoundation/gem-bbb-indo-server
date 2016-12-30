@@ -1298,9 +1298,10 @@ def award_transaction_first(request, goal):
     if goal.pk is None:
         raise ValueError(_('Goal instance must be saved before it can be awarded badges.'))
 
-    if GoalTransaction.objects.filter(goal__user=goal.user).count() == 1:
+    if GoalTransaction.objects.filter(goal__user=goal.user).count() >= 1:
         user_badge, created = UserBadge.objects.get_or_create(user=goal.user, badge=badge)
-        return user_badge
+        if created:
+            return user_badge
 
     return None
 
