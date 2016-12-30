@@ -1211,11 +1211,12 @@ def award_first_goal(request, goal):
     if goal.pk is None:
         raise ValueError(_('Goal instance must be saved before it can be awarded badges.'))
 
-    if Goal.objects.filter(user=goal.user).count() == 1:
+    if Goal.objects.filter(user=goal.user).count() >= 1:
         user_badge, created = UserBadge.objects.get_or_create(user=goal.user, badge=badge_settings.goal_first_created)
-        return user_badge
-    else:
-        return None
+        if created:
+            return user_badge
+
+    return None
 
 
 def award_goal_done(request, goal):
