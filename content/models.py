@@ -942,8 +942,9 @@ class Goal(models.Model):
 
     @property
     def value(self):
-        return reduce(lambda acc, el: acc + el['value'],
-                      self.transactions.all().order_by('date', 'id').values('value'), 0)
+        # Goal value cannot be negative
+        return max(0, reduce(lambda acc, el: acc + el['value'],
+                      self.transactions.all().order_by('date', 'id').values('value'), 0))
 
     @property
     def is_custom(self):
