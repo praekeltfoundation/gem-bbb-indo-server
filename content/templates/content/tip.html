@@ -56,9 +56,9 @@ prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# article: http://ogp.me/ns
     <div id="space">
         {% if page.body %}
         <div id="footer">
-            <img id="left-nav-button" class="prevOff"
+            <img id="left-nav-button" src="{% static 'img/Tips Buttons_Previous_OFF.svg' %}"
                  onclick="empDot(-1);"/>
-            <img id="right-nav-button" class="nextOn"
+            <img id="right-nav-button" src="{% static 'img/Tips Buttons_Next_ON.svg' %}"
                  onclick="empDot(1);"/>
             <div id="tip-nav-dots">
                 <ul>
@@ -79,10 +79,5 @@ prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# article: http://ogp.me/ns
 <script language="JavaScript">
         window.mySwipe = new Swipe(document.getElementById('slider'));
         list[0].setAttribute("id", "activated");
-
-
-
-
-
 </script>
 {% endblock %}
