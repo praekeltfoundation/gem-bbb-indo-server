@@ -4,6 +4,7 @@
 {% load static %}
 {% load wagtailcore_tags %}
 {% load content_page_helpers %}
+{% load i18n %}
 
 {% block title %}{{ page.title }}{% endblock %}
 
@@ -34,7 +35,7 @@
 {% block content %}
     <div id="article">
         <h1>{{ page.title.upper }}</h1>
-        <h5>{{ page.first_published_at|date:"d / m / Y" }} {{ page.owner }}</h5>
+        <h5>{% trans "Written for you, by Bina." %}</h5>
 
         <ul id="tip-tags" class="clearfix">
         {% for tag in page.tags.all %}
