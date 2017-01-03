@@ -1245,18 +1245,20 @@ class TestBadgeAwarding(APITestCase):
             start_date=now - timedelta(days=30),
             end_date=now + timedelta(days=30)
         )
-        goal.transactions.create(
-            date=now,
-            value=100
-        )
-
-        data = [{
-            'date': timezone.now().isoformat(),
-            'value': 200
-        }]
 
         self.client.force_authenticate(user=user)
-        response = self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}), data, format='json')
+
+        # First
+        self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}), [{
+            'date': now,
+            'value': 100
+        }], format='json')
+
+        # Second
+        response = self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}), [{
+            'date': timezone.now().isoformat(),
+            'value': 200
+        }], format='json')
 
         badges = [b for b in response.data['new_badges'] if b['name'] == self.transaction_first.name]
         self.assertEqual(len(badges), 0, "First savings was unexpectedly awarded.")
