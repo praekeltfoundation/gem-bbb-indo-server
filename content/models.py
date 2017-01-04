@@ -2,7 +2,7 @@ from uuid import uuid4
 from collections import OrderedDict
 from datetime import timedelta
 from functools import reduce
-from math import ceil
+from math import ceil, floor
 from os.path import splitext
 
 from django.apps import apps
@@ -112,6 +112,54 @@ class BadgeSettings(BaseSetting):
         blank=False, null=True
     )
 
+    weekly_target_2 = models.ForeignKey(
+        'Badge',
+        verbose_name=_('2 Week On Target'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded when a user has reached their weekly target 2 weeks in a row."),
+        blank=False, null=True
+    )
+
+    weekly_target_4 = models.ForeignKey(
+        'Badge',
+        verbose_name=_('4 Week On Target'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded when a user has reached their weekly target 4 weeks in a row."),
+        blank=False, null=True
+    )
+
+    weekly_target_8 = models.ForeignKey(
+        'Badge',
+        verbose_name=_('8 Week On Target'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded when a user has reached their weekly target 8 weeks in a row."),
+        blank=False, null=True
+    )
+
+    challenge_entry = models.ForeignKey(
+        'Badge',
+        verbose_name=_('Challenge Participation'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded when a user has participated in a Challenge."),
+        blank=False, null=True
+    )
+
+    challenge_win = models.ForeignKey(
+        'Badge',
+        verbose_name=_('Challenge Winner'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded when a user has won a Challenge."),
+        blank=False, null=True
+    )
+
+    class Meta:
+        verbose_name = 'Badge Setup'
+
     def get_streak_badge(self, weeks):
         if weeks == WEEK_STREAK_2:
             return self.streak_2
@@ -122,17 +170,60 @@ class BadgeSettings(BaseSetting):
         else:
             return None
 
+    @classmethod
+    def get_field_verbose_name(cls, field_name):
+        return cls._meta.get_field(field_name).verbose_name
+
 
 BadgeSettings.panels = [
     wagtail_edit_handlers.MultiFieldPanel([
         wagtail_edit_handlers.FieldPanel('goal_first_created'),
+    ],
+        # Translators: Admin field name
+        heading=_("goal badges")),
+    wagtail_edit_handlers.MultiFieldPanel([
         wagtail_edit_handlers.FieldPanel('goal_half'),
         wagtail_edit_handlers.FieldPanel('goal_week_left'),
         wagtail_edit_handlers.FieldPanel('goal_first_done'),
         wagtail_edit_handlers.FieldPanel('transaction_first'),
+        wagtail_edit_handlers.FieldPanel('streak_2'),
+        wagtail_edit_handlers.FieldPanel('streak_4'),
+        wagtail_edit_handlers.FieldPanel('streak_6'),
+        wagtail_edit_handlers.FieldPanel('weekly_target_2'),
+        wagtail_edit_handlers.FieldPanel('weekly_target_4'),
+        wagtail_edit_handlers.FieldPanel('weekly_target_8'),
     ],
         # Translators: Admin field name
-        heading=_("Badge types"))
+        heading=_("savings badges")),
+    wagtail_edit_handlers.MultiFieldPanel([
+        wagtail_edit_handlers.FieldPanel('challenge_entry'),
+        wagtail_edit_handlers.FieldPanel('challenge_win'),
+    ],
+        # Translators: Admin field name
+        heading=_("challenge badges")),
+]
+
+
+@register_setting
+class SocialMediaSettings(BaseSetting):
+    facebook_app_id = models.CharField(
+        # Translators: Field name on CMS
+        verbose_name=_('Facebook App Id'),
+        max_length=255,
+        # Translators: Help text on CMS
+        help_text=_("The App Id provided by Facebook via the Developer Console."),
+        blank=True, null=False
+    )
+
+    class Meta:
+        verbose_name = 'social media accounts'
+
+SocialMediaSettings.panels = [
+    wagtail_edit_handlers.MultiFieldPanel([
+        wagtail_edit_handlers.FieldPanel('facebook_app_id'),
+    ],
+        # Translators: Admin field name
+        heading=_("Facebook")),
 ]
 
 
@@ -689,15 +780,15 @@ class Tip(wagtail_models.Page):
         wagtail_edit_handlers.FieldPanel('tags'),
     ]
 
-    def get_tag_name_list(self):
-        return [tag.name for tag in self.tags.all()]
-
     class Meta:
         # Translators: Collection name on CMS
         verbose_name = _('tip')
 
         # Translators: Plural collection name on CMS
         verbose_name_plural = _('tips')
+
+    def get_tag_name_list(self):
+        return [tag.name for tag in self.tags.all()]
 
     def __str__(self):
         return self.title
@@ -1007,12 +1098,29 @@ class Badge(models.Model):
     ACTIVE = 1
 
     name = models.CharField(max_length=255)
+
+    slug = models.SlugField(
+        # Translators: CMS field name
+        verbose_name=_('slug'),
+        allow_unicode=True,
+        max_length=255,
+        # Translators: Help text on CMS
+        help_text=_("The name of the page as it will appear in URLs e.g http://domain.com/blog/[my-slug]/")
+    )
+
+    intro = models.TextField(
+        # Translators: CMS field name
+        _('intro dialogue'),
+        # Translators: Help text on CMS
+        help_text=_("The opening line said by the Coach when presenting the user with their Badge."),
+        blank=True)
     image = models.ForeignKey(wagtail_image_models.Image, blank=True, null=True,
                               on_delete=models.SET_NULL, related_name='+')
     state = models.IntegerField(choices=(
         (INACTIVE, _('Inactive')),
         (ACTIVE, _('Active')),
     ), default=ACTIVE)
+
     user = models.ManyToManyField(User, through='UserBadge', related_name='badges')
 
     class Meta:
@@ -1031,9 +1139,19 @@ class Badge(models.Model):
 
 
 Badge.panels = [
-    wagtail_edit_handlers.FieldPanel('name'),
-    wagtail_edit_handlers.FieldPanel('state'),
-    wagtail_image_edit.ImageChooserPanel('image'),
+    wagtail_edit_handlers.MultiFieldPanel([
+        wagtail_edit_handlers.FieldPanel('name'),
+        wagtail_edit_handlers.FieldPanel('slug'),
+        wagtail_edit_handlers.FieldPanel('state'),
+        wagtail_image_edit.ImageChooserPanel('image'),
+    ],
+        # Translators: Admin field name
+        heading=_('Badge')),
+    wagtail_edit_handlers.MultiFieldPanel([
+        wagtail_edit_handlers.FieldPanel('intro'),
+    ],
+        # Translators: Admin field name
+        heading=_('Coach UI')),
 ]
 
 
@@ -1056,6 +1174,29 @@ class UserBadge(models.Model):
         return '{}-{}'.format(self.user, self.badge)
 
 
+class AchievementStat:
+    """Helper object to aggregate User savings achievements."""
+
+    def __init__(self, user):
+        self.user = user
+
+        # Streaks
+        self.weekly_streak = Goal.get_current_streak(user)
+
+        # User badges
+        self.badges = UserBadge.objects.filter(user=user, badge__state=Badge.ACTIVE)
+
+        # User savings inactivity
+        self.last_saving_datetime = None
+        self.weeks_since_saved = 0
+
+        # TODO: Only consider deposits (transactions of positive values)
+        last_trans = GoalTransaction.objects.filter(goal__user=user).order_by('-date').first()
+        if last_trans:
+            self.last_saving_datetime = last_trans.date
+            self.weeks_since_saved = floor((timezone.now() - last_trans.date).days / 7)
+
+
 def award_first_goal(request, goal):
     """Awarded to users when they create their first Goal."""
     badge_settings = BadgeSettings.for_site(request.site)
@@ -1070,11 +1211,12 @@ def award_first_goal(request, goal):
     if goal.pk is None:
         raise ValueError(_('Goal instance must be saved before it can be awarded badges.'))
 
-    if Goal.objects.filter(user=goal.user).count() == 1:
+    if Goal.objects.filter(user=goal.user).count() >= 1:
         user_badge, created = UserBadge.objects.get_or_create(user=goal.user, badge=badge_settings.goal_first_created)
-        return user_badge
-    else:
-        return None
+        if created:
+            return user_badge
+
+    return None
 
 
 def award_goal_done(request, goal):
@@ -1156,9 +1298,10 @@ def award_transaction_first(request, goal):
     if goal.pk is None:
         raise ValueError(_('Goal instance must be saved before it can be awarded badges.'))
 
-    if GoalTransaction.objects.filter(goal__user=goal.user).count() == 1:
+    if GoalTransaction.objects.filter(goal__user=goal.user).count() >= 1:
         user_badge, created = UserBadge.objects.get_or_create(user=goal.user, badge=badge)
-        return user_badge
+        if created:
+            return user_badge
 
     return None
 

@@ -987,6 +987,30 @@ class TestAchievementAPI(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK, "Achievement request failed.")
 
+    def test_last_saved(self):
+        now = timezone.now()
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            start_date=now - timedelta(days=30),
+            end_date=now + timedelta(days=30),
+            target=2000,
+            user=user
+        )
+        goal.transactions.create(
+            date=now - timedelta(days=21),
+            value=100
+        )
+        goal.transactions.create(
+            date=now - timedelta(days=20),
+            value=100
+        )
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:achievements', kwargs={'user_pk': user.pk}))
+
+        self.assertEqual(response.data['weeks_since_saved'], 2, "Unexpected weeks since saved.")
+
 
 class TestBadgeAwarding(APITestCase):
 
@@ -1221,18 +1245,20 @@ class TestBadgeAwarding(APITestCase):
             start_date=now - timedelta(days=30),
             end_date=now + timedelta(days=30)
         )
-        goal.transactions.create(
-            date=now,
-            value=100
-        )
-
-        data = [{
-            'date': timezone.now().isoformat(),
-            'value': 200
-        }]
 
         self.client.force_authenticate(user=user)
-        response = self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}), data, format='json')
+
+        # First
+        self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}), [{
+            'date': now,
+            'value': 100
+        }], format='json')
+
+        # Second
+        response = self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}), [{
+            'date': timezone.now().isoformat(),
+            'value': 200
+        }], format='json')
 
         badges = [b for b in response.data['new_badges'] if b['name'] == self.transaction_first.name]
         self.assertEqual(len(badges), 0, "First savings was unexpectedly awarded.")

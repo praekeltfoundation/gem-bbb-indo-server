@@ -48,6 +48,10 @@ api_urls = [
     url(r'', include(router.urls)),
 ]
 
+social_urls = [
+    url(r'^badges/(?P<slug>[a-zA-Z0-9\-\_]+)/$', content_views.badge_social_view, name='badges-detail'),
+]
+
 urlpatterns = [
     url(r'^django-admin/', include(admin.site.urls)),
 
@@ -57,6 +61,7 @@ urlpatterns = [
     url(r'^search/$', search_views.search, name='search'),
 
     url(r'^api/', include(api_urls, namespace='api')),
+    url(r'^social/', include(social_urls, namespace='social')),
 
     url(r'', include(wagtail_urls)),
 ]

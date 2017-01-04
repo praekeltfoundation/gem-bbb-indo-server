@@ -22,16 +22,25 @@ from .models import Tip, TipFavourite
 
 class BadgeSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
+    intro = serializers.CharField()
     image_url = serializers.SerializerMethodField()
+    social_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Badge
-        fields = ('name', 'image_url',)
+        fields = ('name', 'intro', 'image_url', 'social_url')
 
     def get_image_url(self, obj):
         request = self.context['request']
         if obj.image:
             return request.build_absolute_uri(obj.image.file.url)
+        else:
+            return None
+
+    def get_social_url(self, obj):
+        request = self.context['request']
+        if obj.slug:
+            return request.build_absolute_uri(reverse('social:badges-detail', kwargs={'slug': obj.slug}))
         else:
             return None
 
@@ -573,6 +582,16 @@ class GoalSerializer(serializers.ModelSerializer):
             instance.transactions.add(t)
 
         return instance
+
+
+class AchievementStatSerializer(serializers.Serializer):
+    weekly_streak = serializers.ReadOnlyField()
+    badges = UserBadgeSerializer(many=True, read_only=True)
+    last_saving_datetime = serializers.ReadOnlyField()
+    weeks_since_saved = serializers.ReadOnlyField()
+
+    class Meta:
+        fields = '__all__'
 
 
 ############

@@ -1,8 +1,10 @@
 
 from collections import OrderedDict
 
+from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import User
-from django.shortcuts import get_object_or_404
+from django.shortcuts import get_object_or_404, render
+from django.http import Http404
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.decorators import list_route, detail_route
@@ -15,11 +17,13 @@ from sendfile import sendfile
 
 from .exceptions import ImageNotFound
 
-from .models import Badge, Challenge, Entry, UserBadge
+from .models import BadgeSettings
+from .models import Badge, Challenge, Entry
 from .models import Feedback
 from .models import Goal, GoalPrototype
 from .models import Participant, ParticipantAnswer, ParticipantFreeText, ParticipantPicture
 from .models import Tip, TipFavourite
+from .models import AchievementStat
 from .models import award_first_goal, award_goal_done, award_goal_halfway, award_goal_week_left, \
     award_transaction_first, award_week_streak
 from .models import WEEK_STREAK_2, WEEK_STREAK_4, WEEK_STREAK_6
@@ -32,7 +36,7 @@ from .serializers import GoalPrototypeSerializer, GoalSerializer, GoalTransactio
 from .serializers import ParticipantAnswerSerializer, ParticipantFreeTextSerializer, ParticipantPictureSerializer, \
     ParticipantRegisterSerializer
 from .serializers import TipSerializer
-from .serializers import UserBadgeSerializer
+from .serializers import AchievementStatSerializer, UserBadgeSerializer
 
 
 # ========== #
@@ -483,13 +487,14 @@ class AchievementsView(GenericAPIView):
     def get(self, request, user_pk, *args, **kwargs):
         user = get_object_or_404(User, pk=user_pk)
         self.check_object_permissions(request, user)
-        data = OrderedDict()
-        data['weekly_streak'] = Goal.get_current_streak(user)
+        serializer = AchievementStatSerializer(instance=AchievementStat(user), context=self.get_serializer_context())
+        return Response(data=serializer.data)
 
-        serial = UserBadgeSerializer(UserBadge.objects.filter(user=user, badge__state=Badge.ACTIVE),
-                                     many=True, context=self.get_serializer_context())
-        data['badges'] = serial.data
-        return Response(data=data)
+
+def badge_social_view(request, slug):
+    """An HTML view to be used for sharing Badges as links"""
+    badge = get_object_or_404(Badge, slug=slug, state=Badge.ACTIVE)
+    return render(request, 'content/badge_social.html', context={'badge': badge})
 
 
 ############

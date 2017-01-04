@@ -1,6 +1,6 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en" >
+<head {% block head_prefix %}{% endblock %}>
     <meta charset="UTF-8">
     <title>{% block title %}{% endblock %}</title>
 
@@ -12,6 +12,8 @@
     <link rel="stylesheet" href="{% static 'css/dooit.css' %}" />
     <link rel="stylesheet" href="{% static 'css/agreements.css' %}" />
     <link rel="stylesheet" href="{% static 'css/tips.css' %}" />
+
+    {% block meta %}{% endblock %}
 
 </head>
 <body>

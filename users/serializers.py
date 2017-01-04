@@ -1,3 +1,4 @@
+from django.core.validators import EmailValidator
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 from .models import Profile, RegUser
@@ -99,6 +100,18 @@ class PasswordChangeSerializer(serializers.Serializer):
             'old_password': {'write_only': True},
             'new_password': {'write_only': True}
         }
+
+
+class EmailChangeSerializer(serializers.Serializer):
+    email = serializers.CharField(validators=[EmailValidator], write_only=True)
+
+    def validate_email(self, value):
+        if RegUser.objects.filter(email=value).count() != 0:
+            raise serializers.ValidationError('E-mail address already used.')
+        return value
+
+    class Meta:
+        fields = '__all__'
 
 
 class SecurityQuestionSerializer(serializers.Serializer):
