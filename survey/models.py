@@ -48,7 +48,7 @@ class CoachSurvey(AbstractSurvey):
         return data_fields
 
     def get_form_fields(self):
-        return self.custom_form_fields.all()
+        return self.form_fields.all()
 
     def get_submission_class(self):
         return CoachSurveySubmission
@@ -75,12 +75,12 @@ CoachSurvey.content_panels = AbstractSurvey.content_panels + [
         ],
         # Translators: Admin field name
         heading=_('Coach UI')),
-    InlinePanel('custom_form_fields', label=_("Form fields")),
+    InlinePanel('form_fields', label=_("Form fields")),
 ]
 
 
 class CoachFormField(AbstractFormField):
-    page = ParentalKey(CoachSurvey, related_name='custom_form_fields')
+    page = ParentalKey(CoachSurvey, related_name='form_fields')
 
 
 class CoachSurveySubmission(AbstractFormSubmission):
