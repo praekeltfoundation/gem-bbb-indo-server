@@ -1,11 +1,15 @@
 
+import json
+
+from django.contrib.auth.models import User
+from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
 from django.utils.translation import ugettext_lazy as _
 from wagtail.wagtailcore.models import Page
 from wagtail.wagtailadmin.edit_handlers import MultiFieldPanel, InlinePanel
 from wagtail.wagtailadmin.edit_handlers import FieldPanel
 from modelcluster.fields import ParentalKey
-from wagtailsurveys.models import AbstractSurvey, AbstractFormField
+from wagtailsurveys.models import AbstractSurvey, AbstractFormField, AbstractFormSubmission
 
 
 class CoachSurvey(AbstractSurvey):
@@ -33,8 +37,27 @@ class CoachSurvey(AbstractSurvey):
         default=1
     )
 
+    def get_data_fields(self):
+        data_fields = [
+            ('username', _('Username')),
+            ('mobile', _('Mobile Number')),
+            ('email', _('Email')),
+        ]
+        data_fields += super(CoachSurvey, self).get_data_fields()
+
+        return data_fields
+
     def get_form_fields(self):
         return self.custom_form_fields.all()
+
+    def get_submission_class(self):
+        return CoachSurveySubmission
+
+    def process_form_submission(self, form):
+        self.get_submission_class().objects.create(
+            form_data=json.dumps(form.cleaned_data, cls=DjangoJSONEncoder),
+            page=self, user=form.user
+        )
 
 
 CoachSurvey.content_panels = AbstractSurvey.content_panels + [
@@ -58,3 +81,18 @@ CoachSurvey.content_panels = AbstractSurvey.content_panels + [
 
 class CoachFormField(AbstractFormField):
     page = ParentalKey(CoachSurvey, related_name='custom_form_fields')
+
+
+class CoachSurveySubmission(AbstractFormSubmission):
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, blank=False, null=True)
+
+    def get_data(self):
+        form_data = super(CoachSurveySubmission, self).get_data()
+        if self.user and self.user.profile:
+            form_data.update({
+                'username': self.user.username,
+                'mobile': self.user.profile.mobile,
+                'email': self.user.email
+            })
+
+        return form_data
