@@ -1,6 +1,8 @@
 
 import json
 
+from django.utils.six import text_type
+from django.utils.text import slugify
 from django.contrib.auth.models import User
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
@@ -10,6 +12,7 @@ from wagtail.wagtailadmin.edit_handlers import MultiFieldPanel, InlinePanel
 from wagtail.wagtailadmin.edit_handlers import FieldPanel
 from modelcluster.fields import ParentalKey
 from wagtailsurveys.models import AbstractSurvey, AbstractFormField, AbstractFormSubmission
+from unidecode import unidecode
 
 
 class CoachSurvey(AbstractSurvey):
@@ -87,7 +90,43 @@ CoachSurvey.content_panels = AbstractSurvey.content_panels + [
 
 
 class CoachFormField(AbstractFormField):
+    # Explicit key so that the Label can be changed without breaking submissions
+    key = models.CharField(
+        _('key'),
+        max_length=30,
+        help_text=_("Field identifier. Warning: Changing this will prevent existing submissions' fields from being exported."),
+        blank=True
+    )
     page = ParentalKey(CoachSurvey, related_name='form_fields')
+
+    @property
+    def clean_name(self):
+        if self.key:
+            return self.key
+        else:
+            return super(CoachFormField, self).clean_name()
+
+    def save(self, *args, **kwargs):
+        if self.key:
+            self.key = self.slugify(self.key)
+        else:
+            self.key = super(CoachFormField, self).clean_name
+        super(CoachFormField, self).save(*args, **kwargs)
+
+    @staticmethod
+    def slugify(name):
+        """Taken from `wagtailsurveys.models.AbstractFormField`
+
+        unidecode will return an ascii string while slugify wants a
+        unicode string on the other hand, slugify returns a safe-string
+        which will be converted to a normal str
+        """
+        return str(slugify(text_type(unidecode(name))))
+
+
+CoachFormField.panels = [
+    FieldPanel('key'),
+] + CoachFormField.panels
 
 
 class CoachSurveySubmission(AbstractFormSubmission):
