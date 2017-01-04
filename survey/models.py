@@ -39,6 +39,7 @@ class CoachSurvey(AbstractSurvey):
 
     def get_data_fields(self):
         data_fields = [
+            ('name', _('Name')),
             ('username', _('Username')),
             ('mobile', _('Mobile Number')),
             ('email', _('Email')),
@@ -90,6 +91,7 @@ class CoachSurveySubmission(AbstractFormSubmission):
         form_data = super(CoachSurveySubmission, self).get_data()
         if self.user and self.user.profile:
             form_data.update({
+                'name': self.user.get_full_name(),
                 'username': self.user.username,
                 'mobile': self.user.profile.mobile,
                 'email': self.user.email
