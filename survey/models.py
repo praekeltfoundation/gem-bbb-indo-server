@@ -57,7 +57,13 @@ class CoachSurvey(AbstractSurvey):
     def process_form_submission(self, form):
         self.get_submission_class().objects.create(
             form_data=json.dumps(form.cleaned_data, cls=DjangoJSONEncoder),
-            page=self, user=form.user
+            page=self, user=form.user,
+
+            # To preserve historic information
+            name=form.user.get_full_name(),
+            username=form.user.username,
+            mobile=form.user.profile.mobile,
+            email=form.user.email
         )
 
 
@@ -87,14 +93,29 @@ class CoachFormField(AbstractFormField):
 class CoachSurveySubmission(AbstractFormSubmission):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, blank=False, null=True)
 
+    # Fields stored at time of submission, to preserve historic data if the user is deleted
+    name = models.CharField(max_length=100, default='')
+    username = models.CharField(max_length=150, default='')
+    mobile = models.CharField(max_length=15, default='')
+    email = models.CharField(max_length=150, default='')
+
     def get_data(self):
         form_data = super(CoachSurveySubmission, self).get_data()
         if self.user and self.user.profile:
+            # Populate from live user data
             form_data.update({
                 'name': self.user.get_full_name(),
                 'username': self.user.username,
                 'mobile': self.user.profile.mobile,
                 'email': self.user.email
+            })
+        else:
+            # Populate from historic user data
+            form_data.update({
+                'name': self.name,
+                'username': self.username,
+                'mobile': self.mobile,
+                'email': self.email
             })
 
         return form_data
