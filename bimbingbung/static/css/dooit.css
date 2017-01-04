@@ -68,10 +68,12 @@ p {
 	margin : 1.3em;
 }
 
+/*
 #article img {
 	display : block;
 	margin-top : 0.3em;
 }
+*/
 
 #article img.left {
 	float : left;
