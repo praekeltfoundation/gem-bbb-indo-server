@@ -35,3 +35,11 @@ class CoachSurveySerializer(serializers.ModelSerializer):
     def get_url(self, obj):
         request = self.context['request']
         return rest_reverse('api:surveys-detail', kwargs={'pk': obj.pk}, request=request)
+
+
+class CoachSurveyResponseSerializer(serializers.Serializer):
+    available = serializers.BooleanField(read_only=True)
+    survey = CoachSurveySerializer(read_only=True)
+
+    class Meta:
+        fields = '__all__'

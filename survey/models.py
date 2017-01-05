@@ -1,5 +1,6 @@
 
 import json
+from collections import namedtuple
 
 from django.utils.six import text_type
 from django.utils.text import slugify
@@ -158,3 +159,6 @@ class CoachSurveySubmission(AbstractFormSubmission):
             })
 
         return form_data
+
+
+CoachSurveyResponse = namedtuple('CoachSurveyResponse', ['available', 'survey'])

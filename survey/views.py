@@ -1,13 +1,13 @@
 
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import list_route, detail_route
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
-from .models import CoachSurvey
-from .serializers import CoachSurveySerializer
+from .models import CoachSurvey, CoachSurveySubmission, CoachSurveyResponse
+from .serializers import CoachSurveySerializer, CoachSurveyResponseSerializer
 
 
 class CoachSurveyViewSet(ModelViewSet):
@@ -31,3 +31,19 @@ class CoachSurveyViewSet(ModelViewSet):
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
             raise ValidationError(form.errors)
+
+    @list_route(['get'])
+    def current(self, request, *args, **kwargs):
+        surveys = self.get_queryset()\
+            .order_by('deliver_after', '-latest_revision_created_at')\
+            .exclude(page_ptr__in=CoachSurveySubmission.objects.filter(user=request.user).values('page'))
+
+        if surveys:
+            survey_response = CoachSurveyResponse(True, surveys[0])
+        else:
+            survey_response = CoachSurveyResponse(False, None)
+
+        return Response(CoachSurveyResponseSerializer(
+                instance=survey_response,
+                context=self.get_serializer_context()
+            ).data)
