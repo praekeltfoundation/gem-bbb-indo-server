@@ -37,7 +37,6 @@ class CoachSurveyViewSet(ModelViewSet):
 
     @list_route(['get'])
     def current(self, request, *args, **kwargs):
-        """Test"""
         surveys = self.get_queryset()\
             .order_by('deliver_after', '-latest_revision_created_at')\
             .exclude(page_ptr__in=CoachSurveySubmission.objects.filter(user=request.user).values('page'))
