@@ -21,16 +21,32 @@ function empDot(int){
             scroll(0,0);
         }
     }
-    if(currIndex == 0){
+    checkButtonSource(currIndex);
+}
+
+function checkButtonSource(index){
+    if(index == 0){
         leftButton.src="/static/img/Tips Buttons_Previous_OFF.svg";
     }
-    if(currIndex == 1){
+    if(index == 1){
         leftButton.src="/static/img/Tips Buttons_Previous_ON.svg";
     }
-    if(currIndex == (list.length-1)){
+    if(index == (list.length-1)){
         rightButton.src="/static/img/Tips Buttons_Next_OFF.svg";
     }
-    if(currIndex == (list.length-2)){
+    if(index == (list.length-2)){
         rightButton.src="/static/img/Tips Buttons_Next_ON.svg";
     }
 }
+
+var mySlideTransitionCallback = function(index, elem) {
+    list[currIndex].removeAttribute("id");
+    currIndex = index;
+    list[currIndex].setAttribute("id", "activated");
+
+    checkButtonSource(currIndex);
+}
+
+
+window.mySwipe = new Swipe(document.getElementById('slider'), {callback: mySlideTransitionCallback, continuous: false});
+list[0].setAttribute("id", "activated");
