@@ -69,3 +69,9 @@ class CoachSurveyAPITest(APITestCase):
 
         data = json.loads(CoachSurveySubmission.objects.get(user=user, page=survey).form_data)
         self.assertEqual(data.get('field-1'), '3', "Field not found in submission data")
+
+    def test_retrieve_current(self):
+        self.skipTest('TODO')
+
+    def test_current_after_registration_days(self):
+        self.skipTest('TODO')
