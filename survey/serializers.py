@@ -7,6 +7,7 @@ from .models import CoachSurvey, CoachFormField
 
 class CoachSurveyFieldSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
+    choices = serializers.SerializerMethodField()
 
     class Meta:
         model = CoachFormField
@@ -14,6 +15,12 @@ class CoachSurveyFieldSerializer(serializers.ModelSerializer):
 
     def get_name(self, obj):
         return obj.clean_name
+
+    def get_choices(self, obj):
+        return map(
+            lambda x: x.strip(),
+            obj.choices.split(',')
+        )
 
 
 class CoachSurveySerializer(serializers.ModelSerializer):
