@@ -38,6 +38,10 @@ class CoachSurveyViewSet(ModelViewSet):
             .order_by('deliver_after', '-latest_revision_created_at')\
             .exclude(page_ptr__in=CoachSurveySubmission.objects.filter(user=request.user).values('page'))
 
+        if request.user.profile:
+            surveys = list(filter(lambda s: request.user.profile.joined_days >= s.deliver_after,
+                           surveys))
+
         if surveys:
             survey_response = CoachSurveyResponse(True, surveys[0])
         else:

@@ -141,7 +141,7 @@ class Profile(models.Model):
     @property
     def joined_days(self):
         """The number of days since the user has registered"""
-        return (self.user.date_joined - timezone.now()).days
+        return (timezone.now() - self.user.date_joined).days
 
 
 def reset_token(sender, instance, **kwargs):
