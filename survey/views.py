@@ -1,6 +1,6 @@
 
 from rest_framework import status
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import ValidationError, MethodNotAllowed
 from rest_framework.decorators import list_route, detail_route
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -21,6 +21,9 @@ class CoachSurveyViewSet(ModelViewSet):
         queryset = super(CoachSurveyViewSet, self).get_queryset()
         return queryset.filter(live=True)
 
+    def create(self, request, *args, **kwargs):
+        raise MethodNotAllowed('POST')
+
     @detail_route(['post'])
     def submission(self, request, pk=None, *args, **kwargs):
         survey = self.get_object()
@@ -34,6 +37,7 @@ class CoachSurveyViewSet(ModelViewSet):
 
     @list_route(['get'])
     def current(self, request, *args, **kwargs):
+        """Test"""
         surveys = self.get_queryset()\
             .order_by('deliver_after', '-latest_revision_created_at')\
             .exclude(page_ptr__in=CoachSurveySubmission.objects.filter(user=request.user).values('page'))
