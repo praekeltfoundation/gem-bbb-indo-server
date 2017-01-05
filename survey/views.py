@@ -25,7 +25,7 @@ class CoachSurveyViewSet(ModelViewSet):
     def submission(self, request, pk=None, *args, **kwargs):
         survey = self.get_object()
         # Leveraging form to validate fields
-        form = survey.get_form(request.POST, page=survey, user=request.user)
+        form = survey.get_form(request.data, page=survey, user=request.user)
         if form.is_valid():
             survey.process_form_submission(form)
             return Response(status=status.HTTP_204_NO_CONTENT)
