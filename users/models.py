@@ -1,4 +1,5 @@
 
+from datetime import timedelta
 
 from django.utils import timezone
 from django.utils.translation import ugettext as _
@@ -142,6 +143,10 @@ class Profile(models.Model):
     def joined_days(self):
         """The number of days since the user has registered"""
         return (timezone.now() - self.user.date_joined).days
+
+    def is_joined_days_passed(self, days):
+        """Checks whether a provided number of days has passed since the user has registered."""
+        return timezone.now() >= self.user.date_joined + timedelta(days=days)
 
 
 def reset_token(sender, instance, **kwargs):
