@@ -1,7 +1,9 @@
 
+from datetime import timedelta
 import json
 
 from django.shortcuts import reverse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 from wagtail.wagtailcore.models import Page
@@ -70,8 +72,34 @@ class CoachSurveyAPITest(APITestCase):
         data = json.loads(CoachSurveySubmission.objects.get(user=user, page=survey).form_data)
         self.assertEqual(data.get('field-1'), '3', "Field not found in submission data")
 
-    def test_retrieve_current(self):
-        self.skipTest('TODO')
+    def test_current_after_registration_days_none_available(self):
+        now = timezone.now()
 
-    def test_current_after_registration_days(self):
-        self.skipTest('TODO')
+        user = create_user()
+        user.date_joined = now - timedelta(days=2)
+        user.save()
+        survey = create_survey(deliver_after=3)  # Survey will only be available the next day
+        publish(survey, user)
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:surveys-current'))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Retrieve current survey failed.")
+        self.assertFalse(response.data['available'], "Available flag expected to be False.")
+        self.assertIsNone(response.data['survey'], "Survey field was unexpectedly populated.")
+
+    def test_current_after_registration_days_available(self):
+        now = timezone.now()
+
+        user = create_user()
+        user.date_joined = now - timedelta(days=3)
+        user.save()
+        survey = create_survey(deliver_after=3)  # Survey is available today
+        publish(survey, user)
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:surveys-current'))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Retrieve current survey failed.")
+        self.assertTrue(response.data['available'], "Available flag expected to be True.")
+        self.assertIsNotNone(response.data['survey'], "Survey field was not populated.")
