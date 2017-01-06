@@ -26,15 +26,20 @@ class CoachSurveyFieldSerializer(serializers.ModelSerializer):
 class CoachSurveySerializer(serializers.ModelSerializer):
     form_fields = CoachSurveyFieldSerializer(many=True)
     url = serializers.SerializerMethodField()
+    submit_url = serializers.SerializerMethodField()
 
     class Meta:
         model = CoachSurvey
         # fields = '__all__'
-        fields = ('id', 'title', 'intro', 'outro', 'url', 'form_fields')
+        fields = ('id', 'title', 'intro', 'outro', 'url', 'submit_url', 'form_fields')
 
     def get_url(self, obj):
         request = self.context['request']
         return rest_reverse('api:surveys-detail', kwargs={'pk': obj.pk}, request=request)
+
+    def get_submit_url(self, obj):
+        request = self.context['request']
+        return rest_reverse('api:surveys-submission', kwargs={'pk': obj.pk}, request=request)
 
 
 class CoachSurveyResponseSerializer(serializers.Serializer):

@@ -70,6 +70,23 @@ class CoachSurvey(AbstractSurvey):
             email=form.user.email
         )
 
+    @classmethod
+    def get_current(cls, user):
+
+        surveys = cls.objects \
+            .filter(live=True) \
+            .order_by('deliver_after', '-latest_revision_created_at') \
+            .exclude(page_ptr__in=CoachSurveySubmission.objects.filter(user=user).values('page'))
+
+        if user.profile:
+            surveys = list(filter(lambda s: user.profile.joined_days >= s.deliver_after,
+                                  surveys))
+
+        if surveys:
+            return surveys[0]
+
+        return None
+
 
 CoachSurvey.content_panels = AbstractSurvey.content_panels + [
     MultiFieldPanel(
@@ -95,7 +112,8 @@ class CoachFormField(AbstractFormField):
     key = models.CharField(
         _('key'),
         max_length=30,
-        help_text=_("Field identifier. Warning: Changing this will prevent existing submissions' fields from being exported."),
+        help_text=_(
+            "Field identifier. Warning: Changing this will prevent existing submissions' fields from being exported."),
         blank=True
     )
     page = ParentalKey(CoachSurvey, related_name='form_fields')
@@ -126,8 +144,8 @@ class CoachFormField(AbstractFormField):
 
 
 CoachFormField.panels = [
-    FieldPanel('key'),
-] + CoachFormField.panels
+                            FieldPanel('key'),
+                        ] + CoachFormField.panels
 
 
 class CoachSurveySubmission(AbstractFormSubmission):
