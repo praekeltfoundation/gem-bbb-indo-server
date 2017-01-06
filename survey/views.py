@@ -37,20 +37,10 @@ class CoachSurveyViewSet(ModelViewSet):
 
     @list_route(['get'])
     def current(self, request, *args, **kwargs):
-        surveys = self.get_queryset()\
-            .order_by('deliver_after', '-latest_revision_created_at')\
-            .exclude(page_ptr__in=CoachSurveySubmission.objects.filter(user=request.user).values('page'))
-
-        if request.user.profile:
-            surveys = list(filter(lambda s: request.user.profile.joined_days >= s.deliver_after,
-                           surveys))
-
-        if surveys:
-            survey_response = CoachSurveyResponse(True, surveys[0])
-        else:
-            survey_response = CoachSurveyResponse(False, None)
+        survey = CoachSurvey.get_current(request.user)
+        available = survey is not None
 
         return Response(CoachSurveyResponseSerializer(
-                instance=survey_response,
+                instance=CoachSurveyResponse(available, survey),
                 context=self.get_serializer_context()
             ).data)

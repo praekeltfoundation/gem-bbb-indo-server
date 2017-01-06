@@ -1,12 +1,14 @@
 
-import json
 from collections import namedtuple
+from datetime import timedelta
+import json
 
-from django.utils.six import text_type
-from django.utils.text import slugify
 from django.contrib.auth.models import User
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
+from django.utils import timezone
+from django.utils.six import text_type
+from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _
 from wagtail.wagtailcore.models import Page
 from wagtail.wagtailadmin.edit_handlers import MultiFieldPanel, InlinePanel
@@ -79,8 +81,7 @@ class CoachSurvey(AbstractSurvey):
             .exclude(page_ptr__in=CoachSurveySubmission.objects.filter(user=user).values('page'))
 
         if user.profile:
-            surveys = list(filter(lambda s: user.profile.joined_days >= s.deliver_after,
-                                  surveys))
+            surveys = list(filter(lambda s: user.profile.is_joined_days_passed(s.deliver_after), surveys))
 
         if surveys:
             return surveys[0]
