@@ -13,7 +13,7 @@ li#tip-tags {
 	background-position : center;
 	background-size : cover;
 	background-repeat : no-repeat;
-	font-size : 0.6em;
+	font-size : 0.588em;
 	font-weight : bold;
 	float : left;
 	padding : 0.5em;
@@ -114,21 +114,46 @@ li#tip-tags {
   overflow: hidden;
 }
 
+/* CSS for the webView */
+
 p{
     line-height : 1.5;
+    font-size: 1em;
+    color: red;
 }
 
 #article{
     margin-top: 4em;
 }
 
-/*
-Bold
-Italic
-Header 2 - 5
-Ordered List
-unOrdered list
-horizontal rule
-hyperlink
-image
-*/
+bold{ font-weight: bold; }
+
+italic{ font-style: italic; }
+
+h2 { font-size: 2.235em; }
+h3 { font-size: 1.324em; }
+h4 { font-size: 1.12em; }
+h5 { font-size: .83em; }
+
+ul { 
+    list-style-type: square !important;
+    margin-left: 1.2em; 
+}
+
+ol { 
+    list-style-type: upper-roman !important; 
+    margin-left: 1.2em; 
+}
+
+a:link { color: blue; }
+
+a:visited { color: green; }
+
+a:active {  color: red; }
+
+hr{ 
+    stroke-width: 10px;
+    color: yellow;
+}
+
+img { border-radius: 25px; }
