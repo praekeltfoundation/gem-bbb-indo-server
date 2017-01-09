@@ -11,7 +11,7 @@ class CoachSurveyFieldSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CoachFormField
-        fields = ('id', 'name', 'label', 'field_type', 'required', 'choices', 'default_value', 'help_text')
+        fields = ('name', 'label', 'field_type', 'required', 'choices', 'default_value', 'help_text')
 
     def get_name(self, obj):
         return obj.clean_name
