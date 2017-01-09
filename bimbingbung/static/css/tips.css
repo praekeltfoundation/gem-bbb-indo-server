@@ -152,8 +152,8 @@ a:visited { color: green; }
 a:active {  color: red; }
 
 hr{ 
-    stroke-width: 10px;
-    color: yellow;
+    stroke-width: 2em;
+    border-color: yellow;
 }
 
-img { border-radius: 25px; }
+/*img { border-radius: 25px; }*/
