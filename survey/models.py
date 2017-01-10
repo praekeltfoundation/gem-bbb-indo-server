@@ -112,7 +112,7 @@ class CoachFormField(AbstractFormField):
     # Explicit key so that the Label can be changed without breaking submissions
     key = models.CharField(
         _('key'),
-        max_length=30,
+        max_length=255,
         help_text=_(
             "Field identifier. Warning: Changing this will prevent existing submissions' fields from being exported."),
         blank=True
