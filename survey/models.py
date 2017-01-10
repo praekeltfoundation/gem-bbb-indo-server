@@ -35,6 +35,22 @@ class CoachSurvey(AbstractSurvey):
         blank=True, null=False
     )
 
+    notification_body = models.TextField(
+        # Translators: Field name on CMS
+        verbose_name=_('notification body'),
+        # Translators: Help text on CMS
+        help_text=_("The content body of the first Survey notification the user receives."),
+        blank=True, null=False
+    )
+
+    reminder_notification_body = models.TextField(
+        # Translators: Field name on CMS
+        verbose_name=_('reminder notification body'),
+        # Translators: Help text on CMS
+        help_text=_("The content body of the repeating Survey notifications the user receives."),
+        blank=True, null=False
+    )
+
     deliver_after = models.PositiveIntegerField(
         # Translators: Field name on CMS
         verbose_name=_('days to deliver'),
@@ -92,10 +108,12 @@ class CoachSurvey(AbstractSurvey):
 CoachSurvey.content_panels = AbstractSurvey.content_panels + [
     MultiFieldPanel(
         [
-            FieldPanel('deliver_after')
+            FieldPanel('deliver_after'),
+            FieldPanel('notification_body'),
+            FieldPanel('reminder_notification_body'),
         ],
         # Translators: Admin field name
-        heading=_('Survey')
+        heading=_('Push Notifications')
     ),
     MultiFieldPanel(
         [
