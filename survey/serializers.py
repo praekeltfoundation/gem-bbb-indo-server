@@ -27,11 +27,13 @@ class CoachSurveySerializer(serializers.ModelSerializer):
     form_fields = CoachSurveyFieldSerializer(many=True)
     url = serializers.SerializerMethodField()
     submit_url = serializers.SerializerMethodField()
+    bot_conversation = serializers.SerializerMethodField()
 
     class Meta:
         model = CoachSurvey
         # fields = '__all__'
-        fields = ('id', 'title', 'intro', 'outro', 'url', 'submit_url', 'form_fields')
+        fields = ('id', 'title', 'intro', 'outro', 'bot_conversation', 'notification_body',
+                  'reminder_notification_body', 'deliver_after', 'url', 'submit_url', 'form_fields')
 
     def get_url(self, obj):
         request = self.context['request']
@@ -40,6 +42,14 @@ class CoachSurveySerializer(serializers.ModelSerializer):
     def get_submit_url(self, obj):
         request = self.context['request']
         return rest_reverse('api:surveys-submission', kwargs={'pk': obj.pk}, request=request)
+
+    def get_bot_conversation(self, obj):
+        if obj.bot_conversation == CoachSurvey.BASELINE:
+            return 'SURVEY_BASELINE'
+        elif obj.bot_conversation == CoachSurvey.EATOOL:
+            return 'SURVEY_EATOOL'
+        else:
+            return None
 
 
 class CoachSurveyResponseSerializer(serializers.Serializer):

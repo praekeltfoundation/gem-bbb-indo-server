@@ -19,6 +19,10 @@ from unidecode import unidecode
 
 
 class CoachSurvey(AbstractSurvey):
+    NONE = 0
+    BASELINE = 1
+    EATOOL = 2
+
     intro = models.TextField(
         # Translators: Field name on CMS
         verbose_name=_('intro dialogue'),
@@ -58,6 +62,12 @@ class CoachSurvey(AbstractSurvey):
         help_text=_("The number of days after user registration that the Survey will be available."),
         default=1
     )
+
+    bot_conversation = models.IntegerField(choices=(
+        (NONE, _('none')),
+        (BASELINE, _('baseline')),
+        (EATOOL, _('ea tool')),
+    ), default=NONE)
 
     def get_data_fields(self):
         data_fields = [
@@ -119,6 +129,7 @@ CoachSurvey.content_panels = AbstractSurvey.content_panels + [
         [
             FieldPanel('intro'),
             FieldPanel('outro'),
+            FieldPanel('bot_conversation'),
         ],
         # Translators: Admin field name
         heading=_('Coach UI')),
