@@ -6,6 +6,7 @@ from django.db.models.signals import pre_save, post_save
 from django.dispatch import receiver
 from django.utils.encoding import python_2_unicode_compatible
 from rest_framework.authtoken.models import Token
+from wagtail.wagtailadmin import edit_handlers as wagtail_edit_handlers
 
 from .storage import ProfileImgStorage
 
@@ -135,6 +136,47 @@ class Profile(models.Model):
     def verify_security_question(self, answer):
         return answer == self.security_question_answer
 
+Profile.panels = [
+    wagtail_edit_handlers.MultiFieldPanel(
+        [
+            wagtail_edit_handlers.FieldPanel('age'),
+            wagtail_edit_handlers.FieldPanel('mobile')
+        ],
+        # Translators: Admin field name
+        heading=_('Profile')
+    ),
+    wagtail_edit_handlers.FieldPanel('gender'),
+    wagtail_edit_handlers.InlinePanel(
+        'age',
+        [
+            wagtail_edit_handlers.FieldPanel('integer')
+        ],
+        # Translators: Admin field name
+        label=_('User age'),
+        # Translators: Admin field help
+        help_text=_('The age of the user')
+    ),
+    wagtail_edit_handlers.InlinePanel(
+        'Male',
+        [
+            wagtail_edit_handlers.FieldPanel('text')
+        ],
+        # Translators: Admin field name
+        label=_('gender'),
+        # Translators: Admin field help
+        help_text=_('')
+    ),
+    wagtail_edit_handlers.InlinePanel(
+        'Female',
+        panels=[
+            wagtail_edit_handlers.FieldPanel('text'),
+        ],
+        # Translators: Admin field name
+        label=_('Female'),
+        # Translators: Admin field help
+        help_text=_('')
+    ),
+]
 
 def reset_token(sender, instance, **kwargs):
     """Invalidates a token when a user's password is changed."""

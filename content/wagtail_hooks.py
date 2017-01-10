@@ -101,3 +101,4 @@ class Achievements(ModelAdminGroup):
 
 
 modeladmin_register(Achievements)
+
