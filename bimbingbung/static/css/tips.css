@@ -1,48 +1,49 @@
 /*custom font */
-body{
-    font-family: 'Lato-heavy';
+body {
+
 }
-/* 
+
+/*
  * Tags
  */
 
 li#tip-tags {
-	margin-bottom : 0.2em;
+    margin-bottom: 0.2em;
 }
 
 .tip-tag {
-	background-color : #FDDF5B;
-	background-image : url("/static/img/tag.png");
-	background-position : center;
-	background-size : cover;
-	background-repeat : no-repeat;
-	font-size : 0.588em;
-	font-weight : bold;
-	float : left;
-	padding : 0.5em;
-	margin-right : 0.3em;
-	margin-bottom : 1.8em;
+    background-color: #FDDF5B;
+    background-image: url("/static/img/tag.png");
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+    font-size: 0.588em;
+    font-weight: bold;
+    float: left;
+    padding: 0.5em;
+    margin-right: 0.3em;
+    margin-bottom: 1.8em;
 }
 
 /*
  * Tip pagination
  */
 
- #left-nav-button, #right-nav-button{
+#left-nav-button, #right-nav-button {
     max-width: 70px;
     position: relative;
- }
+}
 
- #left-nav-button{
+#left-nav-button {
     float: left;
     margin-left: 5%;
- }
+}
 
- #right-nav-button{
+#right-nav-button {
     float: right;
     margin-right: 5%;
- }
- 
+}
+
 #tip-nav-dots {
     overflow: hidden;
     display: inline-block;
@@ -51,20 +52,20 @@ li#tip-tags {
 
 #tip-nav-dots > ul {
     display: inline-block;
-	margin: auto;
-	vertical-align: middle;
-	position: relative;
+    margin: auto;
+    vertical-align: middle;
+    position: relative;
 }
- 
+
 #tip-nav-dots li {
-	/*float: left;*/
+    /*float: left;*/
     /*margin: auto;*/
     display: inline;
     text-decoration: none;
     vertical-align: middle;
 }
 
-#footer{
+#footer {
     left: 0;
     position: fixed;
     bottom: 0px;
@@ -82,11 +83,11 @@ li#tip-tags {
     vertical-align: middle;
 }
 
-#space{
+#space {
     margin-bottom: 20%;
 }
 
-#activated{
+#activated {
     font-size: 150%;
     color: #FDDF5B;
 }
@@ -96,65 +97,85 @@ li#tip-tags {
  */
 
 #slider {
-	margin-bottom : 1em;
+    margin-bottom: 1em;
 }
 
 .swipe {
-  overflow: hidden;
-  visibility: hidden;
-  position: relative;
+    overflow: hidden;
+    visibility: hidden;
+    position: relative;
 }
 
 .swipe-wrap {
-	overflow: hidden;
-	position: relative;
+    overflow: hidden;
+    position: relative;
 }
 
 .swipe-wrap > div {
-  float: left;
-  width: 100%;
-  position: relative;
-  overflow: hidden;
+    float: left;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
 }
 
 /* CSS for the webView */
 
-p{
-    line-height : 1.5;
+p {
+    line-height: 1.5;
     font-size: 1em;
-    color: red;
 }
 
-#article{
+#article {
     margin-top: 4em;
 }
 
-bold{ font-weight: bold; }
+bold {
+    font-weight: bold;
+}
 
-italic{ font-style: italic; }
+italic {
+    font-style: italic;
+}
 
-h2 { font-size: 2.235em; }
-h3 { font-size: 1.324em; }
-h4 { font-size: 1.12em; }
-h5 { font-size: .83em; }
+h2 {
+    font-size: 2.235em;
+}
 
-ul { 
+h3 {
+    font-size: 1.324em;
+}
+
+h4 {
+    font-size: 1.12em;
+}
+
+h5 {
+    font-size: .83em;
+}
+
+ul {
     list-style-type: square !important;
-    margin-left: 1.2em; 
+    margin-left: 1.2em;
 }
 
-ol { 
-    list-style-type: upper-roman !important; 
-    margin-left: 1.2em; 
+ol {
+    list-style-type: upper-roman !important;
+    margin-left: 1.2em;
 }
 
-a:link { color: blue; }
+a:link {
+    color: blue;
+}
 
-a:visited { color: green; }
+a:visited {
+    color: green;
+}
 
-a:active {  color: red; }
+a:active {
+    color: red;
+}
 
-hr{ 
+hr {
     stroke-width: 2em;
     border-color: yellow;
 }
