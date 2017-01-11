@@ -1,3 +1,7 @@
+
+from datetime import timedelta
+
+from django.utils import timezone
 from django.utils.translation import ugettext as _
 from django.contrib.auth.models import User
 from django.core.validators import MinLengthValidator, RegexValidator
@@ -134,6 +138,15 @@ class Profile(models.Model):
 
     def verify_security_question(self, answer):
         return answer == self.security_question_answer
+
+    @property
+    def joined_days(self):
+        """The number of days since the user has registered"""
+        return (timezone.now() - self.user.date_joined).days
+
+    def is_joined_days_passed(self, days):
+        """Checks whether a provided number of days has passed since the user has registered."""
+        return timezone.now() >= self.user.date_joined + timedelta(days=days)
 
 
 def reset_token(sender, instance, **kwargs):

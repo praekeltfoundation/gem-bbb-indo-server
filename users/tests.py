@@ -1,10 +1,12 @@
 
+from datetime import timedelta
 import json
 from io import BytesIO
 
 from django import test
 from django.core.files import File
 from django.urls import reverse
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.authtoken.models import Token
 from rest_framework.test import APITestCase
@@ -245,6 +247,27 @@ class TestToken(test.TestCase):
             new_token = None
 
         self.assertEqual(token, new_token, "Token was changed unexpectedly.")
+
+
+class TestProfile(test.TestCase):
+
+    def test_days_since_joined_true(self):
+        threshold = 1
+        user = RegUser.objects.create(username='Anon')
+        Profile.objects.create(user=user)
+        user.date_joined = timezone.now() - timedelta(days=3)
+        user.save()
+
+        self.assertTrue(user.profile.is_joined_days_passed(threshold))
+
+    def test_days_since_joined_false(self):
+        threshold = 4
+        user = RegUser.objects.create(username='Anon')
+        Profile.objects.create(user=user)
+        user.date_joined = timezone.now() - timedelta(days=3)
+        user.save()
+
+        self.assertFalse(user.profile.is_joined_days_passed(threshold))
 
 
 class TestProfileImage(APITestCase):

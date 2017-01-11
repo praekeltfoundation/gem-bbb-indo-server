@@ -33,6 +33,7 @@ INSTALLED_APPS = [
     'search',
     'users',
     'content',
+    'survey',
     'core',
 
     'wagtail.wagtailforms',
@@ -51,6 +52,7 @@ INSTALLED_APPS = [
 
     'modelcluster',
     'taggit',
+    'wagtailsurveys',
 
     'django.contrib.admin',
     'django.contrib.auth',

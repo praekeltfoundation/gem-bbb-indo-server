@@ -9,6 +9,7 @@ from rest_framework.authtoken import views as framework_views
 from search import views as search_views
 from content import views as content_views
 from users import views as user_views
+from survey import views as survey_views
 from wagtail.wagtailadmin import urls as wagtailadmin_urls
 from wagtail.wagtailcore import urls as wagtail_urls
 from wagtail.wagtaildocs import urls as wagtaildocs_urls
@@ -25,6 +26,7 @@ router.register(r'participantpicture', content_views.ParticipantPictureViewSet, 
 router.register(r'participants', content_views.ParticipantViewSet, base_name='participants')
 router.register(r'tips', content_views.TipViewSet, base_name='tips')
 router.register(r'users', user_views.RegUserViewSet, base_name='users')
+router.register(r'surveys', survey_views.CoachSurveyViewSet, base_name='surveys')
 
 api_urls = [
     # authentication endpoints
