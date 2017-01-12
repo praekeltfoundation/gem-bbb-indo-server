@@ -233,6 +233,7 @@ SocialMediaSettings.panels = [
 
 
 class Agreement(wagtail_models.Page):
+    parent_page_types = ['AgreementIndex']
     body = wagtail_fields.RichTextField(blank=True)
 
     content_panels = wagtail_models.Page.content_panels + [
@@ -245,6 +246,11 @@ class Agreement(wagtail_models.Page):
 
         # Translators: Plural collection name on CMS
         verbose_name_plural = _('agreements')
+
+
+class AgreementIndex(wagtail_models.Page):
+    parent_page_types = ['home.HomePage']
+    subpage_types = ['Agreement']
 
 
 # ========== #
@@ -758,6 +764,7 @@ class TipTag(TaggedItemBase):
 
 @python_2_unicode_compatible
 class Tip(wagtail_models.Page):
+    parent_page_types = ['TipCategory']
     cover_image = models.ForeignKey(wagtail_image_models.Image, blank=True, null=True,
                                     on_delete=models.SET_NULL, related_name='+')
 
@@ -792,6 +799,16 @@ class Tip(wagtail_models.Page):
 
     def __str__(self):
         return self.title
+
+
+class TipCategory(wagtail_models.Page):
+    parent_page_types = ['TipIndex']
+    subpage_types = ['Tip']
+
+
+class TipIndex(wagtail_models.Page):
+    parent_page_types = ['home.HomePage']
+    subpage_types = ['TipCategory']
 
 
 class TipFavourite(models.Model):
