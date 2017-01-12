@@ -3,6 +3,10 @@ var list = document.getElementById("tip-nav-dots").getElementsByTagName("li");
 var leftButton = document.getElementById("left-nav-button");
 var rightButton = document.getElementById("right-nav-button");
 
+window.onload = function() {
+  checkButtonSource(0);
+};
+
 function empDot(int){
     if(int == -1){
         if(currIndex != 0){
