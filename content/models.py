@@ -249,7 +249,7 @@ class Agreement(wagtail_models.Page):
 
 
 class AgreementIndex(wagtail_models.Page):
-    parent_page_types = ['home.HomePage']
+    # parent_page_types = ['home.HomePage']
     subpage_types = ['Agreement']
 
 
@@ -807,7 +807,8 @@ class TipCategory(wagtail_models.Page):
 
 
 class TipIndex(wagtail_models.Page):
-    parent_page_types = ['home.HomePage']
+    # TODO: When restricting the model to the HomePage, creating a TipIndex excludes a AgreementIndex from being created
+    # parent_page_types = ['home.HomePage']
     subpage_types = ['TipCategory']
 
 
