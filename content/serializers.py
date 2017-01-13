@@ -1,4 +1,3 @@
-
 from collections import OrderedDict
 
 from django.contrib.auth.models import User
@@ -7,7 +6,7 @@ from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
-from .models import Challenge, FreeTextQuestion, QuestionOption, QuizQuestion
+from .models import Challenge, FreeTextQuestion, QuestionOption, QuizQuestion, PictureQuestion
 from .models import Entry, Participant, ParticipantAnswer, ParticipantFreeText, ParticipantPicture
 from .models import Feedback
 from .models import Goal, GoalPrototype, GoalTransaction
@@ -172,6 +171,12 @@ class FreeTextSerializer(serializers.ModelSerializer):
         fields = ('id', 'text')
 
 
+class PictureQuestionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = PictureQuestion
+        fields = ('id', 'text')
+
+
 class ChallengeSerializer(serializers.ModelSerializer):
     # challenge type enum mapping
     challenge_types = {Challenge.CTP_QUIZ: 'quiz', Challenge.CTP_PICTURE: 'picture', Challenge.CTP_FREEFORM: 'freeform'}
@@ -181,6 +186,7 @@ class ChallengeSerializer(serializers.ModelSerializer):
     is_active = serializers.BooleanField(read_only=True)
     questions = QuestionSerializer(many=True, read_only=True, required=False)
     freetext_question = FreeTextSerializer(many=True, read_only=True, required=False)
+    picture_question = PictureQuestionSerializer(many=True, read_only=True, required=False)
     type = KeyValueField(read_only=True, labels=challenge_types)
 
     class Meta:
@@ -208,11 +214,18 @@ class ChallengeSerializer(serializers.ModelSerializer):
             rep_dict.pop('questions', None)
         if instance.type != Challenge.CTP_FREEFORM:
             rep_dict.pop('freetext_question', None)
+        if instance.type != Challenge.CTP_PICTURE:
+            rep_dict.pop('picture_question', None)
 
         freetext = rep_dict.pop('freetext_question', None)
         if freetext is not None:
             if len(freetext) > 0:
                 rep_dict['freetext_question'] = freetext[0]
+
+        picture_question = rep_dict.pop('picture_question', None)
+        if picture_question is not None:
+            if len(picture_question) > 0:
+                rep_dict['picture_question'] = picture_question[0]
 
         return rep_dict
 
@@ -500,7 +513,8 @@ class GoalTransactionSerializer(serializers.ModelSerializer):
 
 class GoalSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
-    prototype = serializers.PrimaryKeyRelatedField(queryset=GoalPrototype.objects.all(), allow_null=True, required=False)
+    prototype = serializers.PrimaryKeyRelatedField(queryset=GoalPrototype.objects.all(), allow_null=True,
+                                                   required=False)
     start_date = serializers.DateField()
     end_date = serializers.DateField()
     value = serializers.ReadOnlyField()
