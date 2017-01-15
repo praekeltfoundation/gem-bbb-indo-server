@@ -18,7 +18,14 @@ from wagtailsurveys.models import AbstractSurvey, AbstractFormField, AbstractFor
 from unidecode import unidecode
 
 
+class CoachSurveyIndex(Page):
+    subpage_types = ['CoachSurvey']
+
+
 class CoachSurvey(AbstractSurvey):
+    parent_page_types = ['CoachSurveyIndex']
+    subpage_types = []
+
     NONE = 0
     BASELINE = 1
     EATOOL = 2
