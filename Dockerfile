@@ -26,6 +26,7 @@ COPY search /deploy/search
 COPY content /deploy/content
 COPY core /deploy/core
 COPY home /deploy/home
+COPY survey /deploy/survey
 ADD setup.py /deploy/
 ADD manage.py /deploy/
 ADD README.md /deploy/
