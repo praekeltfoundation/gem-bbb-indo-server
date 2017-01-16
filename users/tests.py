@@ -181,6 +181,35 @@ class TestUserAPI(APITestCase):
         self.assertEqual(response_1.status_code, status.HTTP_403_FORBIDDEN, "Anonymous can access restricted user data.")
         self.assertEqual(response_2.status_code, status.HTTP_403_FORBIDDEN, "Anonymous can access restricted user data.")
 
+    def test_first_name_partial_update(self):
+        user = RegUser.objects.create(username='anon')
+        first_name = 'Anonymous'
+
+        self.client.force_authenticate(user=user)
+        response = self.client.patch(reverse('api:users-detail', kwargs={'pk': user.pk}), {
+            'first_name': first_name
+        }, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, "User update failed.")
+
+        updated_user = User.objects.get(pk=user.pk)
+        self.assertEqual(updated_user.first_name, first_name, "User first name was not updated.")
+
+    def test_first_name_partial_update_restrictions(self):
+        first_name = 'Anon9977'
+        user_1 = RegUser.objects.create(username='User1')
+        user_2 = RegUser.objects.create(username='User2', first_name=first_name)
+
+        self.client.force_authenticate(user=user_1)
+        response = self.client.patch(reverse('api:users-detail', kwargs={'pk': user_2.pk}), {
+            'first_name': 'Anon'
+        }, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN, "User1 was allowed to update User2's first name.")
+
+        existing_user = User.objects.get(pk=user_2.pk)
+        self.assertEqual(existing_user.first_name, first_name, "User2's fist name was changed.")
+
 
 class TestToken(test.TestCase):
 
