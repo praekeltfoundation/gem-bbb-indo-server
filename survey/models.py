@@ -18,10 +18,21 @@ from wagtailsurveys.models import AbstractSurvey, AbstractFormField, AbstractFor
 from unidecode import unidecode
 
 
+class CoachSurveyIndex(Page):
+    subpage_types = ['CoachSurvey']
+
+
 class CoachSurvey(AbstractSurvey):
+    parent_page_types = ['CoachSurveyIndex']
+    subpage_types = []
+
     NONE = 0
     BASELINE = 1
     EATOOL = 2
+    _REVERSE = {
+        'BASELINE': BASELINE,
+        'EATOOL': EATOOL
+    }
 
     intro = models.TextField(
         # Translators: Field name on CMS
@@ -113,6 +124,10 @@ class CoachSurvey(AbstractSurvey):
             return surveys[0]
 
         return None
+
+    @staticmethod
+    def get_conversation_type(bot_conversation_name):
+        return CoachSurvey._REVERSE.get(bot_conversation_name, None)
 
 
 CoachSurvey.content_panels = AbstractSurvey.content_panels + [
