@@ -35,6 +35,10 @@ LOGGING = {
             '()': 'django.utils.log.RequireDebugTrue',
         }
     },
+    'root': {
+        'level': 'DEBUG',
+        'handlers': ['sentry'],
+    },
     'formatters': {
         'simple': {
             'format': '%(levelname)s %(message)s',
