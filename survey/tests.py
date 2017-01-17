@@ -2,6 +2,7 @@
 from datetime import timedelta
 import json
 
+from django.http.request import QueryDict
 from django.shortcuts import reverse
 from django.utils import timezone
 from rest_framework import status
@@ -15,13 +16,14 @@ RADIO_FIELD = 'radio'
 
 
 def create_survey(title='Test Survey', intro='Take this challenge', outro='Thanks for taking the challenge',
-                  deliver_after=1):
+                  deliver_after=1, **kwargs):
     parent_page = Page.get_root_nodes()[0]
     survey = CoachSurvey(
         title=title,
         intro=intro,
         outro=outro,
-        deliver_after=deliver_after
+        deliver_after=deliver_after,
+        **kwargs
     )
     parent_page.add_child(instance=survey)
     survey.unpublish()
@@ -103,3 +105,24 @@ class CoachSurveyAPITest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK, "Retrieve current survey failed.")
         self.assertTrue(response.data['available'], "Available flag expected to be True.")
         self.assertIsNotNone(response.data['survey'], "Survey field was not populated.")
+
+    def test_filter_by_bot_conversation(self):
+        user = create_user('Anon')
+        baseline_survey = create_survey(title='Baseline survey', bot_conversation=CoachSurvey.BASELINE)
+        eatool_survey = create_survey(title='EA Tool', bot_conversation=CoachSurvey.EATOOL)
+
+        publish(baseline_survey, user)
+        publish(eatool_survey, user)
+
+        self.client.force_authenticate(user=user)
+
+        params = QueryDict(mutable=True)
+        params.update({
+            'bot-conversation': 'EATOOL'
+        })
+        response = self.client.get(u'%s?%s' % (reverse('api:surveys-list'), params.urlencode()))
+
+        self.assertEqual(len(response.data), 1, "Unexpected number of surveys returned.")
+        self.assertEqual(response.data[0]['id'], eatool_survey.id, "Unexpected Survey returned.")
+
+

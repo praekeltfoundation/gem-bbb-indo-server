@@ -19,6 +19,11 @@ class CoachSurveyViewSet(ModelViewSet):
 
     def get_queryset(self):
         queryset = super(CoachSurveyViewSet, self).get_queryset()
+
+        bot_conversation_type = CoachSurvey.get_conversation_type(self.request.query_params.get('bot-conversation', None))
+        if bot_conversation_type is not None:
+            queryset = queryset.filter(bot_conversation=bot_conversation_type)
+
         return queryset.filter(live=True)
 
     def create(self, request, *args, **kwargs):
