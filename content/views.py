@@ -333,7 +333,7 @@ class TipViewSet(viewsets.ModelViewSet):
     def unfavourite(self, request, pk=None, *args, **kwargs):
         tip = self.get_object()
         try:
-            fav = TipFavourite.objects.get(tip_id=tip.id)
+            fav = TipFavourite.objects.get(tip_id=tip.id, user_id=request.user.id)
             fav.unfavourite()
             fav.save()
         except TipFavourite.DoesNotExist:
