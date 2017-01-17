@@ -185,7 +185,7 @@ REST_FRAMEWORK = {
 
 #Raven settings
 RAVEN_CONFIG = {
-    'dsn': 'https://4aed0e4776744a938b72cedb74e82236:d9af68f3affb45c5a1ede76bfd7ddf7c@sentry.io/129874',
+    'dsn': environ.get('RAVEN_DSN'),
     # If you are using git, you can also automatically configure the
     # release based on the git info.
     'release': raven.fetch_git_sha(os.path.dirname(os.pardir)),
