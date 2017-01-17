@@ -15,6 +15,7 @@ import dj_database_url
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+import raven;
 
 from django.utils.translation import ugettext_lazy as _
 
@@ -180,6 +181,14 @@ REST_FRAMEWORK = {
     ),
     'EXCEPTION_HANDLER': 'bimbingbung.exception_handler.structured_exception_handler',
     'NON_FIELD_ERRORS_KEY': 'errors'
+}
+
+#Raven settings
+RAVEN_CONFIG = {
+    'dsn': 'https://4aed0e4776744a938b72cedb74e82236:d9af68f3affb45c5a1ede76bfd7ddf7c@sentry.io/129874',
+    # If you are using git, you can also automatically configure the
+    # release based on the git info.
+    'release': raven.fetch_git_sha(os.path.dirname(os.pardir)),
 }
 
 

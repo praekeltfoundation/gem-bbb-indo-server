@@ -46,12 +46,32 @@ LOGGING = {
             'formatter': 'verbose',
             'level': 'DEBUG',
         },
+        'sentry': {
+            'level': 'DEBUG', # To capture more than ERROR, change to WARNING, INFO, etc.
+            'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
+            #'tags': {'custom-tag': 'gem-sentry-tag'},
+        },
     },
     'loggers': {
         'dooit': {
-            'handlers': ['console'],
+            'handlers': ['sentry'],
             'level': 'DEBUG',
             'propagate': True,
+        },
+        'django.db.backends': {
+            'level': 'ERROR',
+            'handlers': ['sentry'],
+            'propagate': True,
+        },
+        'raven': {
+            'level': 'DEBUG',
+            'handlers': ['sentry'],
+            'propagate': False,
+        },
+        'sentry.errors': {
+            'level': 'DEBUG',
+            'handlers': ['sentry'],
+            'propagate': False,
         },
     },
     'version': 1,
