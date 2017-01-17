@@ -5,6 +5,7 @@
     <title>{% block title %}{% endblock %}</title>
 
     {% load static %}
+    {% load raven %}
 
     <link rel="stylesheet" href="{% static 'css/reset.css' %}" />
     <link rel="stylesheet" href="{% static 'fonts/lato/stylesheet.css' %}" />
@@ -16,6 +17,9 @@
     {% block meta %}{% endblock %}
 
 </head>
+<script>
+Raven.config('{% sentry_public_dsn %}').install()
+</script>
 <body>
 
     {% block content %}{% endblock %}
