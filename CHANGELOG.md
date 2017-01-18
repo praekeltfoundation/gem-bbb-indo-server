@@ -2,6 +2,11 @@
 Changelog
 =========
 
+0.0.15
+------
+
+- Fixed HTTP 500 when removing Tips from favourites
+
 0.0.14
 ------
 
