@@ -150,6 +150,15 @@ class BadgeSettings(BaseSetting):
         blank=False, null=True
     )
 
+    challenge_completed = models.ForeignKey(
+        'Badge',
+        verbose_name=_('Challenge Completed'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded when a user has completed a challenge."),
+        blank=False, null=True
+    )
+
     challenge_win = models.ForeignKey(
         'Badge',
         verbose_name=_('Challenge Winner'),
@@ -199,6 +208,7 @@ BadgeSettings.panels = [
         heading=_("savings badges")),
     wagtail_edit_handlers.MultiFieldPanel([
         wagtail_edit_handlers.FieldPanel('challenge_entry'),
+        wagtail_edit_handlers.FieldPanel('challenge_completed'),
         wagtail_edit_handlers.FieldPanel('challenge_win'),
     ],
         # Translators: Admin field name
@@ -1384,6 +1394,20 @@ def award_week_streak(site, user, weeks):
         if created:
             # Created means it's the first time a user has reached this streak
             return user_badge
+
+    return None
+
+
+def award_first_challenge_completed(request, user):
+    """Award to users have saved a number of weeks."""
+    badge_settings = BadgeSettings.for_site(request.site)
+    badge = badge_settings.challenge_completed  # Badge is chosen depending on passed in int
+
+    if badge is None:
+        return None
+
+    if not badge.is_active:
+        return None
 
     return None
 
