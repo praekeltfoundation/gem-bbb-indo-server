@@ -46,13 +46,30 @@ class QuizQuestionAdmin(ModelAdmin):
     list_filter = ('challenge',)
     search_fields = ('challenge',)
 
+# ============ #
+# Participants #
+# ============ #
+
+
+class ParticipantAdmin(ModelAdmin):
+    model = Participant
+    # Translators: CMS menu name
+    menu_label = _('Participants')
+    menu_icon = 'user'
+    menu_order = 200
+    add_to_settings_menu = False
+    list_display = ('user', 'challenge', 'date_created', 'date_completed', 'is_read', 'is_shortlisted',
+                    'is_winner', 'is_completed',)
+    list_filter = ('date_created', 'challenge', 'is_read', 'is_shortlisted', 'is_winner')
+    search_fields = ('user__id', 'challenge__name',)
+
 
 class CompetitionsAdminGroup(ModelAdminGroup):
     # Translators: CMS menu name
     menu_label = _('Competitions')
     menu_icon = 'folder-open-inverse'
     menu_order = 200
-    items = (ChallengeAdmin, FreeTextQuestionAdmin, PictureQuestionAdmin, QuizQuestionAdmin)
+    items = (ChallengeAdmin, ParticipantAdmin, FreeTextQuestionAdmin, PictureQuestionAdmin, QuizQuestionAdmin)
 
 
 modeladmin_register(CompetitionsAdminGroup)
@@ -75,26 +92,6 @@ class GoalPrototypeAdmin(ModelAdmin):
 
 
 modeladmin_register(GoalPrototypeAdmin)
-
-
-# ============ #
-# Participants #
-# ============ #
-
-
-class ParticipantAdmin(ModelAdmin):
-    model = Participant
-    # Translators: CMS menu name
-    menu_label = _('Participants')
-    menu_order = 200
-    add_to_settings_menu = False
-    list_display = ('user', 'challenge', 'date_created', 'date_completed', 'is_read', 'is_shortlisted',
-                    'is_winner', 'is_completed',)
-    list_filter = ('date_created', 'challenge', 'is_read', 'is_shortlisted', 'is_winner')
-    search_fields = ('user', 'challenge')
-
-
-modeladmin_register(ParticipantAdmin)
 
 
 # ============ #
