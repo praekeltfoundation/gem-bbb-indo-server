@@ -1,8 +1,8 @@
-
+from django.forms import CheckboxSelectMultiple
 from django.utils.translation import ugettext_lazy as _
 from wagtail.contrib.modeladmin.options import ModelAdmin, ModelAdminGroup, modeladmin_register
 
-from .models import Challenge
+from .models import Challenge, Participant
 from .models import FreeTextQuestion, PictureQuestion, QuizQuestion
 from .models import GoalPrototype
 from .models import Badge
@@ -75,6 +75,26 @@ class GoalPrototypeAdmin(ModelAdmin):
 
 
 modeladmin_register(GoalPrototypeAdmin)
+
+
+# ============ #
+# Participants #
+# ============ #
+
+
+class ParticipantAdmin(ModelAdmin):
+    model = Participant
+    # Translators: CMS menu name
+    menu_label = _('Participants')
+    menu_order = 200
+    add_to_settings_menu = False
+    list_display = ('user', 'challenge', 'date_created', 'date_completed', 'is_read', 'is_shortlisted',
+                    'is_winner', 'is_completed',)
+    list_filter = ('date_created', 'challenge', 'is_read', 'is_shortlisted', 'is_winner')
+    search_fields = ('user', 'challenge')
+
+
+modeladmin_register(ParticipantAdmin)
 
 
 # ============ #
