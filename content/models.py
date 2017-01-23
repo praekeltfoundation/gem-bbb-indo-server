@@ -5,6 +5,7 @@ from functools import reduce
 from math import ceil, floor
 from os.path import splitext
 
+import wagtailsurveys
 from django.apps import apps
 from django.utils.html import format_html
 from django.contrib.auth.models import User
@@ -24,6 +25,7 @@ from wagtail.wagtailcore import models as wagtail_models
 from wagtail.wagtailcore import blocks as wagtail_blocks
 from wagtail.wagtailimages import edit_handlers as wagtail_image_edit
 from wagtail.wagtailimages import models as wagtail_image_models
+from wagtail.wagtailcore.blocks import BooleanBlock
 
 from .storage import ChallengeStorage, GoalImgStorage, ParticipantPictureStorage
 
@@ -403,6 +405,15 @@ class Challenge(modelcluster_fields.ClusterableModel):
 
         return q.first()
 
+    def is_user_a_winner(self, querying_user_id):
+        """Checks to see whether or not a participant has been marked as a winner"""
+        if not self.is_active:
+            participant = Participant.objects.filter(user_id=querying_user_id)
+            if participant.is_a_winner:
+                return True
+
+        return False
+
 
 Challenge.panels = [
     wagtail_edit_handlers.MultiFieldPanel(
@@ -642,6 +653,11 @@ class Participant(models.Model):
     # Translators: CMS field name (refers to dates)
     date_completed = models.DateTimeField(_('completed on'), null=True)
 
+    # Flag to indicate that participant entry has been 'seen'
+    is_read = models.BooleanField(_('is read'), default=False, blank=False)
+    is_shortlisted = models.BooleanField(_('is shortlisted'), default=False, blank=False)
+    is_winner = models.BooleanField(_('is winner'), default=False, blank=False)
+
     @property
     def is_completed(self):
         """A Participant is considered complete when at least one entry has been created."""
@@ -656,6 +672,34 @@ class Participant(models.Model):
 
     def __str__(self):
         return str(self.user) + ": " + str(self.challenge)
+
+
+Participant.panels = [
+    wagtail_edit_handlers.MultiFieldPanel(
+        [
+            wagtail_edit_handlers.FieldPanel('user'),
+            wagtail_edit_handlers.FieldPanel('challenge'),
+        ],
+        # Translators: Admin field name
+        heading=_('Participant')
+    ),
+    wagtail_edit_handlers.MultiFieldPanel(
+        [
+            wagtail_edit_handlers.FieldPanel('date_created'),
+            wagtail_edit_handlers.FieldPanel('date_completed'),
+        ],
+        # Translators: Admin field name
+        heading=_('Dates')
+    ),
+    wagtail_edit_handlers.MultiFieldPanel(
+        [
+            wagtail_edit_handlers.FieldPanel('is_read'),
+            wagtail_edit_handlers.FieldPanel('is_shortlisted'),
+            wagtail_edit_handlers.FieldPanel('is_winner'),
+        ],
+        heading=_('Status')
+    )
+]
 
 
 @python_2_unicode_compatible
