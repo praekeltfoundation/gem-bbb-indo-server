@@ -1,6 +1,7 @@
-
+import re
 from collections import OrderedDict
 
+from django.db.models import Count
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, render
@@ -462,15 +463,21 @@ class GoalImageView(GenericAPIView):
         return sendfile(request, goal.image.path)
 
 
-class GoalPrototypeView(GenericAPIView):
+class GoalPrototypeView(viewsets.ModelViewSet):
     queryset = GoalPrototype.objects.all()
     serializer_class = GoalPrototypeSerializer
     permission_classes = (IsAuthenticated,)
 
-    def get(self, request, pk=None, *args, **kwargs):
+    def list(self, request, pk=None, *args, **kwargs):
         serializer = self.get_serializer(self.get_queryset().filter(state=GoalPrototype.ACTIVE), many=True)
         return Response(serializer.data)
 
+    @detail_route(['get'])
+    def usercount(self, request, pk=None, *args, **kwargs):
+        """The number of users that have created Goals using this prototype."""
+        id = request._request.path.split('/')[3].strip()
+        queryset = Goal.objects.filter(prototype_id=id).aggregate(Count('user_id', distinct=True))
+        return Response(queryset)
 
 # ============ #
 # Achievements #

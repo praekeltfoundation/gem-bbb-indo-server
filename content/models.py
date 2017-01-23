@@ -1,32 +1,29 @@
-from uuid import uuid4
 from collections import OrderedDict
 from datetime import timedelta
 from functools import reduce
 from math import ceil, floor
 from os.path import splitext
+from uuid import uuid4
 
 from django.apps import apps
-from django.utils.html import format_html
 from django.contrib.auth.models import User
 from django.db import models
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
+from django.utils.html import format_html
 from django.utils.translation import ugettext as _
 from modelcluster import fields as modelcluster_fields
 from modelcluster.contrib.taggit import ClusterTaggableManager
 from taggit.models import TaggedItemBase
 from wagtail.contrib.settings.models import BaseSetting, register_setting
 from wagtail.wagtailadmin import edit_handlers as wagtail_edit_handlers
-from wagtail.wagtailsnippets.models import register_snippet
-from wagtail.wagtailsnippets import edit_handlers as wagtail_snippet_edit_handlers
+from wagtail.wagtailcore import blocks as wagtail_blocks
 from wagtail.wagtailcore import fields as wagtail_fields
 from wagtail.wagtailcore import models as wagtail_models
-from wagtail.wagtailcore import blocks as wagtail_blocks
 from wagtail.wagtailimages import edit_handlers as wagtail_image_edit
 from wagtail.wagtailimages import models as wagtail_image_models
 
 from .storage import ChallengeStorage, GoalImgStorage, ParticipantPictureStorage
-
 
 # ======== #
 # Settings #
@@ -870,10 +867,6 @@ class GoalPrototype(models.Model):
         (ACTIVE, _('Active')),
     ), default=INACTIVE)
 
-    def get_user_count(self):
-        """The number of users that have created Goals using this prototype."""
-        # TODO
-        return 0
 
     @property
     def is_active(self):

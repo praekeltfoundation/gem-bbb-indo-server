@@ -27,6 +27,7 @@ router.register(r'participants', content_views.ParticipantViewSet, base_name='pa
 router.register(r'tips', content_views.TipViewSet, base_name='tips')
 router.register(r'users', user_views.RegUserViewSet, base_name='users')
 router.register(r'surveys', survey_views.CoachSurveyViewSet, base_name='surveys')
+router.register(r'goal-prototypes', content_views.GoalPrototypeView)
 
 api_urls = [
     # authentication endpoints
@@ -42,7 +43,6 @@ api_urls = [
 
     # misc endpoints
     url(r'achievements/(?P<user_pk>\d+)/$', content_views.AchievementsView.as_view(), name='achievements'),
-    url(r'goal-prototypes/$', content_views.GoalPrototypeView.as_view(), name='goal-prototypes'),
 
     # include viewset routes
     url(r'', include(router.urls)),
