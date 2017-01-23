@@ -472,13 +472,6 @@ class GoalPrototypeView(viewsets.ModelViewSet):
         serializer = self.get_serializer(self.get_queryset().filter(state=GoalPrototype.ACTIVE), many=True)
         return Response(serializer.data)
 
-    @detail_route(['get'])
-    def usercount(self, request, pk=None, *args, **kwargs):
-        """The number of users that have created Goals using this prototype."""
-        id = request._request.path.split('/')[3].strip()
-        queryset = Goal.objects.filter(prototype_id=id).aggregate(Count('user_id', distinct=True))
-        return Response(queryset)
-
 # ============ #
 # Achievements #
 # ============ #

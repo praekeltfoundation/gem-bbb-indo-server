@@ -8,6 +8,7 @@ from uuid import uuid4
 from django.apps import apps
 from django.contrib.auth.models import User
 from django.db import models
+from django.db.models import Count
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.html import format_html
@@ -871,6 +872,11 @@ class GoalPrototype(models.Model):
     @property
     def is_active(self):
         return self.state == GoalPrototype.ACTIVE
+
+    @property
+    def num_users(self):
+        queryset = Goal.objects.filter(prototype_id=self.id).aggregate(Count('user_id', distinct=True))
+        return queryset["user_id__count"]
 
     def activate(self):
         self.state = GoalPrototype.ACTIVE
