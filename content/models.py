@@ -5,7 +5,6 @@ from functools import reduce
 from math import ceil, floor
 from os.path import splitext
 
-import wagtailsurveys
 from django.apps import apps
 from django.utils.html import format_html
 from django.contrib.auth.models import User
@@ -25,7 +24,6 @@ from wagtail.wagtailcore import models as wagtail_models
 from wagtail.wagtailcore import blocks as wagtail_blocks
 from wagtail.wagtailimages import edit_handlers as wagtail_image_edit
 from wagtail.wagtailimages import models as wagtail_image_models
-from wagtail.wagtailcore.blocks import BooleanBlock
 
 from .storage import ChallengeStorage, GoalImgStorage, ParticipantPictureStorage
 
@@ -150,7 +148,7 @@ class BadgeSettings(BaseSetting):
         blank=False, null=True
     )
 
-    challenge_completed = models.ForeignKey(
+    first_challenge_completed = models.ForeignKey(
         'Badge',
         verbose_name=_('Challenge Completed'),
         related_name='+',
@@ -1398,15 +1396,21 @@ def award_week_streak(site, user, weeks):
     return None
 
 
-def award_first_challenge_completed(request, user):
-    """Award to users have saved a number of weeks."""
+def award_first_challenge_completed(request, profile):
+    """Award to users who have completed their first challenge."""
     badge_settings = BadgeSettings.for_site(request.site)
-    badge = badge_settings.challenge_completed  # Badge is chosen depending on passed in int
+    badge = badge_settings.challenge_completed
 
     if badge is None:
         return None
 
     if not badge.is_active:
+        return None
+
+    if profile.is_first_challenge_completed():
+        return badge
+
+    if not profile:
         return None
 
     return None
