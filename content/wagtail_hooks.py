@@ -59,7 +59,7 @@ class QuizQuestionAdmin(ModelAdmin):
 
 class ParticipantAdmin(ModelAdmin):
     # index_template_name = 'modeladmin/participant/index.html'
-    index_view_extra_js = ['js/admin_participant_index.js', 'js/js.cookie.js']
+    index_view_extra_js = ['js/js.cookie.js', 'js/admin_participant_index.js']
     model = Participant
     # Translators: CMS menu name
     menu_label = _('Participants')
