@@ -148,15 +148,6 @@ class BadgeSettings(BaseSetting):
         blank=False, null=True
     )
 
-    first_challenge_completed = models.ForeignKey(
-        'Badge',
-        verbose_name=_('Challenge Completed'),
-        related_name='+',
-        on_delete=models.SET_NULL,
-        help_text=_("Awarded when a user has completed a challenge."),
-        blank=False, null=True
-    )
-
     challenge_win = models.ForeignKey(
         'Badge',
         verbose_name=_('Challenge Winner'),
@@ -659,7 +650,7 @@ class Participant(models.Model):
     date_created = models.DateTimeField(_('created on'), default=timezone.now)
 
     # Translators: CMS field name (refers to dates)
-    date_completed = models.DateTimeField(_('completed on'), null=True)
+    date_completed = models.DateTimeField(_('completed on'), null=True, blank=False)
 
     # Flag to indicate that participant entry has been 'seen'
     is_read = models.BooleanField(_('is read'), default=False, blank=False)
@@ -1392,26 +1383,6 @@ def award_week_streak(site, user, weeks):
         if created:
             # Created means it's the first time a user has reached this streak
             return user_badge
-
-    return None
-
-
-def award_first_challenge_completed(request, profile):
-    """Award to users who have completed their first challenge."""
-    badge_settings = BadgeSettings.for_site(request.site)
-    badge = badge_settings.challenge_completed
-
-    if badge is None:
-        return None
-
-    if not badge.is_active:
-        return None
-
-    if profile.is_first_challenge_completed():
-        return badge
-
-    if not profile:
-        return None
 
     return None
 
