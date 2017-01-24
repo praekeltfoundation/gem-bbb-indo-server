@@ -670,6 +670,14 @@ class Participant(models.Model):
             return format_html("<input type='checkbox' id='{}' class='mark-is-read' value='{}' />",
                                'participant-is-read-%d' % self.id, self.id)
 
+    def mark_is_shortlisted(self):
+        if self.is_shortlisted:
+            return format_html("<input type='checkbox' id='{}' class='mark-is-shortlisted' value='{}' checked='checked' />",
+                               'participant-is-shortlisted-%d' % self.id, self.id)
+        else:
+            return format_html("<input type='checkbox' id='{}' class='mark-is-shortlisted' value='{}' />",
+                               'participant-is-shortlisted-%d' % self.id, self.id)
+
     class Meta:
         # Translators: Collection name on CMS
         verbose_name = _('participant')
