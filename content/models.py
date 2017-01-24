@@ -662,6 +662,10 @@ class Participant(models.Model):
         """A Participant is considered complete when at least one entry has been created."""
         return self.entries.all().exists()
 
+    def mark_is_read(self):
+        return format_html("<input type='checkbox' id='{}' class='mark-is-read' value='{}' />",
+                           'participant-is-read-%d' % self.id, self.id)
+
     class Meta:
         # Translators: Collection name on CMS
         verbose_name = _('participant')
