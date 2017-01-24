@@ -15,7 +15,7 @@ import rest_framework.exceptions as rest_exceptions
 from wagtail.wagtailcore.models import Site, Page
 
 # auth imports?
-from users.models import User, RegUser
+from users.models import User, RegUser, Profile
 
 # content function imports
 from .models import award_first_goal
@@ -1022,6 +1022,7 @@ class TestBadgeAwarding(APITestCase):
         cls.goal_first_done = Badge.objects.create(name='First Goal Done')
         cls.transaction_first = Badge.objects.create(name='First Savings Created')
         cls.streak_2 = Badge.objects.create(name='2 Week Streak')
+        cls.first_challenge = Badge.objects.create(name='First Challenge Completed')
 
         site = Site.objects.get(is_default_site=True)
         BadgeSettings.objects.create(
@@ -1291,6 +1292,33 @@ class TestBadgeAwarding(APITestCase):
 
         badges = [b for b in response.data['new_badges'] if b['name'] == self.streak_2.name]
         self.assertEqual(len(badges), 1, "Expected badge was not included")
+
+    # ------------------------------- #
+    # Award First Challenge Completed #
+    # ------------------------------- #
+
+    def test_first_challenge(self):
+        user = create_test_regular_user('anon')
+        profile = Profile.objects.create(user=user)
+
+        challenge_first = Challenge.objects.create(
+            name='First Challenge',
+            activation_date=timezone.now() + timedelta(days=-7),
+            deactivation_date=timezone.now() + timedelta(days=7)
+        )
+        challenge_first.publish()
+        challenge_first.save()
+
+        # User should not qualify for first challenge completion badge
+        self.assertEqual(profile.is_first_challenge_completed(), False, "Prematurely awarded participant badge")
+
+        # Participate and complete
+        challenge_first.participants \
+            .create(user=user) \
+            .entries.create()
+
+        # User should qualify for completing his first challenge
+        self.assertEqual(profile.is_first_challenge_completed(), True, "First challenge not picked up")
 
 
 class TestFeedback(APITestCase):
