@@ -832,7 +832,7 @@ class TestGoalPrototypesAPI(APITestCase):
         proto.save()
 
         self.client.force_authenticate(user=user)
-        response = self.client.get(reverse('api:goal-prototypes'))
+        response = self.client.get(reverse('api:goal-prototypes-list'))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK, "Listing Goal prototypes failed.")
         self.assertEqual(len(response.data), 1, "No prototypes returned.")
@@ -857,6 +857,46 @@ class TestGoalPrototypesAPI(APITestCase):
 
         created_goal = Goal.objects.get(id=response.data['id'])
         self.assertEqual(created_goal.prototype, proto, "Goal Prototype was not set.")
+
+    def test_goal_proto_num_users_field_caculation(self):
+        user1 = create_test_regular_user("sam")
+        user2 = create_test_regular_user("dan")
+        user3 = create_test_regular_user("vlad")
+
+        proto1 = GoalPrototype.objects.create(name='Proto 1')
+        proto2 = GoalPrototype.objects.create(name='Proto 2')
+
+        goal1 = Goal.objects.create(name="Name One", user=user1, target=1000, start_date=timezone.now(),
+                                    end_date=timezone.now(), prototype=proto1)
+        goal2 = Goal.objects.create(name="Name Two", user=user1, target=1000, start_date=timezone.now(),
+                                    end_date=timezone.now(), prototype=proto2)
+        goal3 = Goal.objects.create(name="Name Tree", user=user3, target=1000, start_date=timezone.now(),
+                                    end_date=timezone.now(), prototype=proto1)
+
+        self.assertNotEqual(proto1.num_users, 0, "num_users field on Goal Prototype not updated correctly")
+        self.assertEquals(proto1.num_users, 2, "num_users field on Goal Prototype not calculated correctly")
+        self.assertEquals(proto2.num_users, 1, "num_users field on Goal Prototype not calculated correctly")
+
+class TestGoalPrototypesModel(TestCase):
+
+    def test_goal_proto_num_users_field_caculation(self):
+        user1 = create_test_regular_user("sam")
+        user2 = create_test_regular_user("dan")
+        user3 = create_test_regular_user("vlad")
+
+        proto1 = GoalPrototype.objects.create(name='Proto 1')
+        proto2 = GoalPrototype.objects.create(name='Proto 2')
+
+        goal1 = Goal.objects.create(name="Name One", user=user1, target=1000, start_date=timezone.now(),
+                                    end_date=timezone.now(), prototype=proto1)
+        goal2 = Goal.objects.create(name="Name Two", user=user1, target=1000, start_date=timezone.now(),
+                                    end_date=timezone.now(), prototype=proto2)
+        goal3 = Goal.objects.create(name="Name Tree", user=user3, target=1000, start_date=timezone.now(),
+                                    end_date=timezone.now(), prototype=proto1)
+
+        self.assertNotEqual(proto1.num_users, 0, "num_users field on Goal Prototype not updated correctly")
+        self.assertEquals(proto1.num_users, 2, "num_users field on Goal Prototype not calculated correctly")
+        self.assertEquals(proto2.num_users, 1, "num_users field on Goal Prototype not calculated correctly")
 
 
 # ============ #
