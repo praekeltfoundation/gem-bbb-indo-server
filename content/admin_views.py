@@ -19,7 +19,6 @@ def participant_list_view(request):
 @ensure_csrf_cookie
 def participant_mark_read(request, participant_pk):
     participant = get_object_or_404(Participant, pk=participant_pk)
-
+    participant.is_read = not participant.is_read
     participant.save()
-    print('Participant ' + str(participant_pk))
     return JsonResponse({})
