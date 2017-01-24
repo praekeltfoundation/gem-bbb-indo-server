@@ -148,6 +148,15 @@ class BadgeSettings(BaseSetting):
         blank=False, null=True
     )
 
+    first_challenge_completed = models.ForeignKey(
+        'Badge',
+        verbose_name=_('First Challenge Completed'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded when a user has completed their first challenge."),
+        blank=False, null=True
+    )
+
     challenge_win = models.ForeignKey(
         'Badge',
         verbose_name=_('Challenge Winner'),
@@ -197,6 +206,7 @@ BadgeSettings.panels = [
         heading=_("savings badges")),
     wagtail_edit_handlers.MultiFieldPanel([
         wagtail_edit_handlers.FieldPanel('challenge_entry'),
+        wagtail_edit_handlers.FieldPanel('first_challenge_completed'),
         wagtail_edit_handlers.FieldPanel('challenge_win'),
     ],
         # Translators: Admin field name
@@ -1233,6 +1243,26 @@ def award_first_goal(request, goal):
         user_badge, created = UserBadge.objects.get_or_create(user=goal.user, badge=badge_settings.goal_first_created)
         if created:
             return user_badge
+
+    return None
+
+
+def award_first_challenge_completed(request, profile):
+    """Award to users who have completed their first challenge."""
+    badge_settings = BadgeSettings.for_site(request.site)
+    badge = badge_settings.first_challenge_completed
+
+    if badge is None:
+        return None
+
+    if not badge.is_active:
+        return None
+
+    if profile.is_first_challenge_completed():
+        return badge
+
+    if not profile:
+        return None
 
     return None
 
