@@ -31,3 +31,12 @@ def participant_mark_shortlisted(request, participant_pk):
     participant.is_shortlisted = not participant.is_shortlisted
     participant.save()
     return JsonResponse({})
+
+
+@permission_required('participant.can_change')
+@ensure_csrf_cookie
+def participant_mark_winner(request, participant_pk):
+    participant = get_object_or_404(Participant, pk=participant_pk)
+    participant.is_winner = not participant.is_winner
+    participant.save()
+    return JsonResponse({})

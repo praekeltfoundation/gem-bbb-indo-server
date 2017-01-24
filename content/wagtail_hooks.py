@@ -67,7 +67,7 @@ class ParticipantAdmin(ModelAdmin):
     menu_order = 200
     add_to_settings_menu = False
     list_display = ('user', 'challenge', 'date_created', 'date_completed',
-                    'mark_is_read', 'mark_is_shortlisted')
+                    'mark_is_read', 'mark_is_shortlisted', 'mark_is_winner')
     list_filter = ('date_created', 'challenge', 'is_read', 'is_shortlisted', 'is_winner')
     search_fields = ('user__id', 'challenge__name',)
 

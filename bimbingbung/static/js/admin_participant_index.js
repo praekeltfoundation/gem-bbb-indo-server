@@ -35,6 +35,23 @@ $(document).ready(function() {
                 $(".mark-is-shortlisted").prop("readonly", false);
             });
        });
+
+       $('.mark-is-winner').each(function(index){
+            $(this).change(function(){
+                /*console.log($(this).val() + ':' + this.checked);*/
+                $(".mark-is-winner").prop("readonly", true);
+                $.ajax({
+                    beforeSend: function(xhr, settings) {
+                        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                        }
+                    },
+                    url: '/admin/participants/mark-winner/' + $(this).val() + '/',
+                    method: "POST"
+                });
+                $(".mark-is-winner").prop("readonly", false);
+            });
+       });
 });
 
 function csrfSafeMethod(method) {
