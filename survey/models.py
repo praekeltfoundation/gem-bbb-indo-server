@@ -17,6 +17,8 @@ from modelcluster.fields import ParentalKey
 from wagtailsurveys.models import AbstractSurvey, AbstractFormField, AbstractFormSubmission
 from unidecode import unidecode
 
+from users.models import Profile
+
 
 class CoachSurveyIndex(Page):
     subpage_types = ['CoachSurvey']
@@ -25,6 +27,10 @@ class CoachSurveyIndex(Page):
 class CoachSurvey(AbstractSurvey):
     parent_page_types = ['CoachSurveyIndex']
     subpage_types = []
+
+    ANSWER_YES = '1'
+    ANSWER_NO = '0'
+    CONSENT_KEY = 'survey_consent'
 
     NONE = 0
     BASELINE = 1
@@ -82,10 +88,14 @@ class CoachSurvey(AbstractSurvey):
 
     def get_data_fields(self):
         data_fields = [
+            ('user_id', _('Unique User ID')),
             ('name', _('Name')),
             ('username', _('Username')),
             ('mobile', _('Mobile Number')),
+            ('gender', _('Gender')),
+            ('age', _('Age')),
             ('email', _('Email')),
+            ('consent', _('Consented to Survey')),
         ]
         data_fields += super(CoachSurvey, self).get_data_fields()
 
@@ -97,15 +107,19 @@ class CoachSurvey(AbstractSurvey):
     def get_submission_class(self):
         return CoachSurveySubmission
 
-    def process_form_submission(self, form):
+    def process_consented_submission(self, consent, form):
         self.get_submission_class().objects.create(
             form_data=json.dumps(form.cleaned_data, cls=DjangoJSONEncoder),
             page=self, user=form.user,
+            consent=consent,
 
             # To preserve historic information
+            user_id=str(form.user.id),
             name=form.user.get_full_name(),
             username=form.user.username,
             mobile=form.user.profile.mobile,
+            gender=form.user.profile.get_gender_display(),
+            age=str(form.user.profile.age),
             email=form.user.email
         )
 
@@ -195,11 +209,15 @@ CoachFormField.panels = [
 
 class CoachSurveySubmission(AbstractFormSubmission):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, blank=False, null=True)
+    consent = models.BooleanField(default=False)
 
     # Fields stored at time of submission, to preserve historic data if the user is deleted
+    user_unique_id = models.IntegerField(default=-1)
     name = models.CharField(max_length=100, default='')
     username = models.CharField(max_length=150, default='')
     mobile = models.CharField(max_length=15, default='')
+    gender = models.CharField(max_length=10, default='')
+    age = models.CharField(max_length=10, default='')
     email = models.CharField(max_length=150, default='')
 
     def get_data(self):
@@ -207,18 +225,26 @@ class CoachSurveySubmission(AbstractFormSubmission):
         if self.user and self.user.profile:
             # Populate from live user data
             form_data.update({
+                'user_id': str(self.user.id),
                 'name': self.user.get_full_name(),
                 'username': self.user.username,
                 'mobile': self.user.profile.mobile,
-                'email': self.user.email
+                'gender': self.user.profile.get_gender_display(),
+                'age': str(self.user.profile.age),
+                'email': self.user.email,
+                'consent': str(self.consent)
             })
         else:
             # Populate from historic user data
             form_data.update({
+                'user_id': self.user_unique_id,
                 'name': self.name,
                 'username': self.username,
                 'mobile': self.mobile,
-                'email': self.email
+                'gender': self.gender,
+                'age': self.age,
+                'email': self.email,
+                'consent': str(self.consent)
             })
 
         return form_data

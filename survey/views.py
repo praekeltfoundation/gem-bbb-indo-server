@@ -32,10 +32,11 @@ class CoachSurveyViewSet(ModelViewSet):
     @detail_route(['post'])
     def submission(self, request, pk=None, *args, **kwargs):
         survey = self.get_object()
+        consent = request.data.pop(CoachSurvey.CONSENT_KEY, CoachSurvey.ANSWER_NO).lower() == CoachSurvey.ANSWER_YES
         # Leveraging form to validate fields
         form = survey.get_form(request.data, page=survey, user=request.user)
         if form.is_valid():
-            survey.process_form_submission(form)
+            survey.process_consented_submission(consent, form)
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
             raise ValidationError(form.errors)
