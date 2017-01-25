@@ -408,10 +408,14 @@ class Challenge(modelcluster_fields.ClusterableModel):
         """Checks to see whether or not a participant has been marked as a winner"""
         if not self.is_active:
             participant = Participant.objects.filter(user_id=querying_user_id)
-            if participant.is_a_winner:
+            if participant.is_winner:
                 return True
 
         return False
+
+    def view_participants(self):
+        return format_html("<a href='/admin/content/participant/?challenge__id__exact="
+                           + str(self.id) + "'>" + self.name + "</a> ")
 
 
 Challenge.panels = [

@@ -1,10 +1,8 @@
 
 from django.conf.urls import url, include
-from django.forms import CheckboxSelectMultiple
 from django.utils.translation import ugettext_lazy as _
 
 from wagtail.contrib.modeladmin.options import ModelAdmin, ModelAdminGroup, modeladmin_register
-from wagtail.contrib.modeladmin.views import IndexView
 from wagtail.wagtailcore import hooks
 
 from .models import Challenge, Participant
@@ -22,7 +20,8 @@ from content import admin_urls
 class ChallengeAdmin(ModelAdmin):
     model = Challenge
     add_to_settings_menu = False
-    list_display = ('name', 'type', 'state', 'activation_date', 'deactivation_date', 'is_active_html')
+    list_display = ('name', 'type', 'state', 'activation_date', 'deactivation_date',
+                    'is_active_html', 'view_participants')
     list_filter = ('name', 'type', 'state')
     search_fields = ('name',)
 
