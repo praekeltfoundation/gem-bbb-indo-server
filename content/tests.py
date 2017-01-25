@@ -15,14 +15,14 @@ import rest_framework.exceptions as rest_exceptions
 from wagtail.wagtailcore.models import Site, Page
 
 # auth imports?
-from users.models import User, RegUser
+from users.models import User, RegUser, Profile
 
 # content function imports
-from .models import award_first_goal
+from .models import award_challenge_win
 
 # content model imports
 from .models import Badge, BadgeSettings, UserBadge
-from .models import Challenge
+from .models import Challenge, Participant
 from .models import Feedback
 from .models import GoalPrototype, Goal, GoalTransaction
 from .models import Tip, TipFavourite
@@ -1022,6 +1022,7 @@ class TestBadgeAwarding(APITestCase):
         cls.goal_first_done = Badge.objects.create(name='First Goal Done')
         cls.transaction_first = Badge.objects.create(name='First Savings Created')
         cls.streak_2 = Badge.objects.create(name='2 Week Streak')
+        cls.challenge_win = Badge.objects.create(name='Challenge Win')
 
         site = Site.objects.get(is_default_site=True)
         BadgeSettings.objects.create(
@@ -1031,7 +1032,9 @@ class TestBadgeAwarding(APITestCase):
             goal_week_left=cls.goal_week_left,
             goal_first_done=cls.goal_first_done,
             transaction_first=cls.transaction_first,
-            streak_2=cls.streak_2
+            streak_2=cls.streak_2,
+
+            challenge_win=cls.challenge_win
         )
 
     # ------------------------ #
@@ -1291,6 +1294,37 @@ class TestBadgeAwarding(APITestCase):
 
         badges = [b for b in response.data['new_badges'] if b['name'] == self.streak_2.name]
         self.assertEqual(len(badges), 1, "Expected badge was not included")
+
+    # ---------------------- #
+    # Award Challenge Winner #
+    # ---------------------- #
+
+    def test_challenge_win(self):
+        user = create_test_regular_user('anon')
+        profile = Profile.objects.create(user=user)
+
+        challenge = Challenge.objects.create(
+            name='First Challenge',
+            activation_date=timezone.now() + timedelta(days=-7),
+            deactivation_date=timezone.now() + timedelta(days=7)
+        )
+        challenge.publish()
+        challenge.save()
+
+        # Participate and complete
+        challenge.participants \
+            .create(user=user) \
+            .entries.create()
+
+        participant = Participant.objects.get(user=user, challenge=challenge)
+        participant.is_winner = True
+
+        site = Site.objects.get(is_default_site=True)
+        user_badge = award_challenge_win(site, user, participant)
+
+        self.assertIsNotNone(user_badge, "Badge was not awarded")
+
+        self.skipTest('TODO')
 
 
 class TestFeedback(APITestCase):

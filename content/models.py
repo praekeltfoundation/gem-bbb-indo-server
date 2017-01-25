@@ -663,6 +663,8 @@ class Participant(models.Model):
     is_shortlisted = models.BooleanField(_('is shortlisted'), default=False, blank=False)
     is_winner = models.BooleanField(_('is winner'), default=False, blank=False)
 
+    badges = models.ManyToManyField('UserBadge')
+
     @property
     def is_completed(self):
         """A Participant is considered complete when at least one entry has been created."""
@@ -1413,6 +1415,24 @@ def award_week_streak(site, user, weeks):
         if created:
             # Created means it's the first time a user has reached this streak
             return user_badge
+
+    return None
+
+
+def award_challenge_win(site, user, participant):
+    badge_settings = BadgeSettings.for_site(site)
+    badge = badge_settings.challenge_win
+
+    if badge is None:
+        return None
+
+    if not badge.is_active:
+        return None
+
+    if participant.is_winner:
+        # user_badge, created = UserBadge.objects.get_or_create(user=user, badge=badge)
+        user_badge, created = participant.badges.get_or_create(user=user, badge=badge)
+        return user_badge
 
     return None
 
