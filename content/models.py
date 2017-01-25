@@ -199,7 +199,6 @@ BadgeSettings.panels = [
         heading=_("savings badges")),
     wagtail_edit_handlers.MultiFieldPanel([
         wagtail_edit_handlers.FieldPanel('challenge_entry'),
-        wagtail_edit_handlers.FieldPanel('challenge_completed'),
         wagtail_edit_handlers.FieldPanel('challenge_win'),
     ],
         # Translators: Admin field name

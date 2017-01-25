@@ -8,8 +8,8 @@ from django.http import Http404
 from django.http import HttpResponse
 from rest_framework import status
 from rest_framework import viewsets
-from rest_framework.decorators import list_route, detail_route, api_view
-from rest_framework.exceptions import NotFound, PermissionDenied
+from rest_framework.decorators import list_route, detail_route, permission_classes
+from rest_framework.exceptions import NotFound, PermissionDenied, MethodNotAllowed
 from rest_framework.generics import GenericAPIView
 from rest_framework.parsers import FileUploadParser
 from rest_framework.permissions import IsAuthenticated
@@ -37,7 +37,7 @@ from .serializers import GoalPrototypeSerializer, GoalSerializer, GoalTransactio
 from .serializers import ParticipantAnswerSerializer, ParticipantFreeTextSerializer, ParticipantPictureSerializer, \
     ParticipantRegisterSerializer
 from .serializers import TipSerializer
-from .serializers import AchievementStatSerializer, UserBadgeSerializer
+from .serializers import AchievementStatSerializer, UserBadgeSerializer, ParticipantBadgeSerializer
 
 
 # ========== #
@@ -74,7 +74,8 @@ class ChallengeViewSet(viewsets.ModelViewSet):
     """
     queryset = Challenge.objects.all()
     serializer_class = ChallengeSerializer
-    http_method_names = ('options', 'head', 'get',)
+    permission_classes = (IsAuthenticated,)
+    http_method_names = ('options', 'head', 'get', 'post',)
 
     def list(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_queryset(), many=True)
@@ -83,6 +84,9 @@ class ChallengeViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, pk=None, *args, **kwargs):
         serializer = self.get_serializer(get_object_or_404(self.get_queryset(), pk=pk))
         return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        raise MethodNotAllowed(request.method)
 
     @list_route(methods=['get'])
     def current(self, request, *args, **kwargs):
@@ -106,10 +110,36 @@ class ChallengeViewSet(viewsets.ModelViewSet):
         if winner is None:
             raise NotFound("User did not participant in challenge.")
 
-        #return HttpResponse(winner)
         return Response(winner)
-        #serializer = self.get_serializer(winner)
-        #return Response(serializer.data)
+
+    @list_route(methods=['get'])
+    def winning(self, request, *args, **kwargs):
+        # TODO: Filter by notification flag
+        participant = Participant.objects.filter(user=request.user, is_winner=True)\
+            .order_by('date_completed')\
+            .first()
+
+        # TODO: Check participant is None
+
+        badge_settings = BadgeSettings.for_site(request.site)
+
+        if badge_settings.challenge_win is None:
+            raise NotFound('Challenge Badge not set up')
+
+        user_badge = get_object_or_404(participant.badges, badge=badge_settings.challenge_win)
+        return Response(ParticipantBadgeSerializer(instance=user_badge, context=self.get_serializer_context()).data)
+
+    @detail_route(methods=['post'])
+    def notification(self, request, pk=None, *args, **kwargs):
+        # TODO: Filter by notification flag
+        participant = get_object_or_404(get_object_or_404(Challenge, pk=pk).participants,
+                                        user=request.user, is_winner=True)
+        # TODO: Set flag
+        # participant.wertyui
+
+        participant.save()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+
 
 # ================= #
 # Challenge Entries #
