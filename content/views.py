@@ -5,9 +5,10 @@ from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, render
 from django.http import Http404
+from django.http import HttpResponse
 from rest_framework import status
 from rest_framework import viewsets
-from rest_framework.decorators import list_route, detail_route
+from rest_framework.decorators import list_route, detail_route, api_view
 from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.generics import GenericAPIView
 from rest_framework.parsers import FileUploadParser
@@ -98,6 +99,17 @@ class ChallengeViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(challenge)
         return Response(serializer.data)
 
+    @detail_route(methods=['get', 'post'])
+    def winner(self, request, pk=None, *args, **kwargs):
+        winner = get_object_or_404(Challenge, pk=pk).is_user_a_winner(request.user)
+
+        if winner is None:
+            raise NotFound("User did not participant in challenge.")
+
+        #return HttpResponse(winner)
+        return Response(winner)
+        #serializer = self.get_serializer(winner)
+        #return Response(serializer.data)
 
 # ================= #
 # Challenge Entries #

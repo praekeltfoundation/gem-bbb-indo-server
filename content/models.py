@@ -1,3 +1,4 @@
+import json
 from uuid import uuid4
 from collections import OrderedDict
 from datetime import timedelta
@@ -6,6 +7,7 @@ from math import ceil, floor
 from os.path import splitext
 
 from django.apps import apps
+from django.shortcuts import get_object_or_404
 from django.utils.html import format_html
 from django.contrib.auth.models import User
 from django.db import models
@@ -406,12 +408,12 @@ class Challenge(modelcluster_fields.ClusterableModel):
 
     def is_user_a_winner(self, querying_user_id):
         """Checks to see whether or not a participant has been marked as a winner"""
-        if not self.is_active:
-            participant = Participant.objects.filter(user_id=querying_user_id)
-            if participant.is_winner:
-                return True
+        #if not self.is_active:
+        participant = get_object_or_404(Participant, user_id=querying_user_id)
+        if participant.is_winner:
+            return {"winner": True}
 
-        return False
+        return {"winner": False}
 
     def view_participants(self):
         return format_html("<a href='/admin/content/participant/?challenge__id__exact="
