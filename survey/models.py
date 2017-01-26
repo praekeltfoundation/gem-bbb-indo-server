@@ -251,3 +251,19 @@ class CoachSurveySubmission(AbstractFormSubmission):
 
 
 CoachSurveyResponse = namedtuple('CoachSurveyResponse', ['available', 'survey'])
+
+
+class CoachSurveySubmissionDraft(models.Model):
+    """Drafts are to save the user's progress through a survey. As the user answers survey questions, an update is done
+    on the appropriate draft.
+    """
+    user = models.ForeignKey(User)
+    survey = models.ForeignKey(CoachSurvey)
+    consent = models.BooleanField(default=False)
+    # Submission is stored as JSON
+    submission = models.TextField()
+
+    class Meta:
+        verbose_name = _('coach survey submission draft')
+
+        verbose_name_plural = _('coach survey submission drafts')

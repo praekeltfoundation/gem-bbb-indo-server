@@ -10,8 +10,9 @@ from rest_framework.test import APITestCase
 from wagtail.wagtailcore.models import Page
 
 from users.models import RegUser, Profile
-from .models import CoachSurvey, CoachFormField, CoachSurveySubmission
+from .models import CoachSurvey, CoachFormField, CoachSurveySubmission, CoachSurveySubmissionDraft
 
+SINGLE_LINE = 'singleline'
 RADIO_FIELD = 'radio'
 
 
@@ -126,3 +127,32 @@ class CoachSurveyAPITest(APITestCase):
         self.assertEqual(response.data[0]['id'], eatool_survey.id, "Unexpected Survey returned.")
 
 
+class DraftAPITest(APITestCase):
+
+    def test_basic_draft_submit(self):
+        user = create_user('anon')
+        survey = create_survey()
+        survey.form_fields.create(
+            key='first',
+            label='First',
+            field_type=SINGLE_LINE
+        )
+        survey.form_fields.create(
+            key='second',
+            label='Second',
+            field_type=SINGLE_LINE
+        )
+        publish(survey, user)
+
+        self.client.force_authenticate(user=user)
+        response = self.client.put(reverse('api:surveys-draft', kwargs={'pk': survey.pk}), {
+            'first': '1',
+            'second': '2'
+        }, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, "Draft submit request failed")
+
+        updated_draft = CoachSurveySubmissionDraft.objects.get(user=user, survey=survey)
+        submission = json.loads(updated_draft.submission)
+        self.assertEqual(submission.get('first', None), '1', "First submission field was not set")
+        self.assertEqual(submission.get('second', None), '2', "Second submission field was not set")
