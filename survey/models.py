@@ -258,15 +258,13 @@ class CoachSurveySubmissionDraft(models.Model):
     on the appropriate draft.
     """
     user = models.ForeignKey(User)
-    survey = models.ForeignKey(CoachSurvey)
+    survey = models.ForeignKey(CoachSurvey, related_name='drafts')
     consent = models.BooleanField(default=False)
     # Submission is stored as JSON
     submission = models.TextField()
-    # TODO: Versioning
-    # On each draft update, the version needs to be incremented
-    # version = models.IntegerField(default=0)
-    # created_at = models.DateTimeField(default=timezone.now)
-    # modified_at = models.DateTimeField(default=timezone.now)
+    version = models.IntegerField(default=0)
+    created_at = models.DateTimeField(default=timezone.now)
+    modified_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
         verbose_name = _('coach survey submission draft')
@@ -276,3 +274,9 @@ class CoachSurveySubmissionDraft(models.Model):
     @property
     def has_submission(self):
         return bool(self.submission)
+
+    def save(self, *args, **kwargs):
+        self.version += self.version
+        self.modified_at = timezone.now()
+        super(CoachSurveySubmissionDraft, self).save(*args, **kwargs)
+

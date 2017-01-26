@@ -204,6 +204,41 @@ class DraftAPITest(APITestCase):
         self.assertTrue(updated_draft.consent, "Consent was not stored")
         self.assertIsNone(data.get(CoachSurvey.CONSENT_KEY, None), "Consent was stored in submission data")
 
+    def test_consent_not_unset(self):
+        """Test that doing a partial update without a consent value does not set an existing True consent value to
+        False.
+        """
+        user = create_user()
+        survey = create_survey()
+        survey.form_fields.create(
+            key='first',
+            label='First',
+            field_type=SINGLE_LINE
+        )
+        survey.form_fields.create(
+            key='second',
+            label='Second',
+            field_type=SINGLE_LINE
+        )
+        publish(survey, create_user('Staff'))
+
+        self.client.force_authenticate(user=user)
+
+        # User provides consent and first answer
+        self.client.patch(reverse('api:surveys-draft', kwargs={'pk': survey.pk}), {
+            CoachSurvey.CONSENT_KEY: CoachSurvey.ANSWER_YES,
+            'first': '1'
+        }, format='json')
+
+        # User provides second answer
+        self.client.patch(reverse('api:surveys-draft', kwargs={'pk': survey.pk}), {
+            'second': '2'
+        }, format='json')
+
+        updated_draft = CoachSurveySubmissionDraft.objects.get(user=user, survey=survey)
+
+        self.assertTrue(updated_draft.consent, "Consent was set to False on second draft update")
+
 
 class SurveyReportingRequirements(APITestCase):
 

@@ -51,11 +51,9 @@ class CoachSurveyViewSet(ModelViewSet):
         if CoachSurvey.CONSENT_KEY in request.data:
             draft.consent = CoachSurveyViewSet.pop_consent(request.data)
 
-        form = survey.get_form(request.data, page=survey, user=request.user)
-        if form.is_valid():
-            data.update(form.cleaned_data)
-            draft.submission = json.dumps(data)
-            draft.save()
+        data.update(request.data)
+        draft.submission = json.dumps(data)
+        draft.save()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
