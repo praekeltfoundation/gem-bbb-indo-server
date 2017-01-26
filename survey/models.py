@@ -284,7 +284,7 @@ class CoachSurveySubmissionDraft(models.Model):
         return bool(self.submission_data)
 
     def save(self, *args, **kwargs):
-        self.version += self.version
+        self.version += 1
         self.modified_at = timezone.now()
         super(CoachSurveySubmissionDraft, self).save(*args, **kwargs)
 
