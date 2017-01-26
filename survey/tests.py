@@ -265,6 +265,28 @@ class DraftAPITest(APITestCase):
 
         self.assertTrue(updated_draft.consent, "Consent was set to False on second draft update")
 
+    def test_consent_partial(self):
+        """Test that a draft can be submitted with only consent."""
+        user = create_user()
+        survey = create_survey()
+        survey.form_fields.create(
+            key='first',
+            label='First',
+            field_type=SINGLE_LINE
+        )
+        publish(survey, create_user('Staff'))
+
+        self.client.force_authenticate(user=user)
+        self.client.patch(reverse('api:surveys-draft', kwargs={'pk': survey.pk}), {
+            CoachSurvey.CONSENT_KEY: CoachSurvey.ANSWER_YES
+        }, format='json')
+
+        updated_draft = CoachSurveySubmissionDraft.objects.get(user=user, survey=survey)
+        data = json.loads(updated_draft.submission) if updated_draft.has_submission else {}
+
+        self.assertTrue(updated_draft.consent, "Consent was not set.")
+        self.assertEqual(data, {}, "Draft submission unexpectedly contains data.")
+
 
 class SurveyReportingRequirements(APITestCase):
 
