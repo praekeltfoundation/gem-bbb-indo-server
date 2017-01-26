@@ -14,10 +14,11 @@ from rest_framework.parsers import FileUploadParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from sendfile import sendfile
+from wagtail.wagtailcore.models import Site
 
 from .exceptions import ImageNotFound
 
-from .models import BadgeSettings
+from .models import BadgeSettings, award_challenge_win
 from .models import Badge, Challenge, Entry
 from .models import Feedback
 from .models import Goal, GoalPrototype
@@ -116,35 +117,47 @@ class ChallengeViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def winning(self, request, *args, **kwargs):
+        """Returns winning status, and badge and challenge if available"""
         # TODO: Filter by notification flag
-        participant = Participant.objects.filter(user=request.user, is_winner=True)\
-            .order_by('date_completed')\
+        participant = Participant.objects.filter(user=request.user, is_winner=True) \
+            .order_by('date_completed') \
             .first()
 
         if participant is None:
-            return {"available": False, "badge": None}
+            return Response({"available": False, "badge": None, "challenge": None})
 
         badge_settings = BadgeSettings.for_site(request.site)
 
         if badge_settings.challenge_win is None:
             raise NotFound('Challenge Badge not set up')
 
-        user_badge = get_object_or_404(participant.badges, badge=badge_settings.challenge_win)
-        return Response(ParticipantBadgeSerializer(instance=user_badge, context=self.get_serializer_context()).data)
+        # Create badge if it doesn't already exist
+        site = Site.objects.get(is_default_site=True)
+        user_badge = award_challenge_win(site, request.user, participant)
+
+        data = OrderedDict()
+        data['available'] = user_badge is not None and participant.challenge is not None,
+        data['badge'] = UserBadgeSerializer(instance=user_badge, context=self.get_serializer_context()).data
+        data['challenge'] = ChallengeSerializer(instance=participant.challenge,
+                                                context=self.get_serializer_context()).data
+        return Response(data)
 
     @detail_route(methods=['post'])
     def notification(self, request, pk=None, *args, **kwargs):
-        # TODO: Filter by notification flag
-        # participant = get_object_or_404(get_object_or_404(Challenge, pk=pk).participant, user=request.user, is_winner=True)
+        """Marks the participant as having received the winning notification"""
         # participant = get_object_or_404(challenge_id=pk, user=request.user, is_winner=True)
-        participants = Participant.objects.filter(challenge_id=pk, is_winner=True)
+        participants = Participant.objects.filter(challenge_id=pk, user=request.user, has_been_notified=False)
+
+        if participants is None:
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
         for p in participants:
-            # Notify
             p.has_been_notified = True
             p.save()
 
+        # Is it better to save each individual participant (like above) or can I call save on the entire query set?
         # participant.save()
+        # Participants.objects.filter(challenge_id=pk, user=request.user, has_been_notified=False).update(has_been_notified=True)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
