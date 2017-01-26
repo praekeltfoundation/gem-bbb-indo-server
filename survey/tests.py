@@ -162,9 +162,11 @@ class DraftAPITest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, "Draft submit request failed")
 
         updated_draft = CoachSurveySubmissionDraft.objects.get(user=user, survey=survey)
-        submission = json.loads(updated_draft.submission_data)
-        self.assertEqual(submission.get('first', None), '1', "First submission field was not set")
-        self.assertEqual(submission.get('second', None), '2', "Second submission field was not set")
+        submission_data = json.loads(updated_draft.submission_data)
+        self.assertEqual(submission_data.get('first', None), '1', "First submission field was not set")
+        self.assertEqual(submission_data.get('second', None), '2', "Second submission field was not set")
+        self.assertFalse(updated_draft.complete, "Draft was set to completed.")
+        self.assertIsNone(updated_draft.submission, "Draft has submission assigned.")
 
     def test_draft_partial_submit(self):
         """Test that a draft can be partially submitted."""
@@ -214,6 +216,10 @@ class DraftAPITest(APITestCase):
         }, format='json')
 
         self.assertTrue(CoachSurveySubmissionDraft.objects.filter(user=user, survey=survey).exists(), "Draft was not created.")
+
+        submission = CoachSurveySubmission.objects.get(user=user, page=survey)
+        draft = CoachSurveySubmissionDraft.objects.get(user=user, survey=survey, complete=True)
+        self.assertEqual(draft.submission, submission, "Submission was not assigned to draft.")
 
     def test_consent_set(self):
         """Test that submitting a draft answer containing the appropriate consent answer will store the draft correctly.

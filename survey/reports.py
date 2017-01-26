@@ -14,6 +14,6 @@ def survey_aggregates():
         - Total users who choose not to consent
         - Total user who did not respond
     """
-    CoachSurveySubmissionDraft.objects.all().annotate(Count('user'))
+    # TODO: Survey Aggregate Report
 
     pass

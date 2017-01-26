@@ -44,7 +44,8 @@ class CoachSurveyViewSet(ModelViewSet):
     def draft(self, request, pk=None, *args, **kwargs):
         """Drafts are used for tracking the user's progress through the survey."""
         survey = self.get_object()
-        draft, created = CoachSurveySubmissionDraft.objects.get_or_create(user=request.user, survey=survey)
+        draft, created = CoachSurveySubmissionDraft.objects.get_or_create(user=request.user, survey=survey,
+                                                                          submission=None, complete=False)
         data = json.loads(draft.submission_data) if draft.submission_data else {}
 
         # We don't want consent to default to False in a partial update
@@ -65,8 +66,11 @@ class CoachSurveyViewSet(ModelViewSet):
         # Leveraging form to validate fields
         form = survey.get_form(request.data, page=survey, user=request.user)
         if form.is_valid():
-            draft, created = CoachSurveySubmissionDraft.objects.get_or_create(user=request.user, survey=survey)
-            survey.process_consented_submission(consent, form)
+            draft, created = CoachSurveySubmissionDraft.objects.get_or_create(user=request.user, survey=survey,
+                                                                              submission=None, complete=False)
+            draft.submission = survey.process_consented_submission(consent, form)
+            draft.complete = True
+            draft.save()
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
             raise ValidationError(form.errors)

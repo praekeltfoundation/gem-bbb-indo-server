@@ -108,9 +108,9 @@ class CoachSurvey(AbstractSurvey):
         return CoachSurveySubmission
 
     def process_consented_submission(self, consent, form):
-        self.get_submission_class().objects.create(
+        return self.get_submission_class().objects.create(
             form_data=json.dumps(form.cleaned_data, cls=DjangoJSONEncoder),
-            page=self, user=form.user,
+            page=self, survey=self, user=form.user,
             consent=consent,
 
             # To preserve historic information
@@ -211,6 +211,11 @@ class CoachSurveySubmission(AbstractFormSubmission):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, blank=False, null=True)
     consent = models.BooleanField(default=False)
 
+    # The abstract base class has a `page` field which references the survey, but it has no related name. To find
+    # submissions from the survey, we create another foreign key relation. Deleting the survey will delete submission
+    # because of the `page` CASCADE option.
+    survey = models.ForeignKey(CoachSurvey, on_delete=models.SET_NULL, related_name='submissions', null=True)
+
     # Fields stored at time of submission, to preserve historic data if the user is deleted
     user_unique_id = models.IntegerField(default=-1)
     name = models.CharField(max_length=100, default='')
@@ -262,6 +267,9 @@ class CoachSurveySubmissionDraft(models.Model):
     consent = models.BooleanField(default=False)
     # Submission is stored as JSON
     submission_data = models.TextField()
+    # Submission relation is set when draft is completed.
+    submission = models.ForeignKey(CoachSurveySubmission, null=True)
+    complete = models.BooleanField(default=False)
     version = models.IntegerField(default=0)
     created_at = models.DateTimeField(default=timezone.now)
     modified_at = models.DateTimeField(default=timezone.now)
