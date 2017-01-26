@@ -18,11 +18,11 @@ from wagtail.wagtailcore.models import Site, Page
 from users.models import User, RegUser, Profile
 
 # content function imports
-from .models import award_first_goal
+from .models import award_challenge_win
 
 # content model imports
 from .models import Badge, BadgeSettings, UserBadge
-from .models import Challenge
+from .models import Challenge, Participant
 from .models import Feedback
 from .models import GoalPrototype, Goal, GoalTransaction
 from .models import Tip, TipFavourite
@@ -1023,6 +1023,7 @@ class TestBadgeAwarding(APITestCase):
         cls.transaction_first = Badge.objects.create(name='First Savings Created')
         cls.streak_2 = Badge.objects.create(name='2 Week Streak')
         cls.first_challenge = Badge.objects.create(name='First Challenge Completed')
+        cls.challenge_win = Badge.objects.create(name='Challenge Win')
 
         site = Site.objects.get(is_default_site=True)
         BadgeSettings.objects.create(
@@ -1032,7 +1033,9 @@ class TestBadgeAwarding(APITestCase):
             goal_week_left=cls.goal_week_left,
             goal_first_done=cls.goal_first_done,
             transaction_first=cls.transaction_first,
-            streak_2=cls.streak_2
+            streak_2=cls.streak_2,
+
+            challenge_win=cls.challenge_win
         )
 
     # ------------------------ #
@@ -1298,27 +1301,75 @@ class TestBadgeAwarding(APITestCase):
     # ------------------------------- #
 
     def test_first_challenge(self):
+        self.skipTest("TODO")
+
+    # ---------------------- #
+    # Award Challenge Winner #
+    # ---------------------- #
+
+    def test_challenge_win(self):
         user = create_test_regular_user('anon')
         profile = Profile.objects.create(user=user)
 
-        challenge_first = Challenge.objects.create(
+        challenge = Challenge.objects.create(
             name='First Challenge',
             activation_date=timezone.now() + timedelta(days=-7),
             deactivation_date=timezone.now() + timedelta(days=7)
         )
-        challenge_first.publish()
-        challenge_first.save()
 
-        # User should not qualify for first challenge completion badge
-        self.assertEqual(profile.is_first_challenge_completed(), False, "Prematurely awarded participant badge")
+        challenge.publish()
+        challenge.save()
 
         # Participate and complete
-        challenge_first.participants \
+        challenge.participants \
             .create(user=user) \
             .entries.create()
 
-        # User should qualify for completing his first challenge
-        self.assertEqual(profile.is_first_challenge_completed(), True, "First challenge not picked up")
+        participant = Participant.objects.get(user=user, challenge=challenge)
+        participant.is_winner = True
+
+        site = Site.objects.get(is_default_site=True)
+        user_badge = award_challenge_win(site, user, participant)
+
+        self.assertIsNotNone(user_badge, "Badge was not awarded")
+
+        self.skipTest('TODO')
+
+
+class TestNotification(APITestCase):
+    """Test that the user can POST to /notification to mark their win as being 'read' """
+    def test_notification(self):
+        user = create_test_regular_user('anon_winner')
+        profile = Profile.objects.create(user=user)
+
+        challenge = Challenge.objects.create(
+            name='Challenge',
+            activation_date=timezone.now() + timedelta(days=-7),
+            deactivation_date=timezone.now() + timedelta(days=7)
+        )
+        challenge.publish()
+        challenge.save()
+
+        # Participate and complete
+        challenge.participants \
+            .create(user=user) \
+            .entries.create()
+
+        participant = Participant.objects.get(user=user, challenge=challenge)
+        participant.is_winner = True
+        participant.save()
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:challenges-notification', kwargs={'pk': challenge.pk}), format='json')
+
+        self.assertEquals(response.status_code, status.HTTP_204_NO_CONTENT,
+                          "The POST request to mark winning as being read did not go through")
+
+        # Fetch participant again after POST call updated has_read value
+        participant = Participant.objects.get(user=user, challenge=challenge)
+
+        self.assertEqual(participant.has_been_notified, True,
+                         "Participant has not been marked as having read their winning badge")
 
 
 class TestFeedback(APITestCase):

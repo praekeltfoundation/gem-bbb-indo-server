@@ -1,3 +1,4 @@
+import json
 from uuid import uuid4
 from collections import OrderedDict
 from datetime import timedelta
@@ -6,6 +7,7 @@ from math import ceil, floor
 from os.path import splitext
 
 from django.apps import apps
+from django.shortcuts import get_object_or_404
 from django.utils.html import format_html
 from django.contrib.auth.models import User
 from django.db import models
@@ -413,6 +415,19 @@ class Challenge(modelcluster_fields.ClusterableModel):
 
         return q.first()
 
+    def is_participant_a_winner(self, querying_user_id):
+        """Checks to see whether or not a participant has been marked as a winner"""
+        participant = Participant.objects.get(user_id=querying_user_id)
+        if participant is None:
+            # How can I move this into the model?
+            # participant will be none so I can't call get_winning_status to return the false
+            return {"winner": False}
+        return participant.get_winning_status
+
+    def view_participants(self):
+        return format_html("<a href='/admin/content/participant/?challenge__id__exact="
+                           + str(self.id) + "'>" + self.name + "</a> ")
+
 
 Challenge.panels = [
     wagtail_edit_handlers.MultiFieldPanel(
@@ -650,12 +665,49 @@ class Participant(models.Model):
     date_created = models.DateTimeField(_('created on'), default=timezone.now)
 
     # Translators: CMS field name (refers to dates)
-    date_completed = models.DateTimeField(_('completed on'), null=True)
+    date_completed = models.DateTimeField(_('completed on'), null=True, blank=False)
+
+    # Flag to indicate that participant entry has been 'seen'
+    is_read = models.BooleanField(_('is read'), default=False, blank=False)
+    is_shortlisted = models.BooleanField(_('is shortlisted'), default=False, blank=False)
+    is_winner = models.BooleanField(_('is winner'), default=False, blank=False)
+
+    # Has user received push notification of their winning badge
+    has_been_notified = models.BooleanField(_('has_been_notified'), default=False, blank=False)
+
+    badges = models.ManyToManyField('UserBadge')
 
     @property
     def is_completed(self):
         """A Participant is considered complete when at least one entry has been created."""
         return self.entries.all().exists()
+
+    def mark_is_read(self):
+        if self.is_read:
+            return format_html("<input type='checkbox' id='{}' class='mark-is-read' value='{}' checked='checked' />",
+                               'participant-is-read-%d' % self.id, self.id)
+        else:
+            return format_html("<input type='checkbox' id='{}' class='mark-is-read' value='{}' />",
+                               'participant-is-read-%d' % self.id, self.id)
+
+    def mark_is_shortlisted(self):
+        if self.is_shortlisted:
+            return format_html("<input type='checkbox' id='{}' class='mark-is-shortlisted' value='{}' checked='checked' />",
+                               'participant-is-shortlisted-%d' % self.id, self.id)
+        else:
+            return format_html("<input type='checkbox' id='{}' class='mark-is-shortlisted' value='{}' />",
+                               'participant-is-shortlisted-%d' % self.id, self.id)
+
+    def mark_is_winner(self):
+        if self.is_winner:
+            return format_html("<input type='checkbox' id='{}' class='mark-is-winner' value='{}' checked='checked' />",
+                               'participant-is-winner-%d' % self.id, self.id)
+        else:
+            return format_html("<input type='checkbox' id='{}' class='mark-is-winner' value='{}' />",
+                               'participant-is-winner-%d' % self.id, self.id)
+
+    def get_winning_status(self):
+        return {"winner": self.is_winner}
 
     class Meta:
         # Translators: Collection name on CMS
@@ -666,6 +718,34 @@ class Participant(models.Model):
 
     def __str__(self):
         return str(self.user) + ": " + str(self.challenge)
+
+
+Participant.panels = [
+    wagtail_edit_handlers.MultiFieldPanel(
+        [
+            wagtail_edit_handlers.FieldPanel('user'),
+            wagtail_edit_handlers.FieldPanel('challenge'),
+        ],
+        # Translators: Admin field name
+        heading=_('Participant')
+    ),
+    wagtail_edit_handlers.MultiFieldPanel(
+        [
+            wagtail_edit_handlers.FieldPanel('date_created'),
+            wagtail_edit_handlers.FieldPanel('date_completed'),
+        ],
+        # Translators: Admin field name
+        heading=_('Dates')
+    ),
+    wagtail_edit_handlers.MultiFieldPanel(
+        [
+            wagtail_edit_handlers.FieldPanel('is_read'),
+            wagtail_edit_handlers.FieldPanel('is_shortlisted'),
+            wagtail_edit_handlers.FieldPanel('is_winner'),
+        ],
+        heading=_('Status')
+    )
+]
 
 
 @python_2_unicode_compatible
@@ -1370,6 +1450,23 @@ def award_week_streak(site, user, weeks):
         if created:
             # Created means it's the first time a user has reached this streak
             return user_badge
+
+    return None
+
+
+def award_challenge_win(site, user, participant):
+    badge_settings = BadgeSettings.for_site(site)
+    badge = badge_settings.challenge_win
+
+    if badge is None:
+        return None
+
+    if not badge.is_active:
+        return None
+
+    if participant.is_winner:
+        user_badge, created = participant.badges.get_or_create(user=user, badge=badge)
+        return user_badge
 
     return None
 
