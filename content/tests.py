@@ -1327,6 +1327,42 @@ class TestBadgeAwarding(APITestCase):
         self.skipTest('TODO')
 
 
+class TestNotification(APITestCase):
+    """Test that the user can POST to /notification to mark their win as being 'read' """
+    def test_notification(self):
+        user = create_test_regular_user('anon_winner')
+        profile = Profile.objects.create(user=user)
+
+        challenge = Challenge.objects.create(
+            name='Challenge',
+            activation_date=timezone.now() + timedelta(days=-7),
+            deactivation_date=timezone.now() + timedelta(days=7)
+        )
+        challenge.publish()
+        challenge.save()
+
+        # Participate and complete
+        challenge.participants \
+            .create(user=user) \
+            .entries.create()
+
+        participant = Participant.objects.get(user=user, challenge=challenge)
+        participant.is_winner = True
+        participant.save()
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:challenges-notification', kwargs={'pk': challenge.pk}), format='json')
+
+        self.assertEquals(response.status_code, status.HTTP_204_NO_CONTENT,
+                          "The POST request to mark winning as being read did not go through")
+
+        # Fetch participant again after POST call updated has_read value
+        participant = Participant.objects.get(user=user, challenge=challenge)
+
+        self.assertEqual(participant.has_been_notified, True,
+                         "Participant has not been marked as having read their winning badge")
+
+
 class TestFeedback(APITestCase):
     def test_create_feedback(self):
         user = create_test_regular_user()
