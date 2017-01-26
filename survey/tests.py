@@ -166,6 +166,32 @@ class DraftAPITest(APITestCase):
         self.assertEqual(submission.get('first', None), '1', "First submission field was not set")
         self.assertEqual(submission.get('second', None), '2', "Second submission field was not set")
 
+    def test_draft_partial_submit(self):
+        """Test that a draft can be partially submitted."""
+        user = create_user()
+        survey = create_survey()
+        survey.form_fields.create(
+            key='first',
+            label='First',
+            field_type=SINGLE_LINE
+        )
+        survey.form_fields.create(
+            key='second',
+            label='Second',
+            field_type=SINGLE_LINE
+        )
+        publish(survey, create_user('Staff'))
+
+        self.client.force_authenticate(user=user)
+        self.client.patch(reverse('api:surveys-draft', kwargs={'pk': survey.pk}), {
+            'second': '2'
+        }, format='json')
+
+        updated_draft = CoachSurveySubmissionDraft.objects.get(user=user, survey=survey)
+        data = json.loads(updated_draft.submission if updated_draft.has_submission else {})
+
+        self.assertEqual(data.get('second', None), '2', "Second field was not set")
+
     def test_ensure_draft_on_submit(self):
         """
         Test that a draft is created when a survey is submitted, if one hasn't been created. This is to simplify
