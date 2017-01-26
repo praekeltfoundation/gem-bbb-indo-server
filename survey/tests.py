@@ -330,3 +330,59 @@ class SurveyReportingRequirements(APITestCase):
 
         survey_aggregates()
         self.skipTest('TODO')
+
+
+class SurveyDataPreservationTests(APITestCase):
+    """Tests to check whether submission exports store historical data.
+    """
+
+    def test_user_deletion(self):
+        """Test whether deleting a user will preserve the data as it was at time of submission."""
+        user = RegUser.objects.create(
+            username='anon',
+            first_name='Anonymous',
+            last_name='Rex',
+            email='a@b.c'
+        )
+        Profile.objects.create(
+            user=user,
+            age=30,
+            gender=Profile.GENDER_MALE,
+            mobile='12345667890'
+        )
+        survey = create_survey()
+        survey.form_fields.create(
+            key='first',
+            label='First',
+            field_type=SINGLE_LINE
+        )
+        publish(survey, create_user('Staff'))
+
+        self.client.force_authenticate(user=user)
+        self.client.post(reverse('api:surveys-submission', kwargs={'pk': survey.pk}), {
+            CoachSurvey.CONSENT_KEY: CoachSurvey.ANSWER_YES,
+            'first': '1'
+        }, format='json')
+
+        # Copy user info for testing
+        user_id = user.id
+        user_name = user.get_full_name()
+        user_username = user.username
+        user_mobile = user.profile.mobile
+        user_gender = user.profile.get_gender_display()
+        user_age = str(user.profile.age)
+        user_email = user.email
+
+        user.delete()
+
+        submission = CoachSurveySubmission.objects.filter(survey=survey).first()
+        self.assertIsNotNone(submission, "Submission was deleted along with user")
+
+        data = submission.get_data()
+        self.assertEqual(data['user_id'], user_id)
+        self.assertEqual(data['name'], user_name)
+        self.assertEqual(data['username'], user_username)
+        self.assertEqual(data['mobile'], user_mobile)
+        self.assertEqual(data['gender'], user_gender)
+        self.assertEqual(data['age'], user_age)
+        self.assertEqual(data['email'], user_email)
