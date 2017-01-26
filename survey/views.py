@@ -44,8 +44,12 @@ class CoachSurveyViewSet(ModelViewSet):
     def draft(self, request, pk=None, *args, **kwargs):
         """Drafts are used for tracking the user's progress through the survey."""
         survey = self.get_object()
-        draft, created = CoachSurveySubmissionDraft.objects.get_or_create(user=request.user, survey=survey,
-                                                                          submission=None, complete=False)
+        draft, created = CoachSurveySubmissionDraft.objects.get_or_create(user=request.user, survey=survey)
+
+        if draft.complete or draft.submission is not None:
+            # Users cannot submit multiple times
+            raise ValidationError(_('Multiple survey submissions are not allowed'))
+
         data = json.loads(draft.submission_data) if draft.submission_data else {}
 
         # We don't want consent to default to False in a partial update
@@ -60,8 +64,11 @@ class CoachSurveyViewSet(ModelViewSet):
 
     @detail_route(['post'])
     def submission(self, request, pk=None, *args, **kwargs):
-        # TODO: Ensure draft is created
         survey = self.get_object()
+
+        if CoachSurveySubmission.objects.filter(survey=survey, user=request.user).exists():
+            raise ValidationError(_('Multiple survey submissions are not allowed'))
+
         consent = CoachSurveyViewSet.pop_consent(request.data)
         # Leveraging form to validate fields
         form = survey.get_form(request.data, page=survey, user=request.user)
