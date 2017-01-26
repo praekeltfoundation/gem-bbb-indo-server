@@ -1,4 +1,3 @@
-
 from collections import OrderedDict
 
 from django.utils.translation import ugettext_lazy as _
@@ -105,12 +104,15 @@ class ChallengeViewSet(viewsets.ModelViewSet):
 
     @detail_route(methods=['get', 'post'])
     def winner(self, request, pk=None, *args, **kwargs):
-        winner = get_object_or_404(Challenge, pk=pk).is_user_a_winner(request.user)
+        # winner = get_object_or_404(Challenge, pk=pk).is_user_a_winner(request.user)
+        participant = get_object_or_404(Participant, user=request.user, challenge_id=pk)
 
-        if winner is None:
+        if participant is None:
             raise NotFound("User did not participant in challenge.")
 
-        return Response(winner)
+        winner_status = participant.get_winning_status()
+
+        return Response(winner_status)
 
     @list_route(methods=['get'])
     def winning(self, request, *args, **kwargs):
@@ -133,12 +135,18 @@ class ChallengeViewSet(viewsets.ModelViewSet):
     @detail_route(methods=['post'])
     def notification(self, request, pk=None, *args, **kwargs):
         # TODO: Filter by notification flag
-        participant = get_object_or_404(get_object_or_404(Challenge, pk=pk).participants,
-                                        user=request.user, is_winner=True)
-        # TODO: Set flag
-        # participant.wertyui
+        # participant = get_object_or_404(get_object_or_404(Challenge, pk=pk).participant, user=request.user, is_winner=True)
+        participant = get_object_or_404(challenge_id=pk, user=request.user, is_winner=True)
+
+        if not participant.has_been_notified:
+            participant.has_been_notified = True
+        else:
+            return Response(status=status.HTTP_204_NO_CONTENT)
 
         participant.save()
+
+        # Notify user??
+
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
