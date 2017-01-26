@@ -54,6 +54,7 @@ class CoachSurveyViewSet(ModelViewSet):
 
     @detail_route(['post'])
     def submission(self, request, pk=None, *args, **kwargs):
+        # TODO: Ensure draft is created
         survey = self.get_object()
         consent = CoachSurveyViewSet.pop_consent(request.data)
         # Leveraging form to validate fields

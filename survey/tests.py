@@ -11,6 +11,7 @@ from wagtail.wagtailcore.models import Page
 
 from users.models import RegUser, Profile
 from .models import CoachSurvey, CoachFormField, CoachSurveySubmission, CoachSurveySubmissionDraft
+from .reports import survey_aggregates
 
 SINGLE_LINE = 'singleline'
 RADIO_FIELD = 'radio'
@@ -53,6 +54,7 @@ def create_user(username='Anon'):
 class CoachSurveyAPITest(APITestCase):
 
     def test_basic_submit(self):
+        """Test that a submission can be received"""
         user = create_user()
         survey = create_survey()
         survey.form_fields.create(
@@ -76,6 +78,8 @@ class CoachSurveyAPITest(APITestCase):
         self.assertEqual(data.get('field-1'), '3', "Field not found in submission data")
 
     def test_current_after_registration_days_none_available(self):
+        """Test that a survey is kept from the user before the specified number of days after registration has passed.
+        """
         now = timezone.now()
 
         user = create_user()
@@ -92,6 +96,8 @@ class CoachSurveyAPITest(APITestCase):
         self.assertIsNone(response.data['survey'], "Survey field was unexpectedly populated.")
 
     def test_current_after_registration_days_available(self):
+        """Test that a survey is made available to the user after the specified number of days after registration has
+        passed."""
         now = timezone.now()
 
         user = create_user()
@@ -108,6 +114,8 @@ class CoachSurveyAPITest(APITestCase):
         self.assertIsNotNone(response.data['survey'], "Survey field was not populated.")
 
     def test_filter_by_bot_conversation(self):
+        """Test that surveys can be filtered by the requested Bot conversation type.
+        """
         user = create_user('Anon')
         baseline_survey = create_survey(title='Baseline survey', bot_conversation=CoachSurvey.BASELINE)
         eatool_survey = create_survey(title='EA Tool', bot_conversation=CoachSurvey.EATOOL)
@@ -130,6 +138,7 @@ class CoachSurveyAPITest(APITestCase):
 class DraftAPITest(APITestCase):
 
     def test_basic_draft_submit(self):
+        """Test that a draft can be submitted."""
         user = create_user('anon')
         survey = create_survey()
         survey.form_fields.create(
@@ -156,3 +165,36 @@ class DraftAPITest(APITestCase):
         submission = json.loads(updated_draft.submission)
         self.assertEqual(submission.get('first', None), '1', "First submission field was not set")
         self.assertEqual(submission.get('second', None), '2', "Second submission field was not set")
+
+    def test_ensure_draft_on_submit(self):
+        """
+        Test that a draft is created when a survey is submitted, if one hasn't been created. This is to simplify
+        reporting later, so data can exported using the drafts, and not inferred from existing submissions and missing
+        drafts.
+        """
+        self.skipTest('TODO: Submission view needs to ensure draft is created.')
+
+
+class SurveyReportingRequirements(APITestCase):
+
+    def test_survey_report_aggregation(self):
+        """Test that total data by survey aggregates correctly."""
+        staff = create_user('Staff')
+        users = [create_user('anon' + str(i)) for i in range(10)]
+        surveys = []
+        for i in range(3):
+            survey = create_survey('Survey ' + str(i))
+            publish(survey, staff)
+            surveys.append(survey)
+
+        # Users who submitted drafts
+        for user in users[0:7]:
+            self.client.force_authenticate(user=user)
+
+            # Survey 1
+            # self.client.put(reverse('api:surveys-draft', kwargs={'pk': surveys[0].pk}))
+
+        survey_aggregates()
+        self.skipTest('TODO')
+
+

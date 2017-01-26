@@ -262,6 +262,11 @@ class CoachSurveySubmissionDraft(models.Model):
     consent = models.BooleanField(default=False)
     # Submission is stored as JSON
     submission = models.TextField()
+    # TODO: Versioning
+    # On each draft update, the version needs to be incremented
+    # version = models.IntegerField(default=0)
+    # created_at = models.DateTimeField(default=timezone.now)
+    # modified_at = models.DateTimeField(default=timezone.now)
 
     class Meta:
         verbose_name = _('coach survey submission draft')
