@@ -114,7 +114,7 @@ class CoachSurvey(AbstractSurvey):
             consent=consent,
 
             # To preserve historic information
-            user_id=str(form.user.id),
+            user_unique_id=form.user.id,
             name=form.user.get_full_name(),
             username=form.user.username,
             mobile=form.user.profile.mobile,
