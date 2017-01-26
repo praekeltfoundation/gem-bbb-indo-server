@@ -662,6 +662,9 @@ class Participant(models.Model):
     is_shortlisted = models.BooleanField(_('is shortlisted'), default=False, blank=False)
     is_winner = models.BooleanField(_('is winner'), default=False, blank=False)
 
+    # Has user received push notification of their winning badge
+    has_been_notified = models.BooleanField(_('has_been_notified'), default=False, blank=False)
+
     badges = models.ManyToManyField('UserBadge')
 
     @property
