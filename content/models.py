@@ -1435,7 +1435,6 @@ def award_challenge_win(site, user, participant):
         return None
 
     if participant.is_winner:
-        # user_badge, created = UserBadge.objects.get_or_create(user=user, badge=badge)
         user_badge, created = participant.badges.get_or_create(user=user, badge=badge)
         return user_badge
 
