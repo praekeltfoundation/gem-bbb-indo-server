@@ -118,8 +118,8 @@ class CoachSurvey(AbstractSurvey):
             name=form.user.get_full_name(),
             username=form.user.username,
             mobile=form.user.profile.mobile,
-            gender=form.user.profile.get_gender_display(),
-            age=str(form.user.profile.age),
+            gender=str(form.user.profile.get_gender_display() if form.user.profile.gender is not None else ""),
+            age=str(form.user.profile.age if form.user.profile.age is not None else ""),
             email=form.user.email
         )
 
@@ -261,7 +261,7 @@ class CoachSurveySubmissionDraft(models.Model):
     survey = models.ForeignKey(CoachSurvey, related_name='drafts')
     consent = models.BooleanField(default=False)
     # Submission is stored as JSON
-    submission = models.TextField()
+    submission_data = models.TextField()
     version = models.IntegerField(default=0)
     created_at = models.DateTimeField(default=timezone.now)
     modified_at = models.DateTimeField(default=timezone.now)
@@ -273,7 +273,7 @@ class CoachSurveySubmissionDraft(models.Model):
 
     @property
     def has_submission(self):
-        return bool(self.submission)
+        return bool(self.submission_data)
 
     def save(self, *args, **kwargs):
         self.version += self.version

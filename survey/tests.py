@@ -162,7 +162,7 @@ class DraftAPITest(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, "Draft submit request failed")
 
         updated_draft = CoachSurveySubmissionDraft.objects.get(user=user, survey=survey)
-        submission = json.loads(updated_draft.submission)
+        submission = json.loads(updated_draft.submission_data)
         self.assertEqual(submission.get('first', None), '1', "First submission field was not set")
         self.assertEqual(submission.get('second', None), '2', "Second submission field was not set")
 
@@ -188,7 +188,7 @@ class DraftAPITest(APITestCase):
         }, format='json')
 
         updated_draft = CoachSurveySubmissionDraft.objects.get(user=user, survey=survey)
-        data = json.loads(updated_draft.submission if updated_draft.has_submission else {})
+        data = json.loads(updated_draft.submission_data if updated_draft.has_submission else {})
 
         self.assertEqual(data.get('second', None), '2', "Second field was not set")
 
@@ -198,7 +198,22 @@ class DraftAPITest(APITestCase):
         reporting later, so data can exported using the drafts, and not inferred from existing submissions and missing
         drafts.
         """
-        self.skipTest('TODO: Submission view needs to ensure draft is created.')
+        user = create_user()
+        survey = create_survey()
+        survey.form_fields.create(
+            key='first',
+            label='First',
+            field_type=SINGLE_LINE
+        )
+        publish(survey, create_user('Staff'))
+
+        self.client.force_authenticate(user=user)
+        self.client.post(reverse('api:surveys-submission', kwargs={'pk': survey.pk}), {
+            CoachSurvey.CONSENT_KEY: CoachSurvey.ANSWER_YES,
+            'first': '1'
+        }, format='json')
+
+        self.assertTrue(CoachSurveySubmissionDraft.objects.filter(user=user, survey=survey).exists(), "Draft was not created.")
 
     def test_consent_set(self):
         """Test that submitting a draft answer containing the appropriate consent answer will store the draft correctly.
@@ -225,7 +240,7 @@ class DraftAPITest(APITestCase):
         }, format='json')
 
         updated_draft = CoachSurveySubmissionDraft.objects.get(user=user, survey=survey)
-        data = json.loads(updated_draft.submission) if updated_draft.has_submission else {}
+        data = json.loads(updated_draft.submission_data) if updated_draft.has_submission else {}
 
         self.assertTrue(updated_draft.consent, "Consent was not stored")
         self.assertIsNone(data.get(CoachSurvey.CONSENT_KEY, None), "Consent was stored in submission data")
@@ -282,7 +297,7 @@ class DraftAPITest(APITestCase):
         }, format='json')
 
         updated_draft = CoachSurveySubmissionDraft.objects.get(user=user, survey=survey)
-        data = json.loads(updated_draft.submission) if updated_draft.has_submission else {}
+        data = json.loads(updated_draft.submission_data) if updated_draft.has_submission else {}
 
         self.assertTrue(updated_draft.consent, "Consent was not set.")
         self.assertEqual(data, {}, "Draft submission unexpectedly contains data.")
@@ -309,5 +324,3 @@ class SurveyReportingRequirements(APITestCase):
 
         survey_aggregates()
         self.skipTest('TODO')
-
-

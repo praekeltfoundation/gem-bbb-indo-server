@@ -45,14 +45,14 @@ class CoachSurveyViewSet(ModelViewSet):
         """Drafts are used for tracking the user's progress through the survey."""
         survey = self.get_object()
         draft, created = CoachSurveySubmissionDraft.objects.get_or_create(user=request.user, survey=survey)
-        data = json.loads(draft.submission) if draft.submission else {}
+        data = json.loads(draft.submission_data) if draft.submission_data else {}
 
         # We don't want consent to default to False in a partial update
         if CoachSurvey.CONSENT_KEY in request.data:
             draft.consent = CoachSurveyViewSet.pop_consent(request.data)
 
         data.update(request.data)
-        draft.submission = json.dumps(data)
+        draft.submission_data = json.dumps(data)
         draft.save()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
@@ -65,6 +65,7 @@ class CoachSurveyViewSet(ModelViewSet):
         # Leveraging form to validate fields
         form = survey.get_form(request.data, page=survey, user=request.user)
         if form.is_valid():
+            draft, created = CoachSurveySubmissionDraft.objects.get_or_create(user=request.user, survey=survey)
             survey.process_consented_submission(consent, form)
             return Response(status=status.HTTP_204_NO_CONTENT)
         else:
