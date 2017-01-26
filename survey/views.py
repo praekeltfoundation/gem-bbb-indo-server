@@ -66,7 +66,7 @@ class CoachSurveyViewSet(ModelViewSet):
     def submission(self, request, pk=None, *args, **kwargs):
         survey = self.get_object()
 
-        if CoachSurveySubmission.objects.filter(survey=survey, user=request.user).exists():
+        if CoachSurveySubmission.objects.filter(page=survey, user=request.user).exists():
             raise ValidationError(_('Multiple survey submissions are not allowed'))
 
         consent = CoachSurveyViewSet.pop_consent(request.data)
