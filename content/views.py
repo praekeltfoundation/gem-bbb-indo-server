@@ -136,16 +136,15 @@ class ChallengeViewSet(viewsets.ModelViewSet):
     def notification(self, request, pk=None, *args, **kwargs):
         # TODO: Filter by notification flag
         # participant = get_object_or_404(get_object_or_404(Challenge, pk=pk).participant, user=request.user, is_winner=True)
-        participant = get_object_or_404(challenge_id=pk, user=request.user, is_winner=True)
+        # participant = get_object_or_404(challenge_id=pk, user=request.user, is_winner=True)
+        participants = Participant.objects.filter(challenge_id=pk, is_winner=True)
 
-        if not participant.has_been_notified:
-            participant.has_been_notified = True
-        else:
-            return Response(status=status.HTTP_204_NO_CONTENT)
+        for p in participants:
+            # Notify
+            p.has_been_notified = True
+            p.save()
 
-        participant.save()
-
-        # Notify user??
+        # participant.save()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
