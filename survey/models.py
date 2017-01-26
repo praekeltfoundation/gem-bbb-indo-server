@@ -272,3 +272,7 @@ class CoachSurveySubmissionDraft(models.Model):
         verbose_name = _('coach survey submission draft')
 
         verbose_name_plural = _('coach survey submission drafts')
+
+    @property
+    def has_submission(self):
+        return bool(self.submission)

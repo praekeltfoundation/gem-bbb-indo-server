@@ -17,7 +17,7 @@ class CoachSurveyViewSet(ModelViewSet):
     serializer_class = CoachSurveySerializer
     permission_classes = (IsAuthenticated,)
     # POST and PUT methods are required for `submission` and `drafts`, but implicitly not allowed for survey itself
-    http_method_names = ('head', 'options', 'get', 'post', 'put')
+    http_method_names = ('head', 'options', 'get', 'post', 'patch')
 
     def get_queryset(self):
         queryset = super(CoachSurveyViewSet, self).get_queryset()
@@ -36,20 +36,27 @@ class CoachSurveyViewSet(ModelViewSet):
         # Users shouldn't be able to create surveys themselves
         raise MethodNotAllowed('POST')
 
-    def update(self, request, *args, **kwargs):
+    def partial_update(self, request, *args, **kwargs):
         # Users shouldn't be able to update surveys themselves
-        raise MethodNotAllowed('PUT')
+        raise MethodNotAllowed('PATCH')
 
-    @detail_route(['put'])
+    @detail_route(['patch'])
     def draft(self, request, pk=None, *args, **kwargs):
         """Drafts are used for tracking the user's progress through the survey."""
         survey = self.get_object()
         draft, created = CoachSurveySubmissionDraft.objects.get_or_create(user=request.user, survey=survey)
-        draft.consent = CoachSurveyViewSet.pop_consent(request.data)
+        data = json.loads(draft.submission) if draft.submission else {}
+
+        # We don't want consent to default to False in a partial update
+        if CoachSurvey.CONSENT_KEY in request.data:
+            draft.consent = CoachSurveyViewSet.pop_consent(request.data)
+
         form = survey.get_form(request.data, page=survey, user=request.user)
         if form.is_valid():
-            draft.submission = json.dumps(form.cleaned_data)
+            data.update(form.cleaned_data)
+            draft.submission = json.dumps(data)
             draft.save()
+
         return Response(status=status.HTTP_204_NO_CONTENT)
 
     @detail_route(['post'])

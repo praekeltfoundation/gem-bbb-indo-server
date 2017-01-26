@@ -154,7 +154,7 @@ class DraftAPITest(APITestCase):
         publish(survey, user)
 
         self.client.force_authenticate(user=user)
-        response = self.client.put(reverse('api:surveys-draft', kwargs={'pk': survey.pk}), {
+        response = self.client.patch(reverse('api:surveys-draft', kwargs={'pk': survey.pk}), {
             'first': '1',
             'second': '2'
         }, format='json')
@@ -174,6 +174,36 @@ class DraftAPITest(APITestCase):
         """
         self.skipTest('TODO: Submission view needs to ensure draft is created.')
 
+    def test_consent_set(self):
+        """Test that submitting a draft answer containing the appropriate consent answer will store the draft correctly.
+        """
+        user = create_user()
+        survey = create_survey()
+        survey.form_fields.create(
+            key='first',
+            label='First',
+            field_type=SINGLE_LINE
+        )
+        survey.form_fields.create(
+            key='second',
+            label='Second',
+            field_type=SINGLE_LINE
+        )
+        publish(survey, create_user('Staff'))
+
+        self.client.force_authenticate(user=user)
+        self.client.patch(reverse('api:surveys-draft', kwargs={'pk': survey.pk}), {
+            CoachSurvey.CONSENT_KEY: CoachSurvey.ANSWER_YES,
+            'first': '1',
+            'second': '2'
+        }, format='json')
+
+        updated_draft = CoachSurveySubmissionDraft.objects.get(user=user, survey=survey)
+        data = json.loads(updated_draft.submission) if updated_draft.has_submission else {}
+
+        self.assertTrue(updated_draft.consent, "Consent was not stored")
+        self.assertIsNone(data.get(CoachSurvey.CONSENT_KEY, None), "Consent was stored in submission data")
+
 
 class SurveyReportingRequirements(APITestCase):
 
@@ -192,7 +222,7 @@ class SurveyReportingRequirements(APITestCase):
             self.client.force_authenticate(user=user)
 
             # Survey 1
-            # self.client.put(reverse('api:surveys-draft', kwargs={'pk': surveys[0].pk}))
+            self.client.put(reverse('api:surveys-draft', kwargs={'pk': surveys[0].pk}), {}, format='json')
 
         survey_aggregates()
         self.skipTest('TODO')
