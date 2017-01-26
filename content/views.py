@@ -119,7 +119,8 @@ class ChallengeViewSet(viewsets.ModelViewSet):
             .order_by('date_completed')\
             .first()
 
-        # TODO: Check participant is None
+        if participant is None:
+            return {"available": False, "badge": None}
 
         badge_settings = BadgeSettings.for_site(request.site)
 
