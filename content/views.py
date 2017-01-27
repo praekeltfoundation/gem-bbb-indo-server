@@ -142,11 +142,16 @@ class ChallengeViewSet(viewsets.ModelViewSet):
                                                 context=self.get_serializer_context()).data
         return Response(data)
 
-    @detail_route(methods=['post'])
+    @list_route(methods=['post'])
     def notification(self, request, pk=None, *args, **kwargs):
         """Marks the participant as having received the winning notification"""
         # participant = get_object_or_404(challenge_id=pk, user=request.user, is_winner=True)
-        participants = Participant.objects.filter(challenge_id=pk, user=request.user, has_been_notified=False)
+        challengeid = request.POST['pk'] or None
+
+        if challengeid is None:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        participants = Participant.objects.filter(challenge_id=challengeid, user=request.user, has_been_notified=False)
 
         if participants is None:
             return Response(status=status.HTTP_204_NO_CONTENT)
@@ -154,10 +159,6 @@ class ChallengeViewSet(viewsets.ModelViewSet):
         for p in participants:
             p.has_been_notified = True
             p.save()
-
-        # Is it better to save each individual participant (like above) or can I call save on the entire query set?
-        # participant.save()
-        # Participants.objects.filter(challenge_id=pk, user=request.user, has_been_notified=False).update(has_been_notified=True)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
