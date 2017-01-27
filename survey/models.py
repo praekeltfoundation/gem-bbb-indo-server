@@ -36,8 +36,8 @@ class CoachSurvey(AbstractSurvey):
     BASELINE = 1
     EATOOL = 2
     _REVERSE = {
-        'BASELINE': BASELINE,
-        'EATOOL': EATOOL
+        'SURVEY_BASELINE': BASELINE,
+        'SURVEY_EATOOL': EATOOL
     }
 
     intro = models.TextField(

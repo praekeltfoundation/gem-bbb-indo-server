@@ -127,7 +127,7 @@ class CoachSurveyAPITest(APITestCase):
 
         params = QueryDict(mutable=True)
         params.update({
-            'bot-conversation': 'EATOOL'
+            'bot-conversation': 'SURVEY_EATOOL'
         })
         response = self.client.get(u'%s?%s' % (reverse('api:surveys-list'), params.urlencode()))
 
