@@ -1114,12 +1114,17 @@ class Goal(models.Model):
                     # Streak maintained
                     streak += 1
                     last_monday = monday
+                    week_savings_total = 0
                 else:
                     # Streak broken
                     break
             else:
                 week_savings_total += t.value
-                
+
+        if streak > 0:
+            # Any Transactions make for at least 1 week's streak. Weeks are inclusive.
+            streak += 1
+
         return streak
 
 

@@ -975,6 +975,34 @@ class TestWeeklyStreaks(TestCase):
 
         self.assertEqual(streak, 0, "Unexpected weekly streak.")
 
+class TestWeeklyTargetStreaks(TestCase):
+
+    def test_basic_streak_2(self):
+        now = datetime(2016, 11, 30, tzinfo=timezone.utc)
+
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=36, #Thus the weekly target is 6 for 6 weeks to reach the target
+            start_date=now - timedelta(days=-42), #Goal duration is 6 weeks
+            end_date=now,
+        )
+
+        # Week 5
+        goal.transactions.create(value=1, date=now + timedelta(days=-7))
+        goal.transactions.create(value=2, date=now + timedelta(days=-8))
+        goal.transactions.create(value=3, date=now + timedelta(days=-9))
+
+        # Week 6
+        goal.transactions.create(value=1, date=now + timedelta(days=-1))
+        goal.transactions.create(value=3, date=now + timedelta(days=-2))
+        goal.transactions.create(value=3, date=now + timedelta(days=-3))
+
+        streak = Goal.get_current_weekly_target_badge(user, goal, now)
+
+        self.assertEqual(streak, 2, "Unexpected streak returned, should be 2")
+
 
 class TestAchievementAPI(APITestCase):
 
