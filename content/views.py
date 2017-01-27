@@ -142,16 +142,10 @@ class ChallengeViewSet(viewsets.ModelViewSet):
                                                 context=self.get_serializer_context()).data
         return Response(data)
 
-    @list_route(methods=['post'])
+    @detail_route(methods=['post'])
     def notification(self, request, pk=None, *args, **kwargs):
         """Marks the participant as having received the winning notification"""
-        # participant = get_object_or_404(challenge_id=pk, user=request.user, is_winner=True)
-        challengeid = request.POST['pk'] or None
-
-        if challengeid is None:
-            return Response(status=status.HTTP_204_NO_CONTENT)
-
-        participants = Participant.objects.filter(challenge_id=challengeid, user=request.user, has_been_notified=False)
+        participants = Participant.objects.filter(challenge_id=pk, user=request.user, has_been_notified=False)
 
         if participants is None:
             return Response(status=status.HTTP_204_NO_CONTENT)
