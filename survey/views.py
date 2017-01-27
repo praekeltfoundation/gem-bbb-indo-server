@@ -1,6 +1,7 @@
 
 import json
 
+from django.utils.translation import ugettext_lazy as _
 from rest_framework import status
 from rest_framework.exceptions import ValidationError, MethodNotAllowed
 from rest_framework.decorators import list_route, detail_route
