@@ -2,6 +2,11 @@
 Changelog
 =========
 
+0.1.1
+-----
+
+- Implemented Survey drafts
+
 0.0.15
 ------
 
