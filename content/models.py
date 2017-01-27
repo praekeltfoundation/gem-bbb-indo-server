@@ -204,7 +204,7 @@ BadgeSettings.panels = [
         wagtail_edit_handlers.FieldPanel('streak_6'),
         wagtail_edit_handlers.FieldPanel('weekly_target_2'),
         wagtail_edit_handlers.FieldPanel('weekly_target_4'),
-        wagtail_edit_handlers.FieldPanel('weekly_target_8'),
+        wagtail_edit_handlers.FieldPanel('weekly_target_6'),
     ],
         # Translators: Admin field name
         heading=_("savings badges")),
@@ -1420,7 +1420,7 @@ def award_weekly_target_badge(site, user, weeks, goal):
     badge_settings = BadgeSettings.for_site(site)
     badge = badge_settings.get_weekly_target_badge(weeks)  # Badge is chosen depending on passed in int
 
-    if Badge is None:
+    if badge is None:
         return None
 
     if not badge.is_active:
