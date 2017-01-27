@@ -1296,11 +1296,11 @@ class TestBadgeAwarding(APITestCase):
         badges = [b for b in response.data['new_badges'] if b['name'] == self.streak_2.name]
         self.assertEqual(len(badges), 1, "Expected badge was not included")
 
-    # ------------------------------- #
-    # Award First Challenge Completed #
-    # ------------------------------- #
+    # ----------------------------- #
+    # Award Challenge participation #
+    # ----------------------------- #
 
-    def test_first_challenge(self):
+    def test_challenge_participation(self):
         self.skipTest("TODO")
 
     # ---------------------- #
