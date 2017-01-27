@@ -1103,27 +1103,38 @@ class Goal(models.Model):
         # No Transactions at all mean no streak
         streak = 0
 
-        week_savings_total = 0;
+        week_savings_total = 0
+        broke_out_of_loop = False
 
         for t in transactions:
             monday = Goal._monday(t.date.date())
 
             if last_monday != monday:
                 #t is now in a different week
-                if week_savings_total > goal.weekly_target:
+                if week_savings_total >= goal.weekly_target:
                     # Streak maintained
                     streak += 1
-                    last_monday = monday
-                    week_savings_total = 0
+                    if monday == (last_monday + timedelta(days=-7)): #This is to check that the user did not stop saving for an entire week
+                        last_monday = monday #move one week back
+                        week_savings_total = t.value #start with the first transaction of this week
+                    else:
+                        # The user did not save for an entire week and the streak is broken
+                        broke_out_of_loop = True
+                        break
                 else:
                     # Streak broken
+                    broke_out_of_loop = True
                     break
             else:
                 week_savings_total += t.value
 
-        if streak > 0:
-            # Any Transactions make for at least 1 week's streak. Weeks are inclusive.
-            streak += 1
+
+        if  not broke_out_of_loop:
+            #If you did not break out of the loop the transactions ended and there could be another week in the streak
+            # left so we have to check
+            if week_savings_total >= goal.weekly_target:
+                # Streak maintained
+                streak += 1
 
         return streak
 
