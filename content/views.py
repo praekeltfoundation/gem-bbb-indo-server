@@ -119,7 +119,7 @@ class ChallengeViewSet(viewsets.ModelViewSet):
     def winning(self, request, *args, **kwargs):
         """Returns winning status, and badge and challenge if available"""
         # TODO: Filter by notification flag
-        participant = Participant.objects.filter(user=request.user, is_winner=True) \
+        participant = Participant.objects.filter(user=request.user, is_winner=True, has_been_notified=False) \
             .order_by('date_completed') \
             .first()
 
