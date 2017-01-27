@@ -9,6 +9,7 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 
+from .exceptions import DuplicateSurveySubmissionError
 from .models import CoachSurvey, CoachSurveySubmission, CoachSurveyResponse, CoachSurveySubmissionDraft
 from .serializers import CoachSurveySerializer, CoachSurveyResponseSerializer
 
@@ -49,7 +50,7 @@ class CoachSurveyViewSet(ModelViewSet):
 
         if draft.complete or draft.submission is not None:
             # Users cannot submit multiple times
-            raise ValidationError(_('Multiple survey submissions are not allowed'))
+            raise DuplicateSurveySubmissionError()
 
         data = json.loads(draft.submission_data) if draft.submission_data else {}
 
@@ -68,7 +69,7 @@ class CoachSurveyViewSet(ModelViewSet):
         survey = self.get_object()
 
         if CoachSurveySubmission.objects.filter(page=survey, user=request.user).exists():
-            raise ValidationError(_('Multiple survey submissions are not allowed'))
+            raise DuplicateSurveySubmissionError()
 
         consent = CoachSurveyViewSet.pop_consent(request.data)
         # Leveraging form to validate fields
