@@ -36,6 +36,9 @@ from .storage import ChallengeStorage, GoalImgStorage, ParticipantPictureStorage
 WEEK_STREAK_2 = 2
 WEEK_STREAK_4 = 4
 WEEK_STREAK_6 = 6
+WEEKLY_TARGET_2 = 2
+WEEKLY_TARGET_4 = 4
+WEEKLY_TARGET_6 = 6
 
 
 @register_setting
@@ -130,12 +133,12 @@ class BadgeSettings(BaseSetting):
         blank=False, null=True
     )
 
-    weekly_target_8 = models.ForeignKey(
+    weekly_target_6 = models.ForeignKey(
         'Badge',
-        verbose_name=_('8 Week On Target'),
+        verbose_name=_('6 Week On Target'),
         related_name='+',
         on_delete=models.SET_NULL,
-        help_text=_("Awarded when a user has reached their weekly target 8 weeks in a row."),
+        help_text=_("Awarded when a user has reached their weekly target 6 weeks in a row."),
         blank=False, null=True
     )
 
@@ -167,6 +170,16 @@ class BadgeSettings(BaseSetting):
             return self.streak_4
         elif weeks == WEEK_STREAK_6:
             return self.streak_6
+        else:
+            return None
+
+    def get_weekly_target_badge(self, weeks):
+        if weeks == WEEKLY_TARGET_2:
+            return self.weekly_target_2
+        elif weeks == WEEKLY_TARGET_4:
+            return self.weekly_target_4
+        elif weeks == WEEKLY_TARGET_6:
+            return self.weekly_target_6
         else:
             return None
 
@@ -1067,6 +1080,49 @@ class Goal(models.Model):
 
         return streak
 
+    @classmethod
+    def get_current_weekly_target_badge(self, user, goal, now=None, weeks_back=6):
+        """Calculates number of weeks in a row that the user has reached the weekly savings target
+        """
+        trans_model = apps.get_model('content', 'GoalTransaction')
+
+        now_date = now
+        if now is None:
+            now_date = timezone.now()
+
+        #How far back you check
+        since_date = now_date - timedelta(weeks=weeks_back)
+
+        #get all transactions for the specific goal
+        transactions = trans_model.objects \
+            .filter(goal=goal, date__gt=since_date) \
+            .order_by('-date')
+
+        last_monday = Goal._monday(now_date.date())
+
+        # No Transactions at all mean no streak
+        streak = 0
+
+        week_savings_total = 0;
+
+        for t in transactions:
+            monday = Goal._monday(t.date.date())
+
+            if last_monday != monday:
+                #t is now in a different week
+                if week_savings_total > goal.weekly_target:
+                    # Streak maintained
+                    streak += 1
+                    last_monday = monday
+                else:
+                    # Streak broken
+                    break
+            else:
+                week_savings_total += t.value
+                
+        return streak
+
+
     def __str__(self):
         return self.name
 
@@ -1342,6 +1398,23 @@ def award_week_streak(site, user, weeks):
             return user_badge
 
     return None
+
+def award_weekly_target_badge(site, user, weeks, goal):
+    """Badge Goes to users who have reached their weekly targets for a number of weeks"""
+    badge_settings = BadgeSettings.for_site(site)
+    badge = badge_settings.get_weekly_target_badge(weeks)  # Badge is chosen depending on passed in int
+
+    if Badge is None:
+        return None
+
+    if not badge.is_active:
+        return None
+
+    if Goal.get_current_weekly_target_badge(user, goal, timezone.now()) == weeks:
+        user_badge, created = UserBadge.objects.get_or_create(user=user, badge=badge)
+        if created:
+            # Created means it's the first time a user has reached this streak
+            return user_badge
 
 
 ############

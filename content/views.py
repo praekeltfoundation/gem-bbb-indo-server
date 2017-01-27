@@ -17,7 +17,7 @@ from sendfile import sendfile
 
 from .exceptions import ImageNotFound
 
-from .models import BadgeSettings
+from .models import BadgeSettings, award_weekly_target_badge, WEEKLY_TARGET_2, WEEKLY_TARGET_4, WEEKLY_TARGET_6
 from .models import Badge, Challenge, Entry
 from .models import Feedback
 from .models import Goal, GoalPrototype
@@ -429,7 +429,10 @@ class GoalViewSet(viewsets.ModelViewSet):
             award_transaction_first(request, goal),
             award_week_streak(request.site, request.user, WEEK_STREAK_2),
             award_week_streak(request.site, request.user, WEEK_STREAK_4),
-            award_week_streak(request.site, request.user, WEEK_STREAK_6)
+            award_week_streak(request.site, request.user, WEEK_STREAK_6),
+            award_weekly_target_badge(request.site, request.user, WEEKLY_TARGET_2, goal),
+            award_weekly_target_badge(request.site, request.user, WEEKLY_TARGET_4, goal),
+            award_weekly_target_badge(request.site, request.user, WEEKLY_TARGET_6, goal)
         ]
 
         return [b for b in new_badges if b is not None]
