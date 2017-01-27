@@ -1209,6 +1209,7 @@ class TestBadgeAwarding(APITestCase):
         cls.goal_first_done = Badge.objects.create(name='First Goal Done')
         cls.transaction_first = Badge.objects.create(name='First Savings Created')
         cls.streak_2 = Badge.objects.create(name='2 Week Streak')
+        cls.weekly_target_2 = Badge.objects.create(name='2 Weekly Target Streak of 2')
 
         site = Site.objects.get(is_default_site=True)
         BadgeSettings.objects.create(
@@ -1218,7 +1219,8 @@ class TestBadgeAwarding(APITestCase):
             goal_week_left=cls.goal_week_left,
             goal_first_done=cls.goal_first_done,
             transaction_first=cls.transaction_first,
-            streak_2=cls.streak_2
+            streak_2=cls.streak_2,
+            weekly_target_2=cls.weekly_target_2
         )
 
     # ------------------------ #
@@ -1477,6 +1479,35 @@ class TestBadgeAwarding(APITestCase):
         response = self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}), data, format='json')
 
         badges = [b for b in response.data['new_badges'] if b['name'] == self.streak_2.name]
+        self.assertEqual(len(badges), 1, "Expected badge was not included")
+
+    # -------------------------- #
+    # Award Weekly Target Streaks #
+    # -------------------------- #
+
+    def test_weekly_target_2(self):
+        now = timezone.now()
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=100,
+            start_date=now - timedelta(days=30),
+            end_date=now + timedelta(days=30)
+        )
+        goal.transactions.create(
+            date=now - timedelta(days=7),  # One Week back
+            value=20
+        )
+        data = [{
+            'date': now.isoformat(),
+            'value': 20
+        }]
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}), data, format='json')
+
+        badges = [b for b in response.data['new_badges'] if b['name'] == self.weekly_target_2.name]
         self.assertEqual(len(badges), 1, "Expected badge was not included")
 
 
