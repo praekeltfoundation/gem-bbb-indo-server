@@ -1276,7 +1276,8 @@ class UserBadge(models.Model):
         # Translators: Collection name on CMS
         verbose_name_plural = _('user badges')
 
-        unique_together = ('user', 'badge')
+        # Remove constraint of user only being able to have one of each type of badge
+        # unique_together = ('user', 'badge')
 
     def __str__(self):
         return '{}-{}'.format(self.user, self.badge)
@@ -1339,6 +1340,7 @@ def award_first_challenge_completed(request, profile):
         return None
 
     if profile.is_first_challenge_completed():
+        # TODO Return first challenge completed badge
         return badge
 
     if not profile:
