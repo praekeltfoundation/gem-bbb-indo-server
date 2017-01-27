@@ -136,7 +136,7 @@ class ChallengeViewSet(viewsets.ModelViewSet):
         user_badge = award_challenge_win(site, request.user, participant)
 
         data = OrderedDict()
-        data['available'] = user_badge is not None and participant.challenge is not None,
+        data['available'] = user_badge is not None and participant.challenge is not None
         data['badge'] = UserBadgeSerializer(instance=user_badge, context=self.get_serializer_context()).data
         data['challenge'] = ChallengeSerializer(instance=participant.challenge,
                                                 context=self.get_serializer_context()).data
