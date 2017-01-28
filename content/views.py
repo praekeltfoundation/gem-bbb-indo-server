@@ -1,10 +1,10 @@
+
 from collections import OrderedDict
 
+from django.db.models import Count
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, render
-from django.http import Http404
-from django.http import HttpResponse
 from rest_framework import status
 from rest_framework import viewsets
 from rest_framework.decorators import list_route, detail_route, permission_classes
@@ -520,15 +520,14 @@ class GoalImageView(GenericAPIView):
         return sendfile(request, goal.image.path)
 
 
-class GoalPrototypeView(GenericAPIView):
+class GoalPrototypeView(viewsets.ModelViewSet):
     queryset = GoalPrototype.objects.all()
     serializer_class = GoalPrototypeSerializer
     permission_classes = (IsAuthenticated,)
 
-    def get(self, request, pk=None, *args, **kwargs):
+    def list(self, request, pk=None, *args, **kwargs):
         serializer = self.get_serializer(self.get_queryset().filter(state=GoalPrototype.ACTIVE), many=True)
         return Response(serializer.data)
-
 
 # ============ #
 # Achievements #

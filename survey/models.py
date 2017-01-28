@@ -17,6 +17,8 @@ from modelcluster.fields import ParentalKey
 from wagtailsurveys.models import AbstractSurvey, AbstractFormField, AbstractFormSubmission
 from unidecode import unidecode
 
+from users.models import Profile
+
 
 class CoachSurveyIndex(Page):
     subpage_types = ['CoachSurvey']
@@ -26,12 +28,16 @@ class CoachSurvey(AbstractSurvey):
     parent_page_types = ['CoachSurveyIndex']
     subpage_types = []
 
+    ANSWER_YES = '1'
+    ANSWER_NO = '0'
+    CONSENT_KEY = 'survey_consent'
+
     NONE = 0
     BASELINE = 1
     EATOOL = 2
     _REVERSE = {
-        'BASELINE': BASELINE,
-        'EATOOL': EATOOL
+        'SURVEY_BASELINE': BASELINE,
+        'SURVEY_EATOOL': EATOOL
     }
 
     intro = models.TextField(
@@ -82,10 +88,14 @@ class CoachSurvey(AbstractSurvey):
 
     def get_data_fields(self):
         data_fields = [
+            ('user_id', _('Unique User ID')),
             ('name', _('Name')),
             ('username', _('Username')),
             ('mobile', _('Mobile Number')),
+            ('gender', _('Gender')),
+            ('age', _('Age')),
             ('email', _('Email')),
+            ('consent', _('Consented to Survey')),
         ]
         data_fields += super(CoachSurvey, self).get_data_fields()
 
@@ -97,15 +107,19 @@ class CoachSurvey(AbstractSurvey):
     def get_submission_class(self):
         return CoachSurveySubmission
 
-    def process_form_submission(self, form):
-        self.get_submission_class().objects.create(
+    def process_consented_submission(self, consent, form):
+        return self.get_submission_class().objects.create(
             form_data=json.dumps(form.cleaned_data, cls=DjangoJSONEncoder),
-            page=self, user=form.user,
+            page=self, survey=self, user=form.user,
+            consent=consent,
 
             # To preserve historic information
+            user_unique_id=form.user.id,
             name=form.user.get_full_name(),
             username=form.user.username,
             mobile=form.user.profile.mobile,
+            gender=str(form.user.profile.get_gender_display() if form.user.profile.gender is not None else ""),
+            age=str(form.user.profile.age if form.user.profile.age is not None else ""),
             email=form.user.email
         )
 
@@ -195,11 +209,20 @@ CoachFormField.panels = [
 
 class CoachSurveySubmission(AbstractFormSubmission):
     user = models.ForeignKey(User, on_delete=models.SET_NULL, blank=False, null=True)
+    consent = models.BooleanField(default=False)
+
+    # The abstract base class has a `page` field which references the survey, but it has no related name. To find
+    # submissions from the survey, we create another foreign key relation. Deleting the survey will delete submission
+    # because of the `page` CASCADE option.
+    survey = models.ForeignKey(CoachSurvey, on_delete=models.SET_NULL, related_name='submissions', null=True)
 
     # Fields stored at time of submission, to preserve historic data if the user is deleted
+    user_unique_id = models.IntegerField(default=-1)
     name = models.CharField(max_length=100, default='')
     username = models.CharField(max_length=150, default='')
     mobile = models.CharField(max_length=15, default='')
+    gender = models.CharField(max_length=10, default='')
+    age = models.CharField(max_length=10, default='')
     email = models.CharField(max_length=150, default='')
 
     def get_data(self):
@@ -207,21 +230,61 @@ class CoachSurveySubmission(AbstractFormSubmission):
         if self.user and self.user.profile:
             # Populate from live user data
             form_data.update({
+                'user_id': str(self.user.id),
                 'name': self.user.get_full_name(),
                 'username': self.user.username,
                 'mobile': self.user.profile.mobile,
-                'email': self.user.email
+                'gender': self.user.profile.get_gender_display(),
+                'age': str(self.user.profile.age),
+                'email': self.user.email,
+                'consent': str(self.consent)
             })
         else:
             # Populate from historic user data
             form_data.update({
+                'user_id': self.user_unique_id,
                 'name': self.name,
                 'username': self.username,
                 'mobile': self.mobile,
-                'email': self.email
+                'gender': self.gender,
+                'age': self.age,
+                'email': self.email,
+                'consent': str(self.consent)
             })
 
         return form_data
 
 
 CoachSurveyResponse = namedtuple('CoachSurveyResponse', ['available', 'survey'])
+
+
+class CoachSurveySubmissionDraft(models.Model):
+    """Drafts are to save the user's progress through a survey. As the user answers survey questions, an update is done
+    on the appropriate draft.
+    """
+    user = models.ForeignKey(User)
+    survey = models.ForeignKey(CoachSurvey, related_name='drafts')
+    consent = models.BooleanField(default=False)
+    # Submission is stored as JSON
+    submission_data = models.TextField()
+    # Submission relation is set when draft is completed.
+    submission = models.ForeignKey(CoachSurveySubmission, null=True)
+    complete = models.BooleanField(default=False)
+    version = models.IntegerField(default=0)
+    created_at = models.DateTimeField(default=timezone.now)
+    modified_at = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        verbose_name = _('coach survey submission draft')
+
+        verbose_name_plural = _('coach survey submission drafts')
+
+    @property
+    def has_submission(self):
+        return bool(self.submission_data)
+
+    def save(self, *args, **kwargs):
+        self.version += 1
+        self.modified_at = timezone.now()
+        super(CoachSurveySubmissionDraft, self).save(*args, **kwargs)
+
