@@ -1364,8 +1364,6 @@ class TestBadgeAwarding(APITestCase):
 
         self.assertIsNotNone(user_badge, "Badge was not awarded")
 
-        self.skipTest('TODO')
-
 
 class TestNotification(APITestCase):
     """Test that the user can POST to /notification to mark their win as being 'read' """
