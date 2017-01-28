@@ -1,24 +1,24 @@
-import re
+
 from collections import OrderedDict
 
 from django.db.models import Count
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, render
-from django.http import Http404
 from rest_framework import status
 from rest_framework import viewsets
-from rest_framework.decorators import list_route, detail_route
-from rest_framework.exceptions import NotFound, PermissionDenied
+from rest_framework.decorators import list_route, detail_route, permission_classes
+from rest_framework.exceptions import NotFound, PermissionDenied, MethodNotAllowed
 from rest_framework.generics import GenericAPIView
 from rest_framework.parsers import FileUploadParser
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from sendfile import sendfile
+from wagtail.wagtailcore.models import Site
 
 from .exceptions import ImageNotFound
 
-from .models import BadgeSettings
+from .models import BadgeSettings, award_challenge_win
 from .models import Badge, Challenge, Entry
 from .models import Feedback
 from .models import Goal, GoalPrototype
@@ -37,7 +37,7 @@ from .serializers import GoalPrototypeSerializer, GoalSerializer, GoalTransactio
 from .serializers import ParticipantAnswerSerializer, ParticipantFreeTextSerializer, ParticipantPictureSerializer, \
     ParticipantRegisterSerializer
 from .serializers import TipSerializer
-from .serializers import AchievementStatSerializer, UserBadgeSerializer
+from .serializers import AchievementStatSerializer, UserBadgeSerializer, ParticipantBadgeSerializer
 
 
 # ========== #
@@ -74,7 +74,8 @@ class ChallengeViewSet(viewsets.ModelViewSet):
     """
     queryset = Challenge.objects.all()
     serializer_class = ChallengeSerializer
-    http_method_names = ('options', 'head', 'get',)
+    permission_classes = (IsAuthenticated,)
+    http_method_names = ('options', 'head', 'get', 'post',)
 
     def list(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_queryset(), many=True)
@@ -83,6 +84,9 @@ class ChallengeViewSet(viewsets.ModelViewSet):
     def retrieve(self, request, pk=None, *args, **kwargs):
         serializer = self.get_serializer(get_object_or_404(self.get_queryset(), pk=pk))
         return Response(serializer.data)
+
+    def create(self, request, *args, **kwargs):
+        raise MethodNotAllowed(request.method)
 
     @list_route(methods=['get'])
     def current(self, request, *args, **kwargs):
@@ -98,6 +102,59 @@ class ChallengeViewSet(viewsets.ModelViewSet):
 
         serializer = self.get_serializer(challenge)
         return Response(serializer.data)
+
+    @detail_route(methods=['get', 'post'])
+    def winner(self, request, pk=None, *args, **kwargs):
+        # winner = get_object_or_404(Challenge, pk=pk).is_user_a_winner(request.user)
+        participant = get_object_or_404(Participant, user=request.user, challenge_id=pk)
+
+        if participant is None:
+            raise NotFound("User did not participant in challenge.")
+
+        winner_status = participant.get_winning_status()
+
+        return Response(winner_status)
+
+    @list_route(methods=['get'])
+    def winning(self, request, *args, **kwargs):
+        """Returns winning status, and badge and challenge if available"""
+        # TODO: Filter by notification flag
+        participant = Participant.objects.filter(user=request.user, is_winner=True, has_been_notified=False) \
+            .order_by('date_completed') \
+            .first()
+
+        if participant is None:
+            return Response({"available": False, "badge": None, "challenge": None})
+
+        badge_settings = BadgeSettings.for_site(request.site)
+
+        if badge_settings.challenge_win is None:
+            raise NotFound('Challenge Badge not set up')
+
+        # Create badge if it doesn't already exist
+        site = Site.objects.get(is_default_site=True)
+        user_badge = award_challenge_win(site, request.user, participant)
+
+        data = OrderedDict()
+        data['available'] = user_badge is not None and participant.challenge is not None
+        data['badge'] = UserBadgeSerializer(instance=user_badge, context=self.get_serializer_context()).data
+        data['challenge'] = ChallengeSerializer(instance=participant.challenge,
+                                                context=self.get_serializer_context()).data
+        return Response(data)
+
+    @detail_route(methods=['post'])
+    def notification(self, request, pk=None, *args, **kwargs):
+        """Marks the participant as having received the winning notification"""
+        participants = Participant.objects.filter(challenge_id=pk, user=request.user, has_been_notified=False)
+
+        if participants is None:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+
+        for p in participants:
+            p.has_been_notified = True
+            p.save()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 # ================= #

@@ -1,3 +1,4 @@
+
 from collections import OrderedDict
 from datetime import timedelta
 from functools import reduce
@@ -195,7 +196,6 @@ BadgeSettings.panels = [
         heading=_("savings badges")),
     wagtail_edit_handlers.MultiFieldPanel([
         wagtail_edit_handlers.FieldPanel('challenge_entry'),
-        wagtail_edit_handlers.FieldPanel('challenge_completed'),
         wagtail_edit_handlers.FieldPanel('challenge_win'),
     ],
         # Translators: Admin field name
@@ -402,14 +402,14 @@ class Challenge(modelcluster_fields.ClusterableModel):
 
         return q.first()
 
-    def is_user_a_winner(self, querying_user_id):
+    def is_participant_a_winner(self, querying_user_id):
         """Checks to see whether or not a participant has been marked as a winner"""
-        if not self.is_active:
-            participant = Participant.objects.filter(user_id=querying_user_id)
-            if participant.is_winner:
-                return True
-
-        return False
+        participant = Participant.objects.get(user_id=querying_user_id)
+        if participant is None:
+            # How can I move this into the model?
+            # participant will be none so I can't call get_winning_status to return the false
+            return {"winner": False}
+        return participant.get_winning_status
 
     def view_participants(self):
         return format_html("<a href='/admin/content/participant/?challenge__id__exact="
@@ -659,6 +659,11 @@ class Participant(models.Model):
     is_shortlisted = models.BooleanField(_('is shortlisted'), default=False, blank=False)
     is_winner = models.BooleanField(_('is winner'), default=False, blank=False)
 
+    # Has user received push notification of their winning badge
+    has_been_notified = models.BooleanField(_('has_been_notified'), default=False, blank=False)
+
+    badges = models.ManyToManyField('UserBadge')
+
     @property
     def is_completed(self):
         """A Participant is considered complete when at least one entry has been created."""
@@ -687,6 +692,9 @@ class Participant(models.Model):
         else:
             return format_html("<input type='checkbox' id='{}' class='mark-is-winner' value='{}' />",
                                'participant-is-winner-%d' % self.id, self.id)
+
+    def get_winning_status(self):
+        return {"winner": self.is_winner}
 
     class Meta:
         # Translators: Collection name on CMS
@@ -1256,8 +1264,6 @@ class UserBadge(models.Model):
         # Translators: Collection name on CMS
         verbose_name_plural = _('user badges')
 
-        unique_together = ('user', 'badge')
-
     def __str__(self):
         return '{}-{}'.format(self.user, self.badge)
 
@@ -1410,6 +1416,23 @@ def award_week_streak(site, user, weeks):
         if created:
             # Created means it's the first time a user has reached this streak
             return user_badge
+
+    return None
+
+
+def award_challenge_win(site, user, participant):
+    badge_settings = BadgeSettings.for_site(site)
+    badge = badge_settings.challenge_win
+
+    if badge is None:
+        return None
+
+    if not badge.is_active:
+        return None
+
+    if participant.is_winner:
+        user_badge, created = participant.badges.get_or_create(user=user, badge=badge)
+        return user_badge
 
     return None
 
