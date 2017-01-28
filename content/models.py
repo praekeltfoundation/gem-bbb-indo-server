@@ -1264,8 +1264,6 @@ class UserBadge(models.Model):
         # Translators: Collection name on CMS
         verbose_name_plural = _('user badges')
 
-        unique_together = ('user', 'badge')
-
     def __str__(self):
         return '{}-{}'.format(self.user, self.badge)
 
