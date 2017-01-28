@@ -195,6 +195,7 @@ BadgeSettings.panels = [
         heading=_("savings badges")),
     wagtail_edit_handlers.MultiFieldPanel([
         wagtail_edit_handlers.FieldPanel('challenge_entry'),
+        wagtail_edit_handlers.FieldPanel('challenge_completed'),
         wagtail_edit_handlers.FieldPanel('challenge_win'),
     ],
         # Translators: Admin field name
@@ -400,6 +401,19 @@ class Challenge(modelcluster_fields.ClusterableModel):
             q = q.exclude(participants__entries__isnull=False, participants__user__exact=user)
 
         return q.first()
+
+    def is_user_a_winner(self, querying_user_id):
+        """Checks to see whether or not a participant has been marked as a winner"""
+        if not self.is_active:
+            participant = Participant.objects.filter(user_id=querying_user_id)
+            if participant.is_winner:
+                return True
+
+        return False
+
+    def view_participants(self):
+        return format_html("<a href='/admin/content/participant/?challenge__id__exact="
+                           + str(self.id) + "'>" + self.name + "</a> ")
 
 
 Challenge.panels = [
@@ -638,12 +652,41 @@ class Participant(models.Model):
     date_created = models.DateTimeField(_('created on'), default=timezone.now)
 
     # Translators: CMS field name (refers to dates)
-    date_completed = models.DateTimeField(_('completed on'), null=True)
+    date_completed = models.DateTimeField(_('completed on'), null=True, blank=False)
+
+    # Flag to indicate that participant entry has been 'seen'
+    is_read = models.BooleanField(_('is read'), default=False, blank=False)
+    is_shortlisted = models.BooleanField(_('is shortlisted'), default=False, blank=False)
+    is_winner = models.BooleanField(_('is winner'), default=False, blank=False)
 
     @property
     def is_completed(self):
         """A Participant is considered complete when at least one entry has been created."""
         return self.entries.all().exists()
+
+    def mark_is_read(self):
+        if self.is_read:
+            return format_html("<input type='checkbox' id='{}' class='mark-is-read' value='{}' checked='checked' />",
+                               'participant-is-read-%d' % self.id, self.id)
+        else:
+            return format_html("<input type='checkbox' id='{}' class='mark-is-read' value='{}' />",
+                               'participant-is-read-%d' % self.id, self.id)
+
+    def mark_is_shortlisted(self):
+        if self.is_shortlisted:
+            return format_html("<input type='checkbox' id='{}' class='mark-is-shortlisted' value='{}' checked='checked' />",
+                               'participant-is-shortlisted-%d' % self.id, self.id)
+        else:
+            return format_html("<input type='checkbox' id='{}' class='mark-is-shortlisted' value='{}' />",
+                               'participant-is-shortlisted-%d' % self.id, self.id)
+
+    def mark_is_winner(self):
+        if self.is_winner:
+            return format_html("<input type='checkbox' id='{}' class='mark-is-winner' value='{}' checked='checked' />",
+                               'participant-is-winner-%d' % self.id, self.id)
+        else:
+            return format_html("<input type='checkbox' id='{}' class='mark-is-winner' value='{}' />",
+                               'participant-is-winner-%d' % self.id, self.id)
 
     class Meta:
         # Translators: Collection name on CMS
@@ -654,6 +697,34 @@ class Participant(models.Model):
 
     def __str__(self):
         return str(self.user) + ": " + str(self.challenge)
+
+
+Participant.panels = [
+    wagtail_edit_handlers.MultiFieldPanel(
+        [
+            wagtail_edit_handlers.FieldPanel('user'),
+            wagtail_edit_handlers.FieldPanel('challenge'),
+        ],
+        # Translators: Admin field name
+        heading=_('Participant')
+    ),
+    wagtail_edit_handlers.MultiFieldPanel(
+        [
+            wagtail_edit_handlers.FieldPanel('date_created'),
+            wagtail_edit_handlers.FieldPanel('date_completed'),
+        ],
+        # Translators: Admin field name
+        heading=_('Dates')
+    ),
+    wagtail_edit_handlers.MultiFieldPanel(
+        [
+            wagtail_edit_handlers.FieldPanel('is_read'),
+            wagtail_edit_handlers.FieldPanel('is_shortlisted'),
+            wagtail_edit_handlers.FieldPanel('is_winner'),
+        ],
+        heading=_('Status')
+    )
+]
 
 
 @python_2_unicode_compatible

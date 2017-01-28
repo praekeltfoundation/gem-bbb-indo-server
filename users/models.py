@@ -12,6 +12,7 @@ from django.utils.encoding import python_2_unicode_compatible
 from rest_framework.authtoken.models import Token
 
 from .storage import ProfileImgStorage
+from content.models import Entry, Participant
 
 
 # proxy managers
@@ -147,6 +148,21 @@ class Profile(models.Model):
     def is_joined_days_passed(self, days):
         """Checks whether a provided number of days has passed since the user has registered."""
         return timezone.now() >= self.user.date_joined + timedelta(days=days)
+
+    def is_first_challenge_completed(self):
+        """Checks to see if the user has completed at least one challenge"""
+        participants = Participant.objects.filter(user_id=self.user.id)
+
+        total_completions = 0
+
+        total_completions += Entry.objects.filter(participant__in=participants).count()
+        #total_completions += ParticipantPicture.objects.filter(participant__in=participants).count()
+        #total_completions += ParticipantFreeText.objects.filter(participant__in=participants).count()
+
+        if total_completions == 0:
+            return False
+
+        return True
 
 
 def reset_token(sender, instance, **kwargs):
