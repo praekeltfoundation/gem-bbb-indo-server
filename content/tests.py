@@ -1364,10 +1364,42 @@ class TestBadgeAwarding(APITestCase):
 
         self.assertIsNotNone(user_badge, "Badge was not awarded")
 
+    def test_challenge_win_endpoint(self):
+        user = create_test_regular_user('anon')
+        Profile.objects.create(user=user)
+
+        challenge = Challenge.objects.create(
+            name='Challenge',
+            activation_date=timezone.now() + timedelta(days=-7),
+            deactivation_date=timezone.now() + timedelta(days=7)
+        )
+        challenge.publish()
+        challenge.save()
+
+        # Participate and complete
+        challenge.participants \
+            .create(user=user) \
+            .entries.create()
+
+        participant = Participant.objects.get(user=user, challenge=challenge)
+        participant.is_winner = True
+        participant.save()
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:challenges-winning'), format='json')
+
+        self.assertTrue(response.data['available'], "Winner not available.")
+        self.assertIsNotNone(response.data['badge'], "Badge was None.")
+        self.assertIsNotNone(response.data['challenge'], "Challenge was None")
+
+        self.assertEqual(response.data['badge']['name'], self.challenge_win.name, "Unexpected Badge returned.")
+        self.assertEqual(response.data['challenge']['id'], challenge.id, "Unexpected Challenge returned.")
+
 
 class TestNotification(APITestCase):
-    """Test that the user can POST to /notification to mark their win as being 'read' """
+
     def test_notification(self):
+        """Test that the user can POST to /notification to mark their win as being 'read' """
         user = create_test_regular_user('anon_winner')
         profile = Profile.objects.create(user=user)
 
@@ -1399,6 +1431,36 @@ class TestNotification(APITestCase):
 
         self.assertEqual(participant.has_been_notified, True,
                          "Participant has not been marked as having read their winning badge")
+
+    def test_winner_filter(self):
+        """Test that when a winning participant notification has been confirmed, it will no longer be available."""
+        user = create_test_regular_user('anon')
+        Profile.objects.create(user=user)
+
+        challenge = Challenge.objects.create(
+            name='Challenge',
+            activation_date=timezone.now() + timedelta(days=-7),
+            deactivation_date=timezone.now() + timedelta(days=7)
+        )
+        challenge.publish()
+        challenge.save()
+
+        # Participate and complete
+        challenge.participants \
+            .create(user=user) \
+            .entries.create()
+
+        participant = Participant.objects.get(user=user, challenge=challenge)
+        participant.is_winner = True
+        participant.save()
+
+        self.client.force_authenticate(user=user)
+        self.client.post(reverse('api:challenges-notification', kwargs={'pk': challenge.pk}), {}, format='json')
+        winning_response = self.client.get(reverse('api:challenges-winning'), format=json)
+
+        self.assertFalse(winning_response.data['available'], "Winner still available")
+        self.assertIsNone(winning_response.data['badge'], "Badge still available")
+        self.assertIsNot(winning_response.data['challenge'], "Challenge still available")
 
 
 class TestFeedback(APITestCase):
