@@ -59,6 +59,30 @@ class UserBadgeSerializer(serializers.ModelSerializer):
         return data
 
 
+class ParticipantBadgeSerializer(serializers.ModelSerializer):
+    """A special serializer that includes Challenge information"""
+
+    earned_on = serializers.DateTimeField()
+
+    class Meta:
+        model = UserBadge
+        fields = ('earned_on',)
+
+    def to_representation(self, instance):
+        """Flattens Badge fields and UserBadge linking model, so the earned_on datetime will be inlined."""
+        data = super().to_representation(instance)
+        badge_serial = BadgeSerializer(instance.badge, context=self.context)
+        data.update(badge_serial.data)
+
+        participant = instance.participant_set.all().first()
+        if participant is not None:
+            data['challenge_id'] = participant.challenge.id
+        else:
+            data['challenge_id'] = None
+
+        return data
+
+
 # ========== #
 # Challenges #
 # ========== #
