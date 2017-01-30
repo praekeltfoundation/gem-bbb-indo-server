@@ -27,11 +27,15 @@ router.register(r'participants', content_views.ParticipantViewSet, base_name='pa
 router.register(r'tips', content_views.TipViewSet, base_name='tips')
 router.register(r'users', user_views.RegUserViewSet, base_name='users')
 router.register(r'surveys', survey_views.CoachSurveyViewSet, base_name='surveys')
+router.register(r'goal-prototypes', content_views.GoalPrototypeView, base_name='goal-prototypes')
 
 api_urls = [
     # authentication endpoints
     url(r'token/', user_views.ObtainUserAuthTokenView.as_view(), name='token'),
     url(r'^security_question/', user_views.SecurityQuestionView.as_view(), name='security_question'),
+
+    #challenge winner endpoint
+    #url(r'challenges/(\d+)/winner', content_views.ChallengeViewSet.winner, name='challenges-winner'),
 
     # image endpoints
     url(r'challenge-image/(?P<challenge_pk>\d+)/$', content_views.ChallengeImageView.as_view(), name='challenge-image'),
@@ -42,7 +46,6 @@ api_urls = [
 
     # misc endpoints
     url(r'achievements/(?P<user_pk>\d+)/$', content_views.AchievementsView.as_view(), name='achievements'),
-    url(r'goal-prototypes/$', content_views.GoalPrototypeView.as_view(), name='goal-prototypes'),
 
     # include viewset routes
     url(r'', include(router.urls)),
