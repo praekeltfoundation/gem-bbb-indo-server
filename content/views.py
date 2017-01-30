@@ -312,7 +312,7 @@ class ParticipantImageView(GenericAPIView):
 
         data = OrderedDict()
         data['badge'] = UserBadgeSerializer(instance=user_badge, context=self.get_serializer_context()).data
-        data['challenge'] = challenge
+        data['challenge'] = ChallengeSerializer(instance=challenge, context=self.get_serializer_context()).data
 
         return Response(data, status=status.HTTP_200_OK)
 
