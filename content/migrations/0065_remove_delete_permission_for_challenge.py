@@ -57,6 +57,7 @@ def restore_challenge_delete_permission(apps, editor):
 
 class Migration(migrations.Migration):
     dependencies = [
+        ('content', '0038_challenge_permissions'),
         ('content', '0064_agreementindex'),
     ]
 

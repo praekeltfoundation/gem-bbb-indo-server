@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 from django.db import migrations
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import Group, Permission
+from django.core.management.sql import emit_post_migrate_signal
 
 
 def get_content_type(apps, app_name, model_name):
@@ -26,6 +27,11 @@ def get_challenge_types(apps):
         get_content_type(apps, 'content', 'ParticipantFreeText'),
     )
 
+def create_group(apps, schema_editor):
+    db_alias = schema_editor.connection.alias
+    emit_post_migrate_signal(2, False, db_alias)
+
+
 
 def add_permissions(group, challenge_content_type):
     challenge_permissions = Permission.objects.filter(content_type=challenge_content_type)
@@ -42,6 +48,8 @@ def remove_permissions(group, challenge_content_type):
 
 
 def add_challenge_permissions(apps, editor):
+    create_group(apps, editor)
+
     editor_group = Group.objects.get(name='Editors')
     moderator_group = Group.objects.get(name='Moderators')
 
