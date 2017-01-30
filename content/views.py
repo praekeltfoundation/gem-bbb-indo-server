@@ -1,13 +1,10 @@
-
 from collections import OrderedDict
 
-from django.db.models import Count
-from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, render
 from rest_framework import status
 from rest_framework import viewsets
-from rest_framework.decorators import list_route, detail_route, permission_classes
+from rest_framework.decorators import list_route, detail_route
 from rest_framework.exceptions import NotFound, PermissionDenied, MethodNotAllowed
 from rest_framework.generics import GenericAPIView
 from rest_framework.parsers import FileUploadParser
@@ -17,27 +14,25 @@ from sendfile import sendfile
 from wagtail.wagtailcore.models import Site
 
 from .exceptions import ImageNotFound
-
-from .models import BadgeSettings, award_challenge_win
+from .models import AchievementStat
 from .models import Badge, Challenge, Entry
+from .models import BadgeSettings, award_challenge_win
 from .models import Feedback
 from .models import Goal, GoalPrototype
 from .models import Participant, ParticipantAnswer, ParticipantFreeText, ParticipantPicture
 from .models import Tip, TipFavourite
-from .models import AchievementStat
+from .models import WEEK_STREAK_2, WEEK_STREAK_4, WEEK_STREAK_6
 from .models import award_first_goal, award_goal_done, award_goal_halfway, award_goal_week_left, \
     award_transaction_first, award_week_streak
-from .models import WEEK_STREAK_2, WEEK_STREAK_4, WEEK_STREAK_6
-
+from .models import award_weekly_target_badge, WEEKLY_TARGET_2, WEEKLY_TARGET_4, WEEKLY_TARGET_6
 from .permissions import IsAdminOrOwner, IsUserSelf
-
+from .serializers import AchievementStatSerializer, UserBadgeSerializer
 from .serializers import ChallengeSerializer, EntrySerializer
 from .serializers import FeedbackSerializer
 from .serializers import GoalPrototypeSerializer, GoalSerializer, GoalTransactionSerializer
 from .serializers import ParticipantAnswerSerializer, ParticipantFreeTextSerializer, ParticipantPictureSerializer, \
     ParticipantRegisterSerializer
 from .serializers import TipSerializer
-from .serializers import AchievementStatSerializer, UserBadgeSerializer, ParticipantBadgeSerializer
 
 
 # ========== #
@@ -487,7 +482,10 @@ class GoalViewSet(viewsets.ModelViewSet):
             award_transaction_first(request, goal),
             award_week_streak(request.site, request.user, WEEK_STREAK_2),
             award_week_streak(request.site, request.user, WEEK_STREAK_4),
-            award_week_streak(request.site, request.user, WEEK_STREAK_6)
+            award_week_streak(request.site, request.user, WEEK_STREAK_6),
+            award_weekly_target_badge(request.site, request.user, WEEKLY_TARGET_2, goal),
+            award_weekly_target_badge(request.site, request.user, WEEKLY_TARGET_4, goal),
+            award_weekly_target_badge(request.site, request.user, WEEKLY_TARGET_6, goal)
         ]
 
         return [b for b in new_badges if b is not None]

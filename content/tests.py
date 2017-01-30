@@ -1015,6 +1015,193 @@ class TestWeeklyStreaks(TestCase):
 
         self.assertEqual(streak, 0, "Unexpected weekly streak.")
 
+class TestWeeklyTargetStreaks(TestCase):
+
+    def test_basic_streak_2(self):
+        now = datetime(2017, 1, 27, tzinfo=timezone.utc)
+
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=36, #Thus the weekly target is 6 for 6 weeks to reach the target
+            start_date=now + timedelta(days=-36), #Goal duration is 6 weeks
+            end_date=now,
+        )
+
+        # Week 5
+        goal.transactions.create(value=1, date=now + timedelta(days=-7))
+        goal.transactions.create(value=2, date=now + timedelta(days=-8))
+        goal.transactions.create(value=3, date=now + timedelta(days=-9))
+
+        # Week 6
+        goal.transactions.create(value=1, date=now + timedelta(days=-1))
+        goal.transactions.create(value=3, date=now + timedelta(days=-2))
+        goal.transactions.create(value=3, date=now + timedelta(days=-3))
+
+        streak = Goal.get_current_weekly_target_badge(user, goal, now)
+
+        self.assertEqual(streak, 2, "Unexpected streak returned, should be 2")
+
+    def test_basic_streak_4(self):
+        now = datetime(2017, 1, 27, tzinfo=timezone.utc)
+
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=36, #Thus the weekly target is 6 for 6 weeks to reach the target
+            start_date=now + timedelta(days=-36), #Goal duration is 6 weeks
+            end_date=now,
+        )
+
+        # Week 3
+        goal.transactions.create(value=1, date=now + timedelta(days=-21))
+        goal.transactions.create(value=2, date=now + timedelta(days=-23))
+        goal.transactions.create(value=3, date=now + timedelta(days=-25))
+
+        # Week 4
+        goal.transactions.create(value=1, date=now + timedelta(days=-14))
+        goal.transactions.create(value=3, date=now + timedelta(days=-15))
+        goal.transactions.create(value=3, date=now + timedelta(days=-18))
+
+        # Week 5
+        goal.transactions.create(value=1, date=now + timedelta(days=-7))
+        goal.transactions.create(value=2, date=now + timedelta(days=-8))
+        goal.transactions.create(value=3, date=now + timedelta(days=-9))
+
+        # Week 6
+        goal.transactions.create(value=1, date=now + timedelta(days=-1))
+        goal.transactions.create(value=3, date=now + timedelta(days=-2))
+        goal.transactions.create(value=3, date=now + timedelta(days=-3))
+
+        streak = Goal.get_current_weekly_target_badge(user, goal, now)
+
+        self.assertEqual(streak, 4, "Unexpected streak returned, should be 4")
+
+    def test_basic_streak_6(self):
+        now = datetime(2017, 1, 27, tzinfo=timezone.utc)
+
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=36, #Thus the weekly target is 6 for 6 weeks to reach the target
+            start_date=now + timedelta(days=-36), #Goal duration is 6 weeks
+            end_date=now,
+        )
+
+        # Week 1
+        goal.transactions.create(value=1, date=now + timedelta(days=-35))
+        goal.transactions.create(value=2, date=now + timedelta(days=-36))
+        goal.transactions.create(value=3, date=now + timedelta(days=-37))
+
+        # Week 2
+        goal.transactions.create(value=1, date=now + timedelta(days=-28))
+        goal.transactions.create(value=3, date=now + timedelta(days=-29))
+        goal.transactions.create(value=3, date=now + timedelta(days=-30))
+
+        # Week 3
+        goal.transactions.create(value=1, date=now + timedelta(days=-21))
+        goal.transactions.create(value=2, date=now + timedelta(days=-23))
+        goal.transactions.create(value=3, date=now + timedelta(days=-25))
+
+        # Week 4
+        goal.transactions.create(value=1, date=now + timedelta(days=-14))
+        goal.transactions.create(value=3, date=now + timedelta(days=-15))
+        goal.transactions.create(value=3, date=now + timedelta(days=-18))
+
+        # Week 5
+        goal.transactions.create(value=1, date=now + timedelta(days=-7))
+        goal.transactions.create(value=2, date=now + timedelta(days=-8))
+        goal.transactions.create(value=3, date=now + timedelta(days=-9))
+
+        # Week 6
+        goal.transactions.create(value=1, date=now + timedelta(days=-1))
+        goal.transactions.create(value=3, date=now + timedelta(days=-2))
+        goal.transactions.create(value=3, date=now + timedelta(days=-3))
+
+        streak = Goal.get_current_weekly_target_badge(user, goal, now)
+
+        self.assertEqual(streak, 6, "Unexpected streak returned, should be 2")
+
+    def test_broken_streak(self):
+        now = datetime(2017, 1, 27, tzinfo=timezone.utc)
+
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=36, #Thus the weekly target is 6 for 6 weeks to reach the target
+            start_date=now + timedelta(days=-36), #Goal duration is 6 weeks
+            end_date=now,
+        )
+
+        # Week 3
+        goal.transactions.create(value=1, date=now + timedelta(days=-21))
+        goal.transactions.create(value=2, date=now + timedelta(days=-23))
+        goal.transactions.create(value=3, date=now + timedelta(days=-25))
+
+        #Streak breaks here
+
+        # Week 5
+        goal.transactions.create(value=1, date=now + timedelta(days=-7))
+        goal.transactions.create(value=2, date=now + timedelta(days=-8))
+        goal.transactions.create(value=3, date=now + timedelta(days=-9))
+
+        # Week 6
+        goal.transactions.create(value=1, date=now + timedelta(days=-1))
+        goal.transactions.create(value=3, date=now + timedelta(days=-2))
+        goal.transactions.create(value=3, date=now + timedelta(days=-3))
+
+        streak = Goal.get_current_weekly_target_badge(user, goal, now)
+
+        self.assertEqual(streak, 2, "Unexpected weekly streak, should be 2")
+
+    def test_inactivity(self):
+        """When the user has saved before, but has been inactive since, the streak should be 0."""
+        now = datetime(2017, 1, 27, tzinfo=timezone.utc)
+
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=36,  # Thus the weekly target is 6 for 6 weeks to reach the target
+            start_date=now + timedelta(days=-36),  # Goal duration is 6 weeks
+            end_date=now,
+        )
+
+        # Week 1
+        goal.transactions.create(value=2, date=now + timedelta(days=-28))
+        goal.transactions.create(value=2, date=now + timedelta(days=-29))
+        goal.transactions.create(value=5, date=now + timedelta(days=-30))
+
+        # Week 2
+        goal.transactions.create(value=2, date=now + timedelta(days=-21))
+        goal.transactions.create(value=2, date=now + timedelta(days=-22))
+        goal.transactions.create(value=5, date=now + timedelta(days=-23))
+
+        # Streak breaks here
+
+        streak = Goal.get_current_weekly_target_badge(user, goal, now)
+
+        self.assertEqual(streak, 0, "Unexpected weekly streak, should be 0")
+
+    def test_no_savings(self):
+        now = datetime(2016, 11, 30, tzinfo=timezone.utc)
+
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=100000,
+            start_date=now - timedelta(days=30),
+            end_date=now
+        )
+
+        streak = Goal.get_current_weekly_target_badge(user, goal, now)
+
+        self.assertEqual(streak, 0, "Unexpected weekly streak, should be 0")
 
 class TestAchievementAPI(APITestCase):
 
@@ -1062,6 +1249,7 @@ class TestBadgeAwarding(APITestCase):
         cls.goal_first_done = Badge.objects.create(name='First Goal Done')
         cls.transaction_first = Badge.objects.create(name='First Savings Created')
         cls.streak_2 = Badge.objects.create(name='2 Week Streak')
+        cls.weekly_target_2 = Badge.objects.create(name='2 Weekly Target Streak of 2')
         cls.challenge_win = Badge.objects.create(name='Challenge Win')
 
         site = Site.objects.get(is_default_site=True)
@@ -1073,7 +1261,7 @@ class TestBadgeAwarding(APITestCase):
             goal_first_done=cls.goal_first_done,
             transaction_first=cls.transaction_first,
             streak_2=cls.streak_2,
-
+            weekly_target_2=cls.weekly_target_2,
             challenge_win=cls.challenge_win
         )
 
@@ -1333,6 +1521,35 @@ class TestBadgeAwarding(APITestCase):
         response = self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}), data, format='json')
 
         badges = [b for b in response.data['new_badges'] if b['name'] == self.streak_2.name]
+        self.assertEqual(len(badges), 1, "Expected badge was not included")
+
+    # -------------------------- #
+    # Award Weekly Target Streaks #
+    # -------------------------- #
+
+    def test_weekly_target_2(self):
+        now = timezone.now()
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=100,
+            start_date=now - timedelta(days=30),
+            end_date=now + timedelta(days=30)
+        )
+        goal.transactions.create(
+            date=now - timedelta(days=7),  # One Week back
+            value=20
+        )
+        data = [{
+            'date': now.isoformat(),
+            'value': 20
+        }]
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}), data, format='json')
+
+        badges = [b for b in response.data['new_badges'] if b['name'] == self.weekly_target_2.name]
         self.assertEqual(len(badges), 1, "Expected badge was not included")
 
     # ---------------------- #
