@@ -1330,7 +1330,10 @@ class TestBadgeAwarding(APITestCase):
         }
 
         self.client.force_authenticate(user=user)
-        response = self.client.post('/api/participantfreetext/', data, format='json')
+        # response = self.client.post('/api/participantfreetext/', data, format='json')
+        response = self.client.post(reverse('api:participantfreetext-list'), data, format='json')
+
+        self.assertEquals(response.data['available'], True, "Badge not available")
 
         self.assertNotEquals(response.status_code, status.HTTP_400_BAD_REQUEST, "Badge not created")
 
