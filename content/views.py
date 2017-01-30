@@ -185,6 +185,7 @@ class EntryViewSet(viewsets.ModelViewSet):
         if not serial.is_valid():
             return Response(data=serial.errors, status=400)
         serial.create(serial.validated_data)
+        # TODO: Return badge and serial.data
         return Response(serial.data, status=201)
 
 
@@ -294,7 +295,26 @@ class ParticipantImageView(GenericAPIView):
             participant_picture = ParticipantPicture.objects.create(participant=participant)
         participant_picture.picture = request.FILES['file']
         participant_picture.save()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+
+        # TODO: Return badge and challenge
+        badge_settings = BadgeSettings.for_site(request.site)
+
+        if badge_settings.challenge_entry is None:
+            raise NotFound('Challenge entry badge not set up')
+
+        participant_id = participant_pk
+
+        participant = Participant.objects.get(user=request.user, id=participant_id)
+        challenge = participant.challenge
+
+        site = Site.objects.get(is_default_site=True)
+        user_badge = award_entry_badge(site, request.user, participant)
+
+        data = OrderedDict()
+        data['badge'] = UserBadgeSerializer(instance=user_badge, context=self.get_serializer_context()).data
+        data['challenge'] = challenge
+
+        return Response(data, status=status.HTTP_200_OK)
 
     def get(self, request, participant_pk=None, *args, **kwargs):
         participant = get_object_or_404(Participant, pk=participant_pk)
