@@ -1425,6 +1425,24 @@ def award_week_streak(site, user, weeks):
     return None
 
 
+def award_entry_badge(site, user, participant):
+    badge_settings = BadgeSettings.for_site(site)
+    badge = badge_settings.challenge_entry
+
+    if badge is None:
+        return None
+
+    if not badge.is_active:
+        return None
+
+    user_badge, created = participant.badges.get_or_create(user=user, badge=badge)
+
+    if user_badge is not None:
+        return user_badge
+    else:
+        return None
+
+
 def award_challenge_win(site, user, participant):
     badge_settings = BadgeSettings.for_site(site)
     badge = badge_settings.challenge_win

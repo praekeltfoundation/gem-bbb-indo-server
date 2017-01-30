@@ -18,7 +18,7 @@ from wagtail.wagtailcore.models import Site
 
 from .exceptions import ImageNotFound
 
-from .models import BadgeSettings, award_challenge_win
+from .models import BadgeSettings, award_challenge_win, award_entry_badge
 from .models import Badge, Challenge, Entry
 from .models import Feedback
 from .models import Goal, GoalPrototype
@@ -323,7 +323,25 @@ class ParticipantFreeTextViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+            badge_settings = BadgeSettings.for_site(request.site)
+
+            if badge_settings.challenge_entry is None:
+                raise NotFound('Challenge entry badge not set up')
+
+            participant_id = request.data['participant']
+
+            participant = Participant.objects.get(user=request.user, id=participant_id)
+
+            site = Site.objects.get(is_default_site=True)
+            user_badge = award_entry_badge(site, request.user, participant)
+
+            data = OrderedDict()
+            data['available'] = user_badge is not None
+            data['badge'] = UserBadgeSerializer(instance=user_badge, context=self.get_serializer_context()).data
+            data['data'] = serializer.data
+
+            return Response(data, status=status.HTTP_201_CREATED)
 
     @list_route(methods=['get'])
     def fetch(self, request, *args, **kwargs):
