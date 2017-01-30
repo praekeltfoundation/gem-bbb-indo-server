@@ -18,7 +18,7 @@ from wagtail.wagtailcore.models import Site, Page
 from users.models import User, RegUser, Profile
 
 # content function imports
-from .models import award_challenge_win, QuizQuestion, FreeTextQuestion
+from .models import award_challenge_win, QuizQuestion, FreeTextQuestion, PictureQuestion, QuestionOption
 
 # content model imports
 from .models import Badge, BadgeSettings, UserBadge
@@ -1301,7 +1301,7 @@ class TestBadgeAwarding(APITestCase):
     # Award Challenge participation #
     # ----------------------------- #
 
-    def test_challenge_participation(self):
+    def test_challenge_participation_freetext(self):
         user = create_test_regular_user('anon')
         profile = Profile.objects.create(user=user)
 
@@ -1334,6 +1334,84 @@ class TestBadgeAwarding(APITestCase):
         response = self.client.post(reverse('api:participantfreetext-list'), data, format='json')
 
         self.assertEquals(response.data['available'], True, "Badge not available")
+
+        self.assertNotEquals(response.status_code, status.HTTP_400_BAD_REQUEST, "Badge not created")
+
+        self.assertIsNotNone(badge, "Participation badge was not awarded")
+
+    def test_challenge_participation_image(self):
+        user = create_test_regular_user('anon')
+        profile = Profile.objects.create(user=user)
+
+        challenge = Challenge.objects.create(
+            name='Image Challenge',
+            activation_date=timezone.now() + timedelta(days=-7),
+            deactivation_date=timezone.now() + timedelta(days=7),
+            type=2
+        )
+
+        question = PictureQuestion.objects.create(challenge=challenge, text="ImageQuestion1")
+
+        challenge.publish()
+        challenge.save()
+
+        # Participate and complete, be awarded participation badge
+        badge = challenge.participants \
+            .create(user=user) \
+            .entries.create()
+
+        data = {
+            "text": "abc",
+            "date_answered": "2017-01-30T08:25:23.951+02:00",
+            "participant": 1,
+            "question": 1
+        }
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:participantfreetext-list'), data, format='json')
+
+        self.assertEquals(response.data['available'], True, "Badge not available")
+
+        self.assertNotEquals(response.status_code, status.HTTP_400_BAD_REQUEST, "Badge not created")
+
+        self.assertIsNotNone(badge, "Participation badge was not awarded")
+
+    def test_challenge_participation_quiz(self):
+        user = create_test_regular_user('anon')
+        profile = Profile.objects.create(user=user)
+
+        challenge = Challenge.objects.create(
+            name='Quiz Challenge',
+            activation_date=timezone.now() + timedelta(days=-7),
+            deactivation_date=timezone.now() + timedelta(days=7),
+            type=1
+        )
+
+        question = QuizQuestion.objects.create(challenge=challenge, text="QuizQuestion")
+        questionOption1 = QuestionOption.objects.create(question=question, text="Question1")
+        questionOption2 = QuestionOption.objects.create(question=question, text="Question2")
+
+        challenge.publish()
+        challenge.save()
+
+        # Participate and complete, be awarded participation badge
+        badge = challenge.participants \
+            .create(user=user) \
+            .entries.create()
+
+        data = {
+             "answers": [
+                 {"selected_option": 1, "challenge": 1, "date_answered": "2017-01-30T16:59:26.054+02:00", "question": 1,
+                  "user": 1, "participant": 1},
+                 {"selected_option": 1, "challenge": 1, "date_answered": "2017-01-30T16:59:29.746+02:00", "question": 1,
+                  "user": 1, "participant": 1}
+             ],
+             "date_completed": "2017-01-30T16:59:32.427+02:00",
+             "participant": 1
+        }
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:entries-list'), data, format='json')
 
         self.assertNotEquals(response.status_code, status.HTTP_400_BAD_REQUEST, "Badge not created")
 
