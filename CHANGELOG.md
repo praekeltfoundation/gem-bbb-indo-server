@@ -2,6 +2,13 @@
 Changelog
 =========
 
+0.1.1
+-----
+
+- Implemented Survey drafts
+- Aggregating users who have selected a Goal Prototype 
+- Implemented Participant admin interface for reviewing Challenge entries
+
 0.0.15
 ------
 

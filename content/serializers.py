@@ -492,10 +492,11 @@ class ParticipantFreeTextSerializer(serializers.ModelSerializer):
 class GoalPrototypeSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     image_url = serializers.SerializerMethodField()
+    num_users = serializers.ReadOnlyField()
 
     class Meta:
         model = GoalPrototype
-        fields = ('id', 'name', 'image_url')
+        fields = ('id', 'name', 'image_url', "num_users")
 
     def get_image_url(self, obj):
         request = self.context['request']

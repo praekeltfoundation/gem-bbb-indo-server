@@ -832,7 +832,7 @@ class TestGoalPrototypesAPI(APITestCase):
         proto.save()
 
         self.client.force_authenticate(user=user)
-        response = self.client.get(reverse('api:goal-prototypes'))
+        response = self.client.get(reverse('api:goal-prototypes-list'))
 
         self.assertEqual(response.status_code, status.HTTP_200_OK, "Listing Goal prototypes failed.")
         self.assertEqual(len(response.data), 1, "No prototypes returned.")
@@ -857,6 +857,46 @@ class TestGoalPrototypesAPI(APITestCase):
 
         created_goal = Goal.objects.get(id=response.data['id'])
         self.assertEqual(created_goal.prototype, proto, "Goal Prototype was not set.")
+
+    def test_goal_proto_num_users_field_caculation(self):
+        user1 = create_test_regular_user("sam")
+        user2 = create_test_regular_user("dan")
+        user3 = create_test_regular_user("vlad")
+
+        proto1 = GoalPrototype.objects.create(name='Proto 1')
+        proto2 = GoalPrototype.objects.create(name='Proto 2')
+
+        goal1 = Goal.objects.create(name="Name One", user=user1, target=1000, start_date=timezone.now(),
+                                    end_date=timezone.now(), prototype=proto1)
+        goal2 = Goal.objects.create(name="Name Two", user=user1, target=1000, start_date=timezone.now(),
+                                    end_date=timezone.now(), prototype=proto2)
+        goal3 = Goal.objects.create(name="Name Tree", user=user3, target=1000, start_date=timezone.now(),
+                                    end_date=timezone.now(), prototype=proto1)
+
+        self.assertNotEqual(proto1.num_users, 0, "num_users field on Goal Prototype not updated correctly")
+        self.assertEquals(proto1.num_users, 2, "num_users field on Goal Prototype not calculated correctly")
+        self.assertEquals(proto2.num_users, 1, "num_users field on Goal Prototype not calculated correctly")
+
+class TestGoalPrototypesModel(TestCase):
+
+    def test_goal_proto_num_users_field_caculation(self):
+        user1 = create_test_regular_user("sam")
+        user2 = create_test_regular_user("dan")
+        user3 = create_test_regular_user("vlad")
+
+        proto1 = GoalPrototype.objects.create(name='Proto 1')
+        proto2 = GoalPrototype.objects.create(name='Proto 2')
+
+        goal1 = Goal.objects.create(name="Name One", user=user1, target=1000, start_date=timezone.now(),
+                                    end_date=timezone.now(), prototype=proto1)
+        goal2 = Goal.objects.create(name="Name Two", user=user1, target=1000, start_date=timezone.now(),
+                                    end_date=timezone.now(), prototype=proto2)
+        goal3 = Goal.objects.create(name="Name Tree", user=user3, target=1000, start_date=timezone.now(),
+                                    end_date=timezone.now(), prototype=proto1)
+
+        self.assertNotEqual(proto1.num_users, 0, "num_users field on Goal Prototype not updated correctly")
+        self.assertEquals(proto1.num_users, 2, "num_users field on Goal Prototype not calculated correctly")
+        self.assertEquals(proto2.num_users, 1, "num_users field on Goal Prototype not calculated correctly")
 
 
 # ============ #
@@ -975,6 +1015,193 @@ class TestWeeklyStreaks(TestCase):
 
         self.assertEqual(streak, 0, "Unexpected weekly streak.")
 
+class TestWeeklyTargetStreaks(TestCase):
+
+    def test_basic_streak_2(self):
+        now = datetime(2017, 1, 27, tzinfo=timezone.utc)
+
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=36, #Thus the weekly target is 6 for 6 weeks to reach the target
+            start_date=now + timedelta(days=-36), #Goal duration is 6 weeks
+            end_date=now,
+        )
+
+        # Week 5
+        goal.transactions.create(value=1, date=now + timedelta(days=-7))
+        goal.transactions.create(value=2, date=now + timedelta(days=-8))
+        goal.transactions.create(value=3, date=now + timedelta(days=-9))
+
+        # Week 6
+        goal.transactions.create(value=1, date=now + timedelta(days=-1))
+        goal.transactions.create(value=3, date=now + timedelta(days=-2))
+        goal.transactions.create(value=3, date=now + timedelta(days=-3))
+
+        streak = Goal.get_current_weekly_target_badge(user, goal, now)
+
+        self.assertEqual(streak, 2, "Unexpected streak returned, should be 2")
+
+    def test_basic_streak_4(self):
+        now = datetime(2017, 1, 27, tzinfo=timezone.utc)
+
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=36, #Thus the weekly target is 6 for 6 weeks to reach the target
+            start_date=now + timedelta(days=-36), #Goal duration is 6 weeks
+            end_date=now,
+        )
+
+        # Week 3
+        goal.transactions.create(value=1, date=now + timedelta(days=-21))
+        goal.transactions.create(value=2, date=now + timedelta(days=-23))
+        goal.transactions.create(value=3, date=now + timedelta(days=-25))
+
+        # Week 4
+        goal.transactions.create(value=1, date=now + timedelta(days=-14))
+        goal.transactions.create(value=3, date=now + timedelta(days=-15))
+        goal.transactions.create(value=3, date=now + timedelta(days=-18))
+
+        # Week 5
+        goal.transactions.create(value=1, date=now + timedelta(days=-7))
+        goal.transactions.create(value=2, date=now + timedelta(days=-8))
+        goal.transactions.create(value=3, date=now + timedelta(days=-9))
+
+        # Week 6
+        goal.transactions.create(value=1, date=now + timedelta(days=-1))
+        goal.transactions.create(value=3, date=now + timedelta(days=-2))
+        goal.transactions.create(value=3, date=now + timedelta(days=-3))
+
+        streak = Goal.get_current_weekly_target_badge(user, goal, now)
+
+        self.assertEqual(streak, 4, "Unexpected streak returned, should be 4")
+
+    def test_basic_streak_6(self):
+        now = datetime(2017, 1, 27, tzinfo=timezone.utc)
+
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=36, #Thus the weekly target is 6 for 6 weeks to reach the target
+            start_date=now + timedelta(days=-36), #Goal duration is 6 weeks
+            end_date=now,
+        )
+
+        # Week 1
+        goal.transactions.create(value=1, date=now + timedelta(days=-35))
+        goal.transactions.create(value=2, date=now + timedelta(days=-36))
+        goal.transactions.create(value=3, date=now + timedelta(days=-37))
+
+        # Week 2
+        goal.transactions.create(value=1, date=now + timedelta(days=-28))
+        goal.transactions.create(value=3, date=now + timedelta(days=-29))
+        goal.transactions.create(value=3, date=now + timedelta(days=-30))
+
+        # Week 3
+        goal.transactions.create(value=1, date=now + timedelta(days=-21))
+        goal.transactions.create(value=2, date=now + timedelta(days=-23))
+        goal.transactions.create(value=3, date=now + timedelta(days=-25))
+
+        # Week 4
+        goal.transactions.create(value=1, date=now + timedelta(days=-14))
+        goal.transactions.create(value=3, date=now + timedelta(days=-15))
+        goal.transactions.create(value=3, date=now + timedelta(days=-18))
+
+        # Week 5
+        goal.transactions.create(value=1, date=now + timedelta(days=-7))
+        goal.transactions.create(value=2, date=now + timedelta(days=-8))
+        goal.transactions.create(value=3, date=now + timedelta(days=-9))
+
+        # Week 6
+        goal.transactions.create(value=1, date=now + timedelta(days=-1))
+        goal.transactions.create(value=3, date=now + timedelta(days=-2))
+        goal.transactions.create(value=3, date=now + timedelta(days=-3))
+
+        streak = Goal.get_current_weekly_target_badge(user, goal, now)
+
+        self.assertEqual(streak, 6, "Unexpected streak returned, should be 2")
+
+    def test_broken_streak(self):
+        now = datetime(2017, 1, 27, tzinfo=timezone.utc)
+
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=36, #Thus the weekly target is 6 for 6 weeks to reach the target
+            start_date=now + timedelta(days=-36), #Goal duration is 6 weeks
+            end_date=now,
+        )
+
+        # Week 3
+        goal.transactions.create(value=1, date=now + timedelta(days=-21))
+        goal.transactions.create(value=2, date=now + timedelta(days=-23))
+        goal.transactions.create(value=3, date=now + timedelta(days=-25))
+
+        #Streak breaks here
+
+        # Week 5
+        goal.transactions.create(value=1, date=now + timedelta(days=-7))
+        goal.transactions.create(value=2, date=now + timedelta(days=-8))
+        goal.transactions.create(value=3, date=now + timedelta(days=-9))
+
+        # Week 6
+        goal.transactions.create(value=1, date=now + timedelta(days=-1))
+        goal.transactions.create(value=3, date=now + timedelta(days=-2))
+        goal.transactions.create(value=3, date=now + timedelta(days=-3))
+
+        streak = Goal.get_current_weekly_target_badge(user, goal, now)
+
+        self.assertEqual(streak, 2, "Unexpected weekly streak, should be 2")
+
+    def test_inactivity(self):
+        """When the user has saved before, but has been inactive since, the streak should be 0."""
+        now = datetime(2017, 1, 27, tzinfo=timezone.utc)
+
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=36,  # Thus the weekly target is 6 for 6 weeks to reach the target
+            start_date=now + timedelta(days=-36),  # Goal duration is 6 weeks
+            end_date=now,
+        )
+
+        # Week 1
+        goal.transactions.create(value=2, date=now + timedelta(days=-28))
+        goal.transactions.create(value=2, date=now + timedelta(days=-29))
+        goal.transactions.create(value=5, date=now + timedelta(days=-30))
+
+        # Week 2
+        goal.transactions.create(value=2, date=now + timedelta(days=-21))
+        goal.transactions.create(value=2, date=now + timedelta(days=-22))
+        goal.transactions.create(value=5, date=now + timedelta(days=-23))
+
+        # Streak breaks here
+
+        streak = Goal.get_current_weekly_target_badge(user, goal, now)
+
+        self.assertEqual(streak, 0, "Unexpected weekly streak, should be 0")
+
+    def test_no_savings(self):
+        now = datetime(2016, 11, 30, tzinfo=timezone.utc)
+
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=100000,
+            start_date=now - timedelta(days=30),
+            end_date=now
+        )
+
+        streak = Goal.get_current_weekly_target_badge(user, goal, now)
+
+        self.assertEqual(streak, 0, "Unexpected weekly streak, should be 0")
 
 class TestAchievementAPI(APITestCase):
 
@@ -1022,7 +1249,7 @@ class TestBadgeAwarding(APITestCase):
         cls.goal_first_done = Badge.objects.create(name='First Goal Done')
         cls.transaction_first = Badge.objects.create(name='First Savings Created')
         cls.streak_2 = Badge.objects.create(name='2 Week Streak')
-        cls.first_challenge = Badge.objects.create(name='First Challenge Completed')
+        cls.weekly_target_2 = Badge.objects.create(name='2 Weekly Target Streak of 2')
         cls.challenge_entry = Badge.objects.create(name='Challenge Participation')
         cls.challenge_win = Badge.objects.create(name='Challenge Win')
 
@@ -1036,6 +1263,7 @@ class TestBadgeAwarding(APITestCase):
             transaction_first=cls.transaction_first,
             streak_2=cls.streak_2,
             challenge_entry=cls.challenge_entry,
+            weekly_target_2=cls.weekly_target_2,
             challenge_win=cls.challenge_win
         )
 
@@ -1330,7 +1558,6 @@ class TestBadgeAwarding(APITestCase):
         }
 
         self.client.force_authenticate(user=user)
-        # response = self.client.post('/api/participantfreetext/', data, format='json')
         response = self.client.post(reverse('api:participantfreetext-list'), data, format='json')
 
         self.assertEquals(response.data['available'], True, "Badge not available")
@@ -1342,7 +1569,7 @@ class TestBadgeAwarding(APITestCase):
     def test_challenge_participation_image(self):
         self.skipTest("Need to build a POST request")
         # TODO: Image challenge participation badge
-        # Haven't been able to figure out how to structure a POST request in order to test
+        # Haven't been able to construct a POST request in order to test
 
     def test_challenge_participation_quiz(self):
         user = create_test_regular_user('anon')
@@ -1385,6 +1612,35 @@ class TestBadgeAwarding(APITestCase):
 
         self.assertIsNotNone(badge, "Participation badge was not awarded")
 
+    # -------------------------- #
+    # Award Weekly Target Streaks #
+    # -------------------------- #
+
+    def test_weekly_target_2(self):
+        now = timezone.now()
+        user = create_test_regular_user('anon')
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=100,
+            start_date=now - timedelta(days=30),
+            end_date=now + timedelta(days=30)
+        )
+        goal.transactions.create(
+            date=now - timedelta(days=7),  # One Week back
+            value=20
+        )
+        data = [{
+            'date': now.isoformat(),
+            'value': 20
+        }]
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}), data, format='json')
+
+        badges = [b for b in response.data['new_badges'] if b['name'] == self.weekly_target_2.name]
+        self.assertEqual(len(badges), 1, "Expected badge was not included")
+
     # ---------------------- #
     # Award Challenge Winner #
     # ---------------------- #
@@ -1415,12 +1671,42 @@ class TestBadgeAwarding(APITestCase):
 
         self.assertIsNotNone(user_badge, "Badge was not awarded")
 
-        self.skipTest('TODO')
+    def test_challenge_win_endpoint(self):
+        user = create_test_regular_user('anon')
+        Profile.objects.create(user=user)
+
+        challenge = Challenge.objects.create(
+            name='Challenge',
+            activation_date=timezone.now() + timedelta(days=-7),
+            deactivation_date=timezone.now() + timedelta(days=7)
+        )
+        challenge.publish()
+        challenge.save()
+
+        # Participate and complete
+        challenge.participants \
+            .create(user=user) \
+            .entries.create()
+
+        participant = Participant.objects.get(user=user, challenge=challenge)
+        participant.is_winner = True
+        participant.save()
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:challenges-winning'), format='json')
+
+        self.assertTrue(response.data['available'], "Winner not available.")
+        self.assertIsNotNone(response.data['badge'], "Badge was None.")
+        self.assertIsNotNone(response.data['challenge'], "Challenge was None")
+
+        self.assertEqual(response.data['badge']['name'], self.challenge_win.name, "Unexpected Badge returned.")
+        self.assertEqual(response.data['challenge']['id'], challenge.id, "Unexpected Challenge returned.")
 
 
 class TestNotification(APITestCase):
-    """Test that the user can POST to /notification to mark their win as being 'read' """
+
     def test_notification(self):
+        """Test that the user can POST to /notification to mark their win as being 'read' """
         user = create_test_regular_user('anon_winner')
         profile = Profile.objects.create(user=user)
 
@@ -1452,6 +1738,36 @@ class TestNotification(APITestCase):
 
         self.assertEqual(participant.has_been_notified, True,
                          "Participant has not been marked as having read their winning badge")
+
+    def test_winner_filter(self):
+        """Test that when a winning participant notification has been confirmed, it will no longer be available."""
+        user = create_test_regular_user('anon')
+        Profile.objects.create(user=user)
+
+        challenge = Challenge.objects.create(
+            name='Challenge',
+            activation_date=timezone.now() + timedelta(days=-7),
+            deactivation_date=timezone.now() + timedelta(days=7)
+        )
+        challenge.publish()
+        challenge.save()
+
+        # Participate and complete
+        challenge.participants \
+            .create(user=user) \
+            .entries.create()
+
+        participant = Participant.objects.get(user=user, challenge=challenge)
+        participant.is_winner = True
+        participant.save()
+
+        self.client.force_authenticate(user=user)
+        self.client.post(reverse('api:challenges-notification', kwargs={'pk': challenge.pk}), {}, format='json')
+        winning_response = self.client.get(reverse('api:challenges-winning'), format=json)
+
+        self.assertFalse(winning_response.data['available'], "Winner still available")
+        self.assertIsNone(winning_response.data['badge'], "Badge still available")
+        self.assertIsNot(winning_response.data['challenge'], "Challenge still available")
 
 
 class TestFeedback(APITestCase):

@@ -1,13 +1,10 @@
 from collections import OrderedDict
 
-from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, render
-from django.http import Http404
-from django.http import HttpResponse
 from rest_framework import status
 from rest_framework import viewsets
-from rest_framework.decorators import list_route, detail_route, permission_classes
+from rest_framework.decorators import list_route, detail_route
 from rest_framework.exceptions import NotFound, PermissionDenied, MethodNotAllowed
 from rest_framework.generics import GenericAPIView
 from rest_framework.parsers import FileUploadParser
@@ -18,26 +15,26 @@ from wagtail.wagtailcore.models import Site
 
 from .exceptions import ImageNotFound
 
-from .models import BadgeSettings, award_challenge_win, award_entry_badge
+from .models import award_entry_badge
+from .models import AchievementStat
 from .models import Badge, Challenge, Entry
+from .models import BadgeSettings, award_challenge_win
 from .models import Feedback
 from .models import Goal, GoalPrototype
 from .models import Participant, ParticipantAnswer, ParticipantFreeText, ParticipantPicture
 from .models import Tip, TipFavourite
-from .models import AchievementStat
+from .models import WEEK_STREAK_2, WEEK_STREAK_4, WEEK_STREAK_6
 from .models import award_first_goal, award_goal_done, award_goal_halfway, award_goal_week_left, \
     award_transaction_first, award_week_streak
-from .models import WEEK_STREAK_2, WEEK_STREAK_4, WEEK_STREAK_6
-
+from .models import award_weekly_target_badge, WEEKLY_TARGET_2, WEEKLY_TARGET_4, WEEKLY_TARGET_6
 from .permissions import IsAdminOrOwner, IsUserSelf
-
+from .serializers import AchievementStatSerializer, UserBadgeSerializer
 from .serializers import ChallengeSerializer, EntrySerializer
 from .serializers import FeedbackSerializer
 from .serializers import GoalPrototypeSerializer, GoalSerializer, GoalTransactionSerializer
 from .serializers import ParticipantAnswerSerializer, ParticipantFreeTextSerializer, ParticipantPictureSerializer, \
     ParticipantRegisterSerializer
 from .serializers import TipSerializer
-from .serializers import AchievementStatSerializer, UserBadgeSerializer, ParticipantBadgeSerializer
 
 
 # ========== #
@@ -119,7 +116,7 @@ class ChallengeViewSet(viewsets.ModelViewSet):
     def winning(self, request, *args, **kwargs):
         """Returns winning status, and badge and challenge if available"""
         # TODO: Filter by notification flag
-        participant = Participant.objects.filter(user=request.user, is_winner=True) \
+        participant = Participant.objects.filter(user=request.user, is_winner=True, has_been_notified=False) \
             .order_by('date_completed') \
             .first()
 
@@ -136,7 +133,7 @@ class ChallengeViewSet(viewsets.ModelViewSet):
         user_badge = award_challenge_win(site, request.user, participant)
 
         data = OrderedDict()
-        data['available'] = user_badge is not None and participant.challenge is not None,
+        data['available'] = user_badge is not None and participant.challenge is not None
         data['badge'] = UserBadgeSerializer(instance=user_badge, context=self.get_serializer_context()).data
         data['challenge'] = ChallengeSerializer(instance=participant.challenge,
                                                 context=self.get_serializer_context()).data
@@ -145,7 +142,6 @@ class ChallengeViewSet(viewsets.ModelViewSet):
     @detail_route(methods=['post'])
     def notification(self, request, pk=None, *args, **kwargs):
         """Marks the participant as having received the winning notification"""
-        # participant = get_object_or_404(challenge_id=pk, user=request.user, is_winner=True)
         participants = Participant.objects.filter(challenge_id=pk, user=request.user, has_been_notified=False)
 
         if participants is None:
@@ -154,10 +150,6 @@ class ChallengeViewSet(viewsets.ModelViewSet):
         for p in participants:
             p.has_been_notified = True
             p.save()
-
-        # Is it better to save each individual participant (like above) or can I call save on the entire query set?
-        # participant.save()
-        # Participants.objects.filter(challenge_id=pk, user=request.user, has_been_notified=False).update(has_been_notified=True)
 
         return Response(status=status.HTTP_204_NO_CONTENT)
 
@@ -545,7 +537,10 @@ class GoalViewSet(viewsets.ModelViewSet):
             award_transaction_first(request, goal),
             award_week_streak(request.site, request.user, WEEK_STREAK_2),
             award_week_streak(request.site, request.user, WEEK_STREAK_4),
-            award_week_streak(request.site, request.user, WEEK_STREAK_6)
+            award_week_streak(request.site, request.user, WEEK_STREAK_6),
+            award_weekly_target_badge(request.site, request.user, WEEKLY_TARGET_2, goal),
+            award_weekly_target_badge(request.site, request.user, WEEKLY_TARGET_4, goal),
+            award_weekly_target_badge(request.site, request.user, WEEKLY_TARGET_6, goal)
         ]
 
         return [b for b in new_badges if b is not None]
@@ -578,15 +573,14 @@ class GoalImageView(GenericAPIView):
         return sendfile(request, goal.image.path)
 
 
-class GoalPrototypeView(GenericAPIView):
+class GoalPrototypeView(viewsets.ModelViewSet):
     queryset = GoalPrototype.objects.all()
     serializer_class = GoalPrototypeSerializer
     permission_classes = (IsAuthenticated,)
 
-    def get(self, request, pk=None, *args, **kwargs):
+    def list(self, request, pk=None, *args, **kwargs):
         serializer = self.get_serializer(self.get_queryset().filter(state=GoalPrototype.ACTIVE), many=True)
         return Response(serializer.data)
-
 
 # ============ #
 # Achievements #
