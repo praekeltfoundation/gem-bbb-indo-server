@@ -1013,6 +1013,8 @@ class Goal(models.Model):
     user = models.ForeignKey(User, related_name='+')
     prototype = models.ForeignKey('GoalPrototype', related_name='goals', on_delete=models.SET_NULL,
                                   default=None, blank=True, null=True)
+    end_date_modified = models.DateTimeField(blank=True, null=True)
+    target_modified = models.DateTimeField(blank=True, null=True)
 
     class Meta:
         # Translators: Collection name on CMS
@@ -1095,6 +1097,13 @@ class Goal(models.Model):
     @staticmethod
     def _monday(d):
         return d - timedelta(days=d.weekday())
+
+    # Should these two functions have any decorators on them?
+    def is_end_date_modified(self):
+        return self.end_date_modified is not None
+
+    def is_target_modified(self):
+        return self.target_modified is not None
 
     @staticmethod
     def _date_window(d):
