@@ -294,7 +294,8 @@ class Challenge(modelcluster_fields.ClusterableModel):
     # Translators: Field name on challenge CMS
     name = models.CharField(_('challenge name'), max_length=255, null=False, blank=False)
 
-    prize = models.CharField(_('challenge prize'), max_length=255, default='none', blank=True)
+    prize = models.CharField(_('prize'), max_length=255, default='none', blank=True,
+                             help_text=_("The text to be displayed to a user who wins a prize"))
 
     # Translators: Field name on CMS
     subtitle = models.CharField(_('subtitle'), max_length=255, null=False, blank=True)
@@ -456,6 +457,7 @@ Challenge.panels = [
         [
             wagtail_edit_handlers.FieldPanel('intro'),
             wagtail_edit_handlers.FieldPanel('outro'),
+            wagtail_edit_handlers.FieldPanel('prize'),
         ],
         # Translators: Admin field name
         heading=_('Coach UI')
@@ -467,13 +469,6 @@ Challenge.panels = [
         ],
         # Translators: Admin field name
         heading=_('Dates')
-    ),
-    wagtail_edit_handlers.MultiFieldPanel(
-        [
-            wagtail_edit_handlers.FieldPanel('prize'),
-        ],
-        # Translators: Admin field name
-        heading=_('Prize')
     ),
     wagtail_edit_handlers.InlinePanel(
         'freetext_question',
