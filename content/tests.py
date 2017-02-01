@@ -18,7 +18,7 @@ from wagtail.wagtailcore.models import Site, Page
 from users.models import User, RegUser, Profile
 
 # content function imports
-from .models import award_challenge_win
+from .models import award_challenge_win, QuizQuestion, FreeTextQuestion, PictureQuestion, QuestionOption
 
 # content model imports
 from .models import Badge, BadgeSettings, UserBadge
@@ -1250,6 +1250,7 @@ class TestBadgeAwarding(APITestCase):
         cls.transaction_first = Badge.objects.create(name='First Savings Created')
         cls.streak_2 = Badge.objects.create(name='2 Week Streak')
         cls.weekly_target_2 = Badge.objects.create(name='2 Weekly Target Streak of 2')
+        cls.challenge_entry = Badge.objects.create(name='Challenge Participation')
         cls.challenge_win = Badge.objects.create(name='Challenge Win')
 
         site = Site.objects.get(is_default_site=True)
@@ -1261,6 +1262,7 @@ class TestBadgeAwarding(APITestCase):
             goal_first_done=cls.goal_first_done,
             transaction_first=cls.transaction_first,
             streak_2=cls.streak_2,
+            challenge_entry=cls.challenge_entry,
             weekly_target_2=cls.weekly_target_2,
             challenge_win=cls.challenge_win
         )
@@ -1523,6 +1525,93 @@ class TestBadgeAwarding(APITestCase):
         badges = [b for b in response.data['new_badges'] if b['name'] == self.streak_2.name]
         self.assertEqual(len(badges), 1, "Expected badge was not included")
 
+    # ----------------------------- #
+    # Award Challenge participation #
+    # ----------------------------- #
+
+    def test_challenge_participation_freetext(self):
+        user = create_test_regular_user('anon')
+        profile = Profile.objects.create(user=user)
+
+        challenge = Challenge.objects.create(
+            name='Free Text Challenge',
+            activation_date=timezone.now() + timedelta(days=-7),
+            deactivation_date=timezone.now() + timedelta(days=7),
+            type=3
+        )
+
+        question = FreeTextQuestion.objects.create(challenge=challenge, text="FreeTextQuestion1")
+
+        challenge.publish()
+        challenge.save()
+
+        # Participate and complete, be awarded participation badge
+        badge = challenge.participants \
+            .create(user=user) \
+            .entries.create()
+
+        data = {
+            "text": "abc",
+            "date_answered": "2017-01-30T08:25:23.951+02:00",
+            "participant": 1,
+            "question": 1
+        }
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:participantfreetext-list'), data, format='json')
+
+        self.assertEquals(response.data['available'], True, "Badge not available")
+
+        self.assertNotEquals(response.status_code, status.HTTP_400_BAD_REQUEST, "Badge not created")
+
+        self.assertIsNotNone(badge, "Participation badge was not awarded")
+
+    def test_challenge_participation_image(self):
+        self.skipTest("Need to build a POST request")
+        # TODO: Image challenge participation badge
+        # Haven't been able to construct a POST request in order to test
+
+    def test_challenge_participation_quiz(self):
+        user = create_test_regular_user('anon')
+        profile = Profile.objects.create(user=user)
+
+        challenge = Challenge.objects.create(
+            name='Quiz Challenge',
+            activation_date=timezone.now() + timedelta(days=-7),
+            deactivation_date=timezone.now() + timedelta(days=7),
+            type=1
+        )
+
+        question = QuizQuestion.objects.create(challenge=challenge, text="QuizQuestion")
+        questionOption1 = QuestionOption.objects.create(question=question, text="Question1")
+        questionOption2 = QuestionOption.objects.create(question=question, text="Question2")
+
+        challenge.publish()
+        challenge.save()
+
+        # Participate and complete, be awarded participation badge
+        badge = challenge.participants \
+            .create(user=user) \
+            .entries.create()
+
+        data = {
+             "answers": [
+                 {"selected_option": 1, "challenge": 1, "date_answered": "2017-01-30T16:59:26.054+02:00", "question": 1,
+                  "user": 1, "participant": 1},
+                 {"selected_option": 1, "challenge": 1, "date_answered": "2017-01-30T16:59:29.746+02:00", "question": 1,
+                  "user": 1, "participant": 1}
+             ],
+             "date_completed": "2017-01-30T16:59:32.427+02:00",
+             "participant": 1
+        }
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:entries-list'), data, format='json')
+
+        self.assertNotEquals(response.status_code, status.HTTP_400_BAD_REQUEST, "Badge not created")
+
+        self.assertIsNotNone(badge, "Participation badge was not awarded")
+
     # -------------------------- #
     # Award Weekly Target Streaks #
     # -------------------------- #
@@ -1565,6 +1654,7 @@ class TestBadgeAwarding(APITestCase):
             activation_date=timezone.now() + timedelta(days=-7),
             deactivation_date=timezone.now() + timedelta(days=7)
         )
+
         challenge.publish()
         challenge.save()
 

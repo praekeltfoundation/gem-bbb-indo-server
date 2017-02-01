@@ -1491,6 +1491,7 @@ def award_week_streak(site, user, weeks):
 
     return None
 
+
 def award_weekly_target_badge(site, user, weeks, goal):
     """Badge Goes to users who have reached their weekly targets for a number of weeks"""
     badge_settings = BadgeSettings.for_site(site)
@@ -1507,6 +1508,24 @@ def award_weekly_target_badge(site, user, weeks, goal):
         if created:
             # Created means it's the first time a user has reached this streak
             return user_badge
+
+
+def award_entry_badge(site, user, participant):
+    badge_settings = BadgeSettings.for_site(site)
+    badge = badge_settings.challenge_entry
+
+    if badge is None:
+        return None
+
+    if not badge.is_active:
+        return None
+
+    user_badge, created = participant.badges.get_or_create(user=user, badge=badge)
+
+    if user_badge is not None:
+        return user_badge
+    else:
+        return None
 
 
 def award_challenge_win(site, user, participant):

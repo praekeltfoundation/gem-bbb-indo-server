@@ -14,6 +14,8 @@ from sendfile import sendfile
 from wagtail.wagtailcore.models import Site
 
 from .exceptions import ImageNotFound
+
+from .models import award_entry_badge
 from .models import AchievementStat
 from .models import Badge, Challenge, Entry
 from .models import BadgeSettings, award_challenge_win
@@ -175,7 +177,24 @@ class EntryViewSet(viewsets.ModelViewSet):
         if not serial.is_valid():
             return Response(data=serial.errors, status=400)
         serial.create(serial.validated_data)
-        return Response(serial.data, status=201)
+
+        badge_settings = BadgeSettings.for_site(request.site)
+
+        if badge_settings.challenge_entry is None:
+            raise NotFound('Challenge entry badge not set up')
+
+        participant_id = request.data['participant']
+
+        participant = Participant.objects.get(user=request.user, id=participant_id)
+
+        site = Site.objects.get(is_default_site=True)
+        user_badge = award_entry_badge(site, request.user, participant)
+
+        data = OrderedDict()
+        data['badge'] = UserBadgeSerializer(instance=user_badge, context=self.get_serializer_context()).data
+        data['data'] = serial.data
+
+        return Response(data, status=status.HTTP_200_OK)
 
 
 class ParticipantViewSet(viewsets.ModelViewSet):
@@ -284,7 +303,25 @@ class ParticipantImageView(GenericAPIView):
             participant_picture = ParticipantPicture.objects.create(participant=participant)
         participant_picture.picture = request.FILES['file']
         participant_picture.save()
-        return Response(status=status.HTTP_204_NO_CONTENT)
+
+        badge_settings = BadgeSettings.for_site(request.site)
+
+        if badge_settings.challenge_entry is None:
+            raise NotFound('Challenge entry badge not set up')
+
+        participant_id = participant_pk
+
+        participant = Participant.objects.get(user=request.user, id=participant_id)
+        challenge = participant.challenge
+
+        site = Site.objects.get(is_default_site=True)
+        user_badge = award_entry_badge(site, request.user, participant)
+
+        data = OrderedDict()
+        data['badge'] = UserBadgeSerializer(instance=user_badge, context=self.get_serializer_context()).data
+        data['challenge'] = ChallengeSerializer(instance=challenge, context=self.get_serializer_context()).data
+
+        return Response(data, status=status.HTTP_200_OK)
 
     def get(self, request, participant_pk=None, *args, **kwargs):
         participant = get_object_or_404(Participant, pk=participant_pk)
@@ -313,7 +350,25 @@ class ParticipantFreeTextViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data)
         if serializer.is_valid(raise_exception=True):
             serializer.save()
-            return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+            badge_settings = BadgeSettings.for_site(request.site)
+
+            if badge_settings.challenge_entry is None:
+                raise NotFound('Challenge entry badge not set up')
+
+            participant_id = request.data['participant']
+
+            participant = Participant.objects.get(user=request.user, id=participant_id)
+
+            site = Site.objects.get(is_default_site=True)
+            user_badge = award_entry_badge(site, request.user, participant)
+
+            data = OrderedDict()
+            data['available'] = user_badge is not None
+            data['badge'] = UserBadgeSerializer(instance=user_badge, context=self.get_serializer_context()).data
+            data['data'] = serializer.data
+
+            return Response(data, status=status.HTTP_201_CREATED)
 
     @list_route(methods=['get'])
     def fetch(self, request, *args, **kwargs):
