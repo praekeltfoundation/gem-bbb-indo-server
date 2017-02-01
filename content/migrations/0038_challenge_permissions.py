@@ -27,10 +27,11 @@ def get_challenge_types(apps):
         get_content_type(apps, 'content', 'ParticipantFreeText'),
     )
 
+
 def create_group(apps, schema_editor):
+    """Ensure that permissions for models have been created."""
     db_alias = schema_editor.connection.alias
     emit_post_migrate_signal(2, False, db_alias)
-
 
 
 def add_permissions(group, challenge_content_type):

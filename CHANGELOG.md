@@ -2,6 +2,13 @@
 Changelog
 =========
 
+0.1.2
+-----
+
+- Implemented On Track Badges
+- Implemented Challenge Participation Badge
+- Implemented Challenge Winning Badge
+
 0.1.1
 -----
 
