@@ -497,7 +497,7 @@ class GoalPrototypeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = GoalPrototype
-        fields = ('id', 'name', 'image_url', "num_users")
+        fields = ('id', 'name', 'image_url', "num_users", "default_price")
 
     def get_image_url(self, obj):
         request = self.context['request']
