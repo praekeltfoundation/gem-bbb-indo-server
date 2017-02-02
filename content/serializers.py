@@ -493,6 +493,7 @@ class GoalPrototypeSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     image_url = serializers.SerializerMethodField()
     num_users = serializers.ReadOnlyField()
+    default_price = serializers.DecimalField(18, 2, coerce_to_string=False)
 
     class Meta:
         model = GoalPrototype
