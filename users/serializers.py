@@ -40,7 +40,6 @@ class RegUserProfileSerializer(serializers.ModelSerializer):
 
 class ProfileSerializer(serializers.ModelSerializer):
     profile_image_url = serializers.SerializerMethodField()
-    gaid = serializers.ReadOnlyField()
 
     def get_profile_image_url(self, obj):
         if not obj.profile_image:
