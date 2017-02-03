@@ -605,11 +605,20 @@ class GoalSerializer(serializers.ModelSerializer):
         # Update Goal
         instance.name = validated_data.get('name', instance.name)
         instance.start_date = validated_data.get('start_date', instance.start_date)
-        instance.end_date = validated_data.get('end_date', instance.end_date)
-        instance.target = validated_data.get('target', instance.target)
+        # instance.end_date = validated_data.get('end_date', instance.end_date)
+        # instance.target = validated_data.get('target', instance.target)
         # TODO: Image Field
         # Goal owner can not be updated.
         # instance.user = validated_data.get('user', instance.user)
+
+        # If the new values are different to the existing, update them and record their modified date
+        if instance.end_date != validated_data.get('end_date', instance.end_date):
+            instance.end_date = validated_data.get('end_date', instance.end_date)
+            instance.end_date_modified = timezone.now()
+
+        if instance.target != validated_data.get('target', instance.target):
+            instance.target = validated_data.get('target', instance.target)
+            instance.target_modified = timezone.now()
 
         for t in transactions_data:
             t['goal'] = instance
