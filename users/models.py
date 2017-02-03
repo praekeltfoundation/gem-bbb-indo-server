@@ -1,5 +1,6 @@
 
 from datetime import timedelta
+import uuid
 
 from django.utils import timezone
 from django.utils.translation import ugettext as _
@@ -163,6 +164,12 @@ class Profile(models.Model):
             return False
 
         return True
+
+class UserUUID(models.Model):
+
+    gaid = models.UUIDField(verbose_name=_('Google Analytics ID'), editable=False, default=uuid.uuid4)
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
 
 
 def reset_token(sender, instance, **kwargs):

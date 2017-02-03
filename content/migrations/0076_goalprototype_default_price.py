@@ -8,7 +8,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('content', '0075_remove_badgesettings_first_challenge_completed'),
+        ('content', '0075_auto_20170201_1437'),
     ]
 
     operations = [
