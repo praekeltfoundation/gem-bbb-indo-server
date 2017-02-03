@@ -230,5 +230,5 @@ class ObtainUserAuthTokenView(ObtainAuthToken):
         return Response({
             'token': {'token': token.key},
             'user': RegUserDeepSerializer(user, context=self.get_serializer_context()).data,
-            'userUUID' : {'gaid' : uuid_str}
+            'user_uuid' : {'gaid' : uuid_str}
         })
