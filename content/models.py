@@ -959,6 +959,7 @@ class GoalPrototype(models.Model):
         # Translators: Object state
         (ACTIVE, _('Active')),
     ), default=INACTIVE)
+    default_price = models.DecimalField(max_digits=18, decimal_places=2, default=0.0, editable=True)
 
 
     @property
@@ -991,6 +992,7 @@ GoalPrototype.panels = [
     wagtail_edit_handlers.FieldPanel('name'),
     wagtail_edit_handlers.FieldPanel('state'),
     wagtail_image_edit.ImageChooserPanel('image'),
+    wagtail_edit_handlers.FieldPanel('default_price'),
 ]
 
 

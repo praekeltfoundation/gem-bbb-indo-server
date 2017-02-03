@@ -493,10 +493,11 @@ class GoalPrototypeSerializer(serializers.ModelSerializer):
     name = serializers.CharField()
     image_url = serializers.SerializerMethodField()
     num_users = serializers.ReadOnlyField()
+    default_price = serializers.DecimalField(18, 2, coerce_to_string=False)
 
     class Meta:
         model = GoalPrototype
-        fields = ('id', 'name', 'image_url', "num_users")
+        fields = ('id', 'name', 'image_url', "num_users", "default_price")
 
     def get_image_url(self, obj):
         request = self.context['request']
