@@ -580,6 +580,7 @@ class GoalPrototypeView(viewsets.ModelViewSet):
 
     def list(self, request, pk=None, *args, **kwargs):
         serializer = self.get_serializer(self.get_queryset().filter(state=GoalPrototype.ACTIVE), many=True)
+
         return Response(serializer.data)
 
 # ============ #

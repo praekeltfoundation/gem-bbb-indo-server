@@ -694,6 +694,39 @@ class TestGoalAPI(APITestCase):
         self.assertEqual(9000, updated_goal.target, "Target was not updated.")
         self.assertEqual(date(2015, 11, 30), updated_goal.end_date, "Goal date was not updated.")
 
+    def test_user_goal_update_modified_flags(self):
+        """Flag fields must be set to record when a user modifies the goal end date or target"""
+
+        # Create Models
+        user = self.create_regular_user('User 1')
+        goal = self.create_goal('Goal 1', user, 1000)
+
+        # Send updates
+        data = {
+            "name": "Goal 2",
+            "start_date": '2015-11-01',
+            "end_date": '2015-11-30',
+            "target": 9000,
+            "image": None
+        }
+
+        self.assertEquals(goal.end_date_modified, None, "Unmodified goal end date should be null")
+        self.assertEquals(goal.target_modified, None, "Unmodified goal target should be null")
+
+        self.client.force_authenticate(user=user)
+        response = self.client.put(reverse('api:goals-detail', kwargs={'pk': goal.pk}), data, format='json')
+
+        updated_goal = Goal.objects.get(pk=goal.pk)
+
+        # Date modified are within two seconds of current check
+        self.assertAlmostEqual(updated_goal.end_date_modified, datetime.now(timezone.utc),
+                               msg="Modified date not close enough to when was actually modified",
+                               delta=timedelta(seconds=2))
+
+        self.assertAlmostEqual(updated_goal.target_modified, datetime.now(timezone.utc),
+                               msg="Modified date not close enough to when was actually modified",
+                               delta=timedelta(seconds=2))
+
     def test_user_goal_create_for_other_restricted(self):
         """A User must not be able to create a Goal for another user."""
 
