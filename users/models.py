@@ -121,8 +121,6 @@ class Profile(models.Model):
         blank=False,
         null=True)
 
-    gaid = models.UUIDField(verbose_name=_('Google Analytics ID'), editable=False, default=uuid.uuid4)
-
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
     class Meta:
@@ -166,6 +164,12 @@ class Profile(models.Model):
             return False
 
         return True
+
+class UserUUID(models.Model):
+
+    gaid = models.UUIDField(verbose_name=_('Google Analytics ID'), editable=False, default=uuid.uuid4)
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
 
 
 def reset_token(sender, instance, **kwargs):
