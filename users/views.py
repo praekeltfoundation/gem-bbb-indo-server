@@ -225,10 +225,10 @@ class ObtainUserAuthTokenView(ObtainAuthToken):
         user = serializer.validated_data['user']
         token, created = Token.objects.get_or_create(user=user)
         user_uuid, created = UserUUID.objects.get_or_create(user=user)
-        uuid_str_urn = user_uuid.urn
+        uuid_str_urn = user_uuid.gaid.urn
         uuid_str = uuid_str_urn[9:]
         return Response({
             'token': {'token': token.key},
             'user': RegUserDeepSerializer(user, context=self.get_serializer_context()).data,
-            'gaid' : {'gaid' : uuid_str}
+            'userUUID' : {'gaid' : uuid_str}
         })
