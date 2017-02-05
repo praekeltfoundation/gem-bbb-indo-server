@@ -220,13 +220,24 @@ class SurveyNotificationAgeAPI(APITestCase):
     what notification to show the user.
     """
 
-    def test_notification_age_threshold_1(self):
+    def test_notification_inactivity_days(self):
         """If the user has not completed the survey in 3 days, the first reminder will be triggered on the frontend."""
-        self.skipTest('TODO')
+        now = timezone.now()
 
-    def test_notification_age_threshold_2(self):
-        """If the user has not completed the survey in 7 days, the second reminder will be triggered on the frontend."""
-        self.skipTest('TODO')
+        user = create_user()
+        user.date_joined = now - timedelta(days=7)
+        user.save()
+
+        survey = create_survey(deliver_after=3)
+        publish(survey, create_user('Staff'))
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:surveys-current'), format='json')
+
+        # Age is counted since the survey is available to the user. The user has been registered for 7 days, the survey
+        # was available after 3, so the age must be 4.
+        self.assertEqual(response.data['inactivity_age'], 4,
+                         "Unexpected survey age. Will affect notification thresholds on frontend.")
 
 
 class DraftAPITest(APITestCase):

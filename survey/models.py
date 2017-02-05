@@ -127,7 +127,11 @@ class CoachSurvey(AbstractSurvey):
     def get_current(cls, user):
         """
         Returns the current survey a user can complete. Surveys are delivered in the order of their delivery days
-        setting. If the user has already submitted to a survey, it will no longer be available.
+        field. If the user has already submitted to a survey, it will no longer be available.
+
+        :param user: The user for checking their submissions and date registered.
+        :return:     A tuple containing the survey and its age. Age is measured in days since the survey is first
+                     available for the provided user.
         """
 
         surveys = cls.objects \
@@ -293,4 +297,3 @@ class CoachSurveySubmissionDraft(models.Model):
         self.version += 1
         self.modified_at = timezone.now()
         super(CoachSurveySubmissionDraft, self).save(*args, **kwargs)
-
