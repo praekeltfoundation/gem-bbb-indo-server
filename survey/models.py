@@ -125,6 +125,10 @@ class CoachSurvey(AbstractSurvey):
 
     @classmethod
     def get_current(cls, user):
+        """
+        Returns the current survey a user can complete. Surveys are delivered in the order of their delivery days
+        setting. If the user has already submitted to a survey, it will no longer be available.
+        """
 
         surveys = cls.objects \
             .filter(live=True) \
@@ -135,9 +139,11 @@ class CoachSurvey(AbstractSurvey):
             surveys = list(filter(lambda s: user.profile.is_joined_days_passed(s.deliver_after), surveys))
 
         if surveys:
-            return surveys[0]
+            survey = surveys[0]
+            inactivity_age = (timezone.now() - user.date_joined).days - survey.deliver_after
+            return survey, inactivity_age
 
-        return None
+        return None, 0
 
     @staticmethod
     def get_conversation_type(bot_conversation_name):
@@ -255,7 +261,7 @@ class CoachSurveySubmission(AbstractFormSubmission):
         return form_data
 
 
-CoachSurveyResponse = namedtuple('CoachSurveyResponse', ['available', 'survey'])
+CoachSurveyResponse = namedtuple('CoachSurveyResponse', ['available', 'inactivity_age', 'survey'])
 
 
 class CoachSurveySubmissionDraft(models.Model):
