@@ -17,6 +17,11 @@ SINGLE_LINE = 'singleline'
 RADIO_FIELD = 'radio'
 
 
+# ================ #
+# Helper functions #
+# ================ #
+
+
 def create_survey(title='Test Survey', intro='Take this challenge', outro='Thanks for taking the challenge',
                   deliver_after=1, **kwargs):
     parent_page = Page.get_root_nodes()[0]
@@ -52,7 +57,6 @@ def create_user(username='Anon'):
 
 
 class CoachSurveyAPITest(APITestCase):
-
     def test_basic_submit(self):
         """Test that a submission can be received"""
         user = create_user()
@@ -61,7 +65,7 @@ class CoachSurveyAPITest(APITestCase):
             key='field-1',
             label='First Form Field',
             field_type=RADIO_FIELD,
-            choices='1,2,3,4,5',
+            choices='1,2,3,4,5'
         )
         publish(survey, user)
 
@@ -70,7 +74,8 @@ class CoachSurveyAPITest(APITestCase):
         }
 
         self.client.force_authenticate(user=user)
-        response = self.client.post(reverse('api:surveys-submission', kwargs={'pk': survey.pk}), submission, format='json')
+        response = self.client.post(reverse('api:surveys-submission', kwargs={'pk': survey.pk}), submission,
+                                    format='json')
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT, "Survey submission request failed.")
 
@@ -134,9 +139,108 @@ class CoachSurveyAPITest(APITestCase):
         self.assertEqual(len(response.data), 1, "Unexpected number of surveys returned.")
         self.assertEqual(response.data[0]['id'], eatool_survey.id, "Unexpected Survey returned.")
 
+    def test_unavailable_after_submit(self):
+        """Test that a survey is unavailable after a submission is successfully created.
+        """
+        now = timezone.now()
+
+        user = create_user()
+        user.date_joined = now - timedelta(days=4)
+        user.save()
+        survey = create_survey(deliver_after=3)  # Survey is available today
+        survey.form_fields.create(
+            key='field-1',
+            label='First Form Field',
+            field_type=SINGLE_LINE,
+            required=False
+        )
+        publish(survey, create_user('Staff'))
+
+        submission = {
+            'field-1': 'one'
+        }
+
+        self.client.force_authenticate(user=user)
+        self.client.post(reverse('api:surveys-submission', kwargs={'pk': survey.pk}),
+                         submission, format='json')
+
+        response = self.client.get(reverse('api:surveys-current'), format='json')
+
+        self.assertFalse(response.data['available'], "Survey still avaialble after submission.")
+        self.assertEqual(response.data['inactivity_age'], 0,
+                         "Inactivity age was returned when survey was not available.")
+        self.assertIsNone(response.data['survey'], "Survey object was returned.")
+
+    def test_next_available(self):
+        """If there are multiple surveys set up, and the user submits to the first, then the second must be available.
+        """
+        now = timezone.now()
+
+        user = create_user()
+        user.date_joined = now - timedelta(days=8)  # Both surveys will be available
+        user.save()
+
+        survey1 = create_survey('Baseline', deliver_after=3, bot_conversation=CoachSurvey.BASELINE)
+        survey1.form_fields.create(
+            key='field-1',
+            label='First Form Field',
+            field_type=SINGLE_LINE,
+            required=False
+        )
+        publish(survey1, create_user('Staff1'))
+
+        survey2 = create_survey('EA Tool', deliver_after=7, bot_conversation=CoachSurvey.EATOOL)
+        survey2.form_fields.create(
+            key='field-1',
+            label='First Form Field',
+            field_type=SINGLE_LINE,
+            required=False
+        )
+        publish(survey2, create_user('Staff2'))
+
+        # User submits to first survey
+        self.client.force_authenticate(user=user)
+        self.client.post(reverse('api:surveys-submission', kwargs={'pk': survey1.pk}), data={
+            'field-1': 'one'
+        }, format='json')
+
+        # Second survey must now be available
+        response = self.client.get(reverse('api:surveys-current'), format='json')
+
+        self.assertTrue(response.data['available'], "Survey is not available.")
+        self.assertIsNotNone(response.data['survey'], "Survey is not in response.")
+        self.assertEqual(response.data['survey']['id'], survey2.id, "Unexpected survey identity.")
+        self.assertEqual(response.data['survey']['bot_conversation'], 'SURVEY_EATOOL',
+                         "Unexpected Bot conversation type.")
+
+
+class SurveyNotificationAgeAPI(APITestCase):
+    """
+    Tests to ensure that the days of inactivity is measured correctly. They are used by the frontend to determine
+    what notification to show the user.
+    """
+
+    def test_notification_inactivity_days(self):
+        """If the user has not completed the survey in 3 days, the first reminder will be triggered on the frontend."""
+        now = timezone.now()
+
+        user = create_user()
+        user.date_joined = now - timedelta(days=7)
+        user.save()
+
+        survey = create_survey(deliver_after=3)
+        publish(survey, create_user('Staff'))
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:surveys-current'), format='json')
+
+        # Age is counted since the survey is available to the user. The user has been registered for 7 days, the survey
+        # was available after 3, so the age must be 4.
+        self.assertEqual(response.data['inactivity_age'], 4,
+                         "Unexpected survey age. Will affect notification thresholds on frontend.")
+
 
 class DraftAPITest(APITestCase):
-
     def test_basic_draft_submit(self):
         """Test that a draft can be submitted."""
         user = create_user('anon')
@@ -215,7 +319,8 @@ class DraftAPITest(APITestCase):
             'first': '1'
         }, format='json')
 
-        self.assertTrue(CoachSurveySubmissionDraft.objects.filter(user=user, survey=survey).exists(), "Draft was not created.")
+        self.assertTrue(CoachSurveySubmissionDraft.objects.filter(user=user, survey=survey).exists(),
+                        "Draft was not created.")
 
         submission = CoachSurveySubmission.objects.get(user=user, page=survey)
         draft = CoachSurveySubmissionDraft.objects.get(user=user, survey=survey, complete=True)
@@ -310,7 +415,6 @@ class DraftAPITest(APITestCase):
 
 
 class SurveyReportingRequirements(APITestCase):
-
     def test_survey_report_aggregation(self):
         """Test that total data by survey aggregates correctly."""
         staff = create_user('Staff')

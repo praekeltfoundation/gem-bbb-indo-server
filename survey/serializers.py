@@ -54,6 +54,7 @@ class CoachSurveySerializer(serializers.ModelSerializer):
 
 class CoachSurveyResponseSerializer(serializers.Serializer):
     available = serializers.BooleanField(read_only=True)
+    inactivity_age = serializers.IntegerField(read_only=True)
     survey = CoachSurveySerializer(read_only=True)
 
     class Meta:

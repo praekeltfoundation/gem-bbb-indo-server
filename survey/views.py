@@ -86,10 +86,10 @@ class CoachSurveyViewSet(ModelViewSet):
 
     @list_route(['get'])
     def current(self, request, *args, **kwargs):
-        survey = CoachSurvey.get_current(request.user)
+        survey, inactivity_age = CoachSurvey.get_current(request.user)
         available = survey is not None
 
         return Response(CoachSurveyResponseSerializer(
-                instance=CoachSurveyResponse(available, survey),
+                instance=CoachSurveyResponse(available, inactivity_age, survey),
                 context=self.get_serializer_context()
             ).data)
