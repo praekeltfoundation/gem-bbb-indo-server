@@ -18,7 +18,8 @@ from wagtail.wagtailcore.models import Site, Page
 from users.models import User, RegUser, Profile
 
 # content function imports
-from .models import award_challenge_win, QuizQuestion, FreeTextQuestion, PictureQuestion, QuestionOption
+from .models import award_challenge_win, QuizQuestion, FreeTextQuestion, PictureQuestion, QuestionOption, \
+    award_first_goal
 
 # content model imports
 from .models import Badge, BadgeSettings, UserBadge
@@ -30,6 +31,7 @@ from .models import Tip, TipFavourite
 # content serializer imports
 from .serializers import FeedbackSerializer
 from .serializers import ParticipantRegisterSerializer
+from django.http import HttpRequest
 
 
 # TODO: Mock datetime.now instead of using timedelta
@@ -1370,6 +1372,33 @@ class TestBadgeAwarding(APITestCase):
 
         badges = [b for b in response.data['new_badges'] if b['name'] == self.goal_first_done.name]
         self.assertEqual(len(badges), 1, "Expected badge was not included")
+
+    def test_first_goal_done_badge_duplicate(self):
+        """Test to see what happens when a user already has a first goal badge, and gets awarded it again"""
+        now = timezone.now()
+        user = create_test_regular_user('anon')
+        profile = Profile.objects.create(user=user)
+
+        goal = Goal.objects.create(
+            name='Goal',
+            user=user,
+            target=5000,
+            start_date=now - timedelta(days=30),
+            end_date=now + timedelta(days=30)
+        )
+
+        # Create a dummy request
+        site = Site.objects.get(is_default_site=True)
+        request = HttpRequest
+        request.site = site
+
+        # Badge should be returned the first time the goal is created
+        first_goal_badge = award_first_goal(request, goal)
+        self.assertIsNotNone(first_goal_badge, "Goal added badge not awarded")
+
+        # Badge is not returned when goal is created again
+        first_goal_badge_again = award_first_goal(request, goal)
+        self.assertIsNone(first_goal_badge_again, "Goal added badge was repeatedly awarded")
 
     # ------------------------ #
     # Award First Goal Halfway #
