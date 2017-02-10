@@ -1063,6 +1063,10 @@ class Goal(models.Model):
         """False if Goal was created from a prototype."""
         return self.prototype is None
 
+    def number_of_goals_per_user(self, temp):
+        """Returns the number of goals a user has"""
+        return Goal.objects.filter(user_id=temp.pk).count()
+
     @property
     def week_count(self):
         monday1 = Goal._monday(self.start_date)
