@@ -1063,9 +1063,9 @@ class Goal(models.Model):
         """False if Goal was created from a prototype."""
         return self.prototype is None
 
-    def number_of_goals_per_user(self, temp):
+    def number_of_goals_per_user(self, querying_user):
         """Returns the number of goals a user has"""
-        return Goal.objects.filter(user_id=temp.pk).count()
+        return Goal.objects.filter(user_id=querying_user.pk).count()
 
     @property
     def week_count(self):
@@ -1353,6 +1353,10 @@ class UserBadge(models.Model):
 
     def __str__(self):
         return '{}-{}'.format(self.user, self.badge)
+
+    def number_of_badges_per_user(self, querying_user):
+        """Returns the number of badges a user has won"""
+        return UserBadge.objects.filter(user_id=querying_user.pk).count()
 
 
 class AchievementStat:
