@@ -8,7 +8,8 @@ from import_export import resources
 from import_export.admin import ExportMixin
 
 from users.models import Profile
-from .models import Challenge, FreeTextQuestion, Participant, PictureQuestion, QuestionOption, QuizQuestion
+from .models import Challenge, FreeTextQuestion, Participant, PictureQuestion, QuestionOption, QuizQuestion, Badge, \
+    BadgeSettings, UserBadge
 from .models import Goal, GoalTransaction
 from .models import Tip, TipFavourite
 
@@ -266,7 +267,7 @@ class GoalResource(resources.ModelResource):
         return goal.progress
 
     def dehydrate_goal_transactions(self, goal):
-        users_goal_transactions = GoalTransaction.objects.filter(goal=goal, )
+        users_goal_transactions = GoalTransaction.objects.filter(goal=goal)
         all_transactions = ""
         for transaction in users_goal_transactions:
             all_transactions += "{" + str(transaction) + "}"
@@ -332,3 +333,61 @@ class GoalAdmin(ExportMixin, admin.ModelAdmin):
     list_display = ('name', 'user', 'target', 'value')
     list_filter = ('user',)
     inlines = (GoalTransactionInline,)
+
+
+class UserBadgeResource(resources.ModelResource):
+    user_id = fields.Field()
+    total_badges_earned = fields.Field()
+    total_badges_earned_by_type = fields.Field()
+    highest_streak_earned = fields.Field()
+    # total_streaks_earned = fields.Field()
+
+    class Meta:
+        model = UserBadge
+        fields = ('user_id',
+                  'total_badges_earned',
+                  'total_badges_earned_by_type',
+                  'highest_streak_earned',
+                  # 'total_streaks_earned',
+                  )
+        export_order = ('user_id',
+                        'total_badges_earned',
+                        'total_badges_earned_by_type',
+                        'highest_streak_earned',
+                        # 'total_streaks_earned',
+                        )
+
+    def dehydrate_user_id(self, badge):
+        return badge.user_id
+
+    def dehydrate_total_badges_earned(self, badge):
+        return badge.number_of_badges_per_user(badge.user)
+
+    def dehydrate_total_badges_earned_by_type(self, badge):
+        all_badges = UserBadge.objects.filter(user=badge.user)
+        badge_types = ""
+        for b in all_badges:
+            # TODO: Find a better way to export this variable length data - Create a JSON object for it?
+            badge_types += "[" + b.badge.name + ", " + str(all_badges.count()) + "]"
+
+        return badge_types
+
+    def dehydrate_highest_streak_earned(self, badge):
+        all_badges = UserBadge.objects.filter(user=badge.user)
+
+        # TODO: Something like this to see the highest streak badge?
+        for b in all_badges:
+            if b.badge.name.endswith('!'):
+                return "Two week streak badge"
+            elif b.badge.name.endswith('4'):
+                return "Four week streak badge"
+            elif b.badge.name.endswith("6"):
+                return "6 week streak badge"
+
+    def dehydrate_total_streaks_earned(self, badge):
+        pass
+
+
+@admin.register(UserBadge)
+class UserBadgeAdmin(ExportMixin, admin.ModelAdmin):
+    resource_class = UserBadgeResource
