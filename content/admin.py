@@ -189,12 +189,13 @@ class GoalResource(resources.ModelResource):
     name_of_goal = fields.Field()
     goal_total_amount = fields.Field()
     amount_saved_to_date = fields.Field()
-    # # TODO 1: amount, data and time of each addition or submission to savings goal
+    goal_transactions = fields.Field()
     weekly_savings_amount = fields.Field()
     total_weeks_until_goal = fields.Field()
     # number_of_times_edited = fields.Field()
-    # # TODO 2: Each edits data (Amount and weeks left until goal)
+    # TODO 1: Each edits data (Amount and weeks left until goal)
     goal_deleted = fields.Field()
+    # date_deleted = fields.Field()
     percentage_achieved = fields.Field()
     goal_achieved = fields.Field()
     # date_achieved = fields.Field()
@@ -211,12 +212,13 @@ class GoalResource(resources.ModelResource):
                   'name_of_goal',
                   'goal_total_amount',
                   'amount_saved_to_date',
-                  # # todo1
+                  'goal_transactions',
                   'weekly_savings_amount',
                   'total_weeks_until_goal',
                   # 'number_of_times_edited',
-                  # # todo2
+                  # todo1
                   'goal_deleted',
+                  # 'date_deleted',
                   'percentage_achieved',
                   'goal_achieved',
                   # 'date_achieved',
@@ -231,12 +233,13 @@ class GoalResource(resources.ModelResource):
                         'name_of_goal',
                         'goal_total_amount',
                         'amount_saved_to_date',
-                        # # see above 1
+                        'goal_transactions',
                         'weekly_savings_amount',
                         'total_weeks_until_goal',
                         # 'number_of_times_edited',
-                        # # see above 2
+                        # todo1
                         'goal_deleted',
+                        # 'date_deleted',
                         'percentage_achieved',
                         'goal_achieved',
                         # 'date_achieved',
@@ -262,7 +265,13 @@ class GoalResource(resources.ModelResource):
     def dehydrate_amount_saved_to_date(self, goal):
         return goal.progress
 
-    # dehydrate for all submissions data
+    def dehydrate_goal_transactions(self, goal):
+        users_goal_transactions = GoalTransaction.objects.filter(goal=goal, )
+        all_transactions = ""
+        for transaction in users_goal_transactions:
+            all_transactions += "{" + str(transaction) + "}"
+
+        return all_transactions
 
     def dehydrate_weekly_savings_amount(self, goal):
         return goal.weekly_target
@@ -277,6 +286,9 @@ class GoalResource(resources.ModelResource):
 
     def dehydrate_goal_deleted(self, goal):
         return goal.is_active
+
+    # def dehydrate_date_deleted(self, goal):
+    #     return goal.deleted_date
 
     def dehydrate_percentage_achieved(self, goal):
         return goal.progress
