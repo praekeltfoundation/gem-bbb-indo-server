@@ -60,6 +60,52 @@ class QuestionInline(admin.StackedInline):
     max_num = 10
     extra = 0
 
+class ParticipantResource(resources.ModelResource):
+    user_id = fields.Field()
+    challenge_name = fields.Field()
+    free_text_question = fields.Field()
+    free_text_answers = fields.Field()
+    photo_upload = fields.Field()
+    date_completed = fields.Field()
+
+    class Meta:
+        model = Participant
+
+        fields = ('user_id',
+                  'challenge_name',
+                 # 'free_text_question',
+                 # 'free_text_answers',
+                 # 'photo_upload',
+                 'date_completed'
+                 )
+        export_order = ('user_id',
+                        'challenge_name',
+                        # 'free_text_question',
+                        # 'free_text_answers',
+                        # 'photo_upload',
+                        'date_completed'
+                        )
+
+    def dehydrate_user_id(self, participant):
+        return participant.user.id
+
+    def dehydrate_challenge_name(self, participant):
+        return participant.challenge.name
+
+    def dehydrate_free_text_question(self, participant):
+        pass
+
+    def dehydrate_free_text_answers(self, participant):
+        pass
+
+    def dehydrate_photo_upload(self, participant):
+        pass
+
+    def dehydrate_date_completed(self, participant):
+        if participant.date_completed is not None:
+            return participant.date_completed
+        else:
+            return ""
 
 class ChallengeAdminForm(forms.ModelForm):
     def clean(self):
