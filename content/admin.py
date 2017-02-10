@@ -107,6 +107,11 @@ class ParticipantResource(resources.ModelResource):
         else:
             return ""
 
+@admin.register(Participant)
+class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
+    resource_class = ParticipantResource
+
+
 class ChallengeAdminForm(forms.ModelForm):
     def clean(self):
         cleaned_data = super(ChallengeAdminForm, self).clean()
