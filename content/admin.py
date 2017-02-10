@@ -3,9 +3,48 @@ from django.contrib import admin
 from django.utils.translation import ugettext as _
 from django import forms
 import wagtail.contrib.modeladmin.options as wagadmin
+from import_export import fields
+from import_export import resources
+from import_export.admin import ExportMixin
+
+from users.models import Profile
 from .models import Challenge, FreeTextQuestion, Participant, PictureQuestion, QuestionOption, QuizQuestion
 from .models import Goal, GoalTransaction
 from .models import Tip, TipFavourite
+
+
+# class UserResource(resources.ModelResource):
+#     email = fields.Field()
+#     username = fields.Field()
+#     full_name = fields.Field()
+#
+#     class Meta:
+#         model = Profile
+#         fields = ('mobile', 'gender', 'age',)
+#         export_order = ('username', 'full_name', 'mobile', 'email', 'gender', 'age',)
+#
+#     def dehydrate_username(self, user_profile):
+#         if user_profile.user.username is not None:
+#             return user_profile.user.username
+#         else:
+#             return ""
+#
+#     def dehydrate_email(self, user_profile):
+#         if user_profile.user.email is not None:
+#             return user_profile.user.email
+#         else:
+#             return ""
+#
+#     def dehydrate_full_name(self, user_profile):
+#         if user_profile.user.last_name is not None:
+#             return user_profile.user.get_full_name()
+#         else:
+#             return ""
+#
+#
+# @admin.register(Profile)
+# class UserAdmin(ExportMixin, admin.ModelAdmin):
+#     resource_class = UserResource
 
 
 class QuestionOptionInline(admin.StackedInline):
@@ -144,8 +183,129 @@ class GoalTransactionInline(admin.StackedInline):
     extra = 0
 
 
+class GoalResource(resources.ModelResource):
+    user_id = fields.Field()
+    number_of_goals = fields.Field()
+    name_of_goal = fields.Field()
+    goal_total_amount = fields.Field()
+    amount_saved_to_date = fields.Field()
+    # # TODO 1: amount, data and time of each addition or submission to savings goal
+    weekly_savings_amount = fields.Field()
+    total_weeks_until_goal = fields.Field()
+    # number_of_times_edited = fields.Field()
+    # # TODO 2: Each edits data (Amount and weeks left until goal)
+    goal_deleted = fields.Field()
+    percentage_achieved = fields.Field()
+    goal_achieved = fields.Field()
+    # date_achieved = fields.Field()
+    goal_created_date = fields.Field()
+    # num_weeks_saved = fields.Field()
+    # num_weeks_saved_on_target = fields.Field()
+    # num_weeks_saved_below_target = fields.Field()
+    # num_weeks_not_saved = fields.Field()
+
+    class Meta:
+        model = Goal
+        fields = ('user_id',
+                  'number_of_goals',
+                  'name_of_goal',
+                  'goal_total_amount',
+                  'amount_saved_to_date',
+                  # # todo1
+                  'weekly_savings_amount',
+                  'total_weeks_until_goal',
+                  # 'number_of_times_edited',
+                  # # todo2
+                  'goal_deleted',
+                  'percentage_achieved',
+                  'goal_achieved',
+                  # 'date_achieved',
+                  'goal_created_date',
+                  # 'num_weeks_saved',
+                  # 'num_weeks_saved_on_target',
+                  # 'num_weeks_saved_below_target',
+                  # 'num_weeks_not_saved',
+                  )
+        export_order = ('user_id',
+                        'number_of_goals',
+                        'name_of_goal',
+                        'goal_total_amount',
+                        'amount_saved_to_date',
+                        # # see above 1
+                        'weekly_savings_amount',
+                        'total_weeks_until_goal',
+                        # 'number_of_times_edited',
+                        # # see above 2
+                        'goal_deleted',
+                        'percentage_achieved',
+                        'goal_achieved',
+                        # 'date_achieved',
+                        'goal_created_date',
+                        # 'num_weeks_saved',
+                        # 'num_weeks_saved_on_target',
+                        # 'num_weeks_saved_below_target',
+                        # 'num_weeks_not_saved',
+                        )
+
+    def dehydrate_user_id(self, goal):
+        return goal.user.id
+
+    def dehydrate_number_of_goals(self, goal):
+        return goal.number_of_goals_per_user(goal.user)
+
+    def dehydrate_name_of_goal(self, goal):
+        return goal.name
+
+    def dehydrate_goal_total_amount(self, goal):
+        return goal.target
+
+    def dehydrate_amount_saved_to_date(self, goal):
+        return goal.progress
+
+    # dehydrate for all submissions data
+
+    def dehydrate_weekly_savings_amount(self, goal):
+        return goal.weekly_target
+
+    def dehydrate_total_weeks_until_goal(self, goal):
+        return goal.weeks_left
+
+    # def dehydrate_number_of_times_edited(self, goal):
+    #     return goal.number_of_times_edited
+
+    # dehydrate for 2 - each edits data
+
+    def dehydrate_goal_deleted(self, goal):
+        return goal.is_active
+
+    def dehydrate_percentage_achieved(self, goal):
+        return goal.progress
+
+    def dehydrate_is_goal_achieved(self, goal):
+        return goal.is_goal_reached
+
+    # def dehydrate_date_achieved(self, goal):
+    #     return goal.date_achieved
+
+    def dehydrate_goal_created_date(self, goal):
+        return goal.start_date
+
+    # def dehydrate_num_weeks_saved(self, goal):
+    #     pass
+    #
+    # def dehydrate_num_weeks_saved_on_target(self, goal):
+    #     pass
+    #
+    # def dehydrate_num_weeks_saved_below_target(self, goal):
+    #     pass
+    #
+    # def dehydrate_num_weels_not_saved(self, goal):
+    #     pass
+
+
 @admin.register(Goal)
-class GoalAdmin(admin.ModelAdmin):
+class GoalAdmin(ExportMixin, admin.ModelAdmin):
+    resource_class = GoalResource
     readonly_fields = ('value', 'week_count', 'week_count_to_now', 'weeks_left', 'days_left', 'weekly_target',
                        'weekly_average',)
     fieldsets = (
