@@ -7,45 +7,9 @@ from import_export import fields
 from import_export import resources
 from import_export.admin import ExportMixin
 
-from users.models import Profile
-from .models import Challenge, FreeTextQuestion, Participant, PictureQuestion, QuestionOption, QuizQuestion, Badge, \
-    BadgeSettings, UserBadge
+from .models import Challenge, FreeTextQuestion, Participant, PictureQuestion, QuestionOption, QuizQuestion, UserBadge
 from .models import Goal, GoalTransaction
 from .models import Tip, TipFavourite
-
-
-# class UserResource(resources.ModelResource):
-#     email = fields.Field()
-#     username = fields.Field()
-#     full_name = fields.Field()
-#
-#     class Meta:
-#         model = Profile
-#         fields = ('mobile', 'gender', 'age',)
-#         export_order = ('username', 'full_name', 'mobile', 'email', 'gender', 'age',)
-#
-#     def dehydrate_username(self, user_profile):
-#         if user_profile.user.username is not None:
-#             return user_profile.user.username
-#         else:
-#             return ""
-#
-#     def dehydrate_email(self, user_profile):
-#         if user_profile.user.email is not None:
-#             return user_profile.user.email
-#         else:
-#             return ""
-#
-#     def dehydrate_full_name(self, user_profile):
-#         if user_profile.user.last_name is not None:
-#             return user_profile.user.get_full_name()
-#         else:
-#             return ""
-#
-#
-# @admin.register(Profile)
-# class UserAdmin(ExportMixin, admin.ModelAdmin):
-#     resource_class = UserResource
 
 
 class QuestionOptionInline(admin.StackedInline):
@@ -60,6 +24,7 @@ class QuestionInline(admin.StackedInline):
     max_num = 10
     extra = 0
 
+
 class ParticipantResource(resources.ModelResource):
     user_id = fields.Field()
     challenge_name = fields.Field()
@@ -67,6 +32,7 @@ class ParticipantResource(resources.ModelResource):
     free_text_answers = fields.Field()
     photo_upload = fields.Field()
     date_completed = fields.Field()
+    total_users_at_least_one_goal = fields.Field()
 
     class Meta:
         model = Participant
@@ -76,14 +42,16 @@ class ParticipantResource(resources.ModelResource):
                  # 'free_text_question',
                  # 'free_text_answers',
                  # 'photo_upload',
-                 'date_completed'
+                  'date_completed',
+                  'total_users_at_least_one_goal'
                  )
         export_order = ('user_id',
                         'challenge_name',
                         # 'free_text_question',
                         # 'free_text_answers',
                         # 'photo_upload',
-                        'date_completed'
+                        'date_completed',
+                        'total_users_at_least_one_goal'
                         )
 
     def dehydrate_user_id(self, participant):
@@ -106,6 +74,13 @@ class ParticipantResource(resources.ModelResource):
             return participant.date_completed
         else:
             return ""
+
+    def dehydrate_total_users_at_least_one_goal(self, participant):
+        """Not part of participant data exports - only here for accessibility"""
+        # User.objects.annotate(badge_count=Count('goal__user_id=id', distinct=True))
+        # dataset = User.objects.raw('SELECT COUNT(DISTINCT content_goal.user_id) FROM content_goal WHERE goal_id LIKE *')
+        pass
+
 
 @admin.register(Participant)
 class ParticipantAdmin(ExportMixin, admin.ModelAdmin):
@@ -390,7 +365,7 @@ class UserBadgeResource(resources.ModelResource):
     user_id = fields.Field()
     total_badges_earned = fields.Field()
     total_badges_earned_by_type = fields.Field()
-    highest_streak_earned = fields.Field()
+    # highest_streak_earned = fields.Field()
     # total_streaks_earned = fields.Field()
 
     class Meta:
@@ -398,13 +373,13 @@ class UserBadgeResource(resources.ModelResource):
         fields = ('user_id',
                   'total_badges_earned',
                   'total_badges_earned_by_type',
-                  'highest_streak_earned',
+                  # 'highest_streak_earned',
                   # 'total_streaks_earned',
                   )
         export_order = ('user_id',
                         'total_badges_earned',
                         'total_badges_earned_by_type',
-                        'highest_streak_earned',
+                        # 'highest_streak_earned',
                         # 'total_streaks_earned',
                         )
 
@@ -423,17 +398,17 @@ class UserBadgeResource(resources.ModelResource):
 
         return badge_types
 
-    def dehydrate_highest_streak_earned(self, badge):
-        all_badges = UserBadge.objects.filter(user=badge.user)
-
-        # TODO: Something like this to see the highest streak badge?
-        for b in all_badges:
-            if b.badge.name.endswith('!'):
-                return "Two week streak badge"
-            elif b.badge.name.endswith('4'):
-                return "Four week streak badge"
-            elif b.badge.name.endswith("6"):
-                return "6 week streak badge"
+    # def dehydrate_highest_streak_earned(self, badge):
+    #     all_badges = UserBadge.objects.filter(user=badge.user)
+    #
+    #     # TODO: Something like this to see the highest streak badge?
+    #     for b in all_badges:
+    #         if b.badge.name.endswith('!'):
+    #             return "Two week streak badge"
+    #         elif b.badge.name.endswith('4'):
+    #             return "Four week streak badge"
+    #         elif b.badge.name.endswith("6"):
+    #             return "6 week streak badge"
 
     def dehydrate_total_streaks_earned(self, badge):
         pass
@@ -442,3 +417,29 @@ class UserBadgeResource(resources.ModelResource):
 @admin.register(UserBadge)
 class UserBadgeAdmin(ExportMixin, admin.ModelAdmin):
     resource_class = UserBadgeResource
+
+
+# class AggregateDataResource(resources.ModelResource):
+#     total_users_at_least_one_goal = fields.Field()
+#     total_users_at_least_one_goal_per_category = fields.Field()
+#     total_goals_per_category = fields.Field()
+#     total_users_achieved_one_goal = fields.Field()
+#     total_users_achieved_one_goal_per_category = fields.Field()
+#     total_achieved_goals_per_category = fields.Field()
+#     average_total_goal_amount_per_category = fields.Field()
+#     total_users_achieved_50p_of_goal_per_category = fields.Field()
+#     total_users_achieved_100p_of_goal_per_category = fields.Field()
+#
+#     class Meta:
+#         model = None
+#
+#         fields = ('total_users_at_least_one_goal'
+#                   'total_users_at_least_one_goal_per_category'
+#                   'total_goals_per_category'
+#                   'total_users_achieved_one_goal'
+#                   'total_users_achieved_one_goal_per_category'
+#                   'total_achieved_goals_per_category'
+#                   'average_total_goal_amount_per_category'
+#                   'total_users_achieved_50p_of_goal_per_category'
+#                   'total_users_achieved_100p_of_goal_per_category')
+#         export_order = ()
