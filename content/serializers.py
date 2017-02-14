@@ -6,7 +6,7 @@ from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
-from .models import Challenge, FreeTextQuestion, QuestionOption, QuizQuestion, PictureQuestion
+from .models import Challenge, FreeTextQuestion, QuestionOption, QuizQuestion, PictureQuestion, CustomNotification
 from .models import Entry, Participant, ParticipantAnswer, ParticipantFreeText, ParticipantPicture
 from .models import Feedback
 from .models import Goal, GoalPrototype, GoalTransaction
@@ -666,3 +666,27 @@ class FeedbackSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return Feedback.objects.create(**validated_data)
+
+
+########################
+# Custom Notifications #
+########################
+
+
+class CustomNotificationSerializer(serializers.ModelSerializer):
+    message = serializers.ReadOnlyField()
+    publish_date = serializers.DateField()
+    expiration_date = serializers.DateField()
+    persist = serializers.BooleanField()
+    icon = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CustomNotification
+        fields = ('message', 'publish_date', 'expiration_date', 'persist', 'icon')
+
+    def get_icon(self, obj):
+        request = self.context['request']
+        if obj.icon:
+            return request.build_absolute_uri(obj.icon.file.url)
+        else:
+            return None

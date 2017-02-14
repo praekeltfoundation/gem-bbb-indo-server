@@ -15,7 +15,7 @@ from wagtail.wagtailcore.models import Site
 
 from .exceptions import ImageNotFound
 
-from .models import award_entry_badge
+from .models import award_entry_badge, CustomNotification
 from .models import AchievementStat
 from .models import Badge, Challenge, Entry
 from .models import BadgeSettings, award_challenge_win
@@ -28,7 +28,7 @@ from .models import award_first_goal, award_goal_done, award_goal_halfway, award
     award_transaction_first, award_week_streak
 from .models import award_weekly_target_badge, WEEKLY_TARGET_2, WEEKLY_TARGET_4, WEEKLY_TARGET_6
 from .permissions import IsAdminOrOwner, IsUserSelf
-from .serializers import AchievementStatSerializer, UserBadgeSerializer
+from .serializers import AchievementStatSerializer, UserBadgeSerializer, CustomNotificationSerializer
 from .serializers import ChallengeSerializer, EntrySerializer
 from .serializers import FeedbackSerializer
 from .serializers import GoalPrototypeSerializer, GoalSerializer, GoalTransactionSerializer
@@ -630,3 +630,22 @@ class FeedbackViewSet(viewsets.ModelViewSet):
         if serial.is_valid(raise_exception=True):
             serial.save()
             return Response(serial.data)
+
+
+########################
+# Custom Notifications #
+########################
+
+
+class CustomNotificationViewSet(viewsets.ModelViewSet):
+    serializer_class = CustomNotificationSerializer
+
+    @list_route(methods=['get'])
+    def current(self, request, *args, **kwargs):
+        notification = CustomNotification.get_current()
+
+        if notification is None:
+            raise NotFound("No notification is available.")
+
+        serializer = self.get_serializer(notification)
+        return Response(serializer.data)

@@ -28,14 +28,12 @@ router.register(r'tips', content_views.TipViewSet, base_name='tips')
 router.register(r'users', user_views.RegUserViewSet, base_name='users')
 router.register(r'surveys', survey_views.CoachSurveyViewSet, base_name='surveys')
 router.register(r'goal-prototypes', content_views.GoalPrototypeView, base_name='goal-prototypes')
+router.register(r'notifications', content_views.CustomNotificationViewSet, base_name='notifications')
 
 api_urls = [
     # authentication endpoints
     url(r'token/', user_views.ObtainUserAuthTokenView.as_view(), name='token'),
     url(r'^security_question/', user_views.SecurityQuestionView.as_view(), name='security_question'),
-
-    #challenge winner endpoint
-    #url(r'challenges/(\d+)/winner', content_views.ChallengeViewSet.winner, name='challenges-winner'),
 
     # image endpoints
     url(r'challenge-image/(?P<challenge_pk>\d+)/$', content_views.ChallengeImageView.as_view(), name='challenge-image'),
