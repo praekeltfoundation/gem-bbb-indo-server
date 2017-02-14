@@ -595,8 +595,9 @@ class BadgesView(GenericAPIView):
         for badge in queryset:
             urls.append(request.build_absolute_uri(badge.image.file.url))
 
-        json_object = "{urls: " + json.dumps(urls) + "}"
-        return Response(json_object)
+        return Response({
+            'urls' :  urls
+        })
 
 # ============ #
 # Achievements #
