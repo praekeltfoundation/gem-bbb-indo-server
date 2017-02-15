@@ -1857,6 +1857,15 @@ class TestBadgeUrls(APITestCase):
             response = self.client.get(reverse('api:badge-urls', kwargs={}), format='json')
             self.assertEquals(response.data['urls'].__len__(), 0, "No urls should have been returned")
 
+    def test_when_badge_image_is_none(self):
+            badge = Badge.objects.create(
+                name="Badge 1",
+                slug="badgie 1",
+                intro="into 1",
+            )
+            response = self.client.get(reverse('api:badge-urls', kwargs={}), format='json')
+            self.assertEquals(response.data['urls'].__len__(), 0, "No urls should have been returned")
+
 class TestFeedback(APITestCase):
     def test_create_feedback(self):
         user = create_test_regular_user()

@@ -593,7 +593,8 @@ class BadgesView(GenericAPIView):
         queryset = Badge.objects.all()
         urls = []
         for badge in queryset:
-            urls.append(request.build_absolute_uri(badge.image.file.url))
+            if badge.image is not None:
+                urls.append(request.build_absolute_uri(badge.image.file.url))
 
         return Response({
             'urls' :  urls
