@@ -2,6 +2,11 @@
 Changelog
 =========
 
+0.1.3
+-----
+
+- Implemented endpoint for use in pre-fetching badge images
+
 0.1.2
 -----
 
