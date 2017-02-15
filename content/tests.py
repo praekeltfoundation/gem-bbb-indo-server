@@ -1838,9 +1838,8 @@ class TestNotification(APITestCase):
         self.assertIsNot(winning_response.data['challenge'], "Challenge still available")
 
 class TestBadgeUrls(APITestCase):
-    def testUrlsReturned(self):
+    def test_urls_returned(self):
         with mock.patch('content.models.Badge.image', new_callable=PropertyMock) as mock_image:
-            user = create_test_regular_user();
 
             file1 = PropertyMock(url="url1")
             mock_image.return_value = PropertyMock(file=file1)
@@ -1851,13 +1850,11 @@ class TestBadgeUrls(APITestCase):
                 intro="into 1",
             )
             response = self.client.get(reverse('api:badge-urls', kwargs={}), format='json')
-            var = response.status_code
             self.assertEquals(response.data['urls'].__len__(), 1, "One url should have been returned")
             self.assertEquals(response.data['urls'][0], 'http://testserver/api/badge-urls/url1', "Incorrect url name")
 
-    def testNoUrlsReturned(self):
+    def test_no_urls_returned(self):
             response = self.client.get(reverse('api:badge-urls', kwargs={}), format='json')
-            var = response.status_code
             self.assertEquals(response.data['urls'].__len__(), 0, "No urls should have been returned")
 
 class TestFeedback(APITestCase):
