@@ -47,6 +47,9 @@ api_urls = [
     # misc endpoints
     url(r'achievements/(?P<user_pk>\d+)/$', content_views.AchievementsView.as_view(), name='achievements'),
 
+    #all badge url
+    url(r'badge-urls/', content_views.BadgesView.as_view(), name='badge-urls'),
+
     # include viewset routes
     url(r'', include(router.urls)),
 ]

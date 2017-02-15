@@ -2,6 +2,10 @@ import json
 from datetime import datetime, date, timedelta
 
 # django imports
+from unittest import mock
+from unittest.mock import Mock
+from unittest.mock import PropertyMock
+
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -32,6 +36,8 @@ from .models import Tip, TipFavourite
 from .serializers import FeedbackSerializer
 from .serializers import ParticipantRegisterSerializer
 from django.http import HttpRequest
+
+from wagtail.wagtailimages import models as wagtail_image_models
 
 
 # TODO: Mock datetime.now instead of using timedelta
@@ -1831,6 +1837,34 @@ class TestNotification(APITestCase):
         self.assertIsNone(winning_response.data['badge'], "Badge still available")
         self.assertIsNot(winning_response.data['challenge'], "Challenge still available")
 
+class TestBadgeUrls(APITestCase):
+    def test_urls_returned(self):
+        with mock.patch('content.models.Badge.image', new_callable=PropertyMock) as mock_image:
+
+            file1 = PropertyMock(url="url1")
+            mock_image.return_value = PropertyMock(file=file1)
+
+            badge = Badge.objects.create(
+                name="Badge 1",
+                slug="badgie 1",
+                intro="into 1",
+            )
+            response = self.client.get(reverse('api:badge-urls', kwargs={}), format='json')
+            self.assertEquals(response.data['urls'].__len__(), 1, "One url should have been returned")
+            self.assertEquals(response.data['urls'][0], 'http://testserver/api/badge-urls/url1', "Incorrect url name")
+
+    def test_no_urls_returned(self):
+            response = self.client.get(reverse('api:badge-urls', kwargs={}), format='json')
+            self.assertEquals(response.data['urls'].__len__(), 0, "No urls should have been returned")
+
+    def test_when_badge_image_is_none(self):
+            badge = Badge.objects.create(
+                name="Badge 1",
+                slug="badgie 1",
+                intro="into 1",
+            )
+            response = self.client.get(reverse('api:badge-urls', kwargs={}), format='json')
+            self.assertEquals(response.data['urls'].__len__(), 0, "No urls should have been returned")
 
 class TestFeedback(APITestCase):
     def test_create_feedback(self):
