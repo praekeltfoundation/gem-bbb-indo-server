@@ -545,6 +545,8 @@ class GoalSerializer(serializers.ModelSerializer):
     end_date = serializers.DateField()
     value = serializers.ReadOnlyField()
     target = serializers.DecimalField(18, 2, coerce_to_string=False)
+
+    # TODO: Calculated week and target values will be done on the frontend. They can be removed in the future when frontend installs no longer rely on them
     week_count = serializers.ReadOnlyField()
     week_count_to_now = serializers.ReadOnlyField()
     weekly_average = serializers.ReadOnlyField()
