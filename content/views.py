@@ -528,6 +528,31 @@ class GoalViewSet(viewsets.ModelViewSet):
             serializer = GoalTransactionSerializer(goal.transactions.all(), many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @list_route(methods=['get'])
+    def deadline(self, request, pk=None, *args, **kwargs):
+        goal = Goal.objects.filter(state=Goal.ACTIVE)
+        if not goal:
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        serializer = GoalSerializer(data=request.data, many=True)
+        if serializer.is_valid(raise_exception=True):
+            missed_goal = self.get_deadline_missed_goal()
+            data = {
+                'available': missed_goal is not None,
+                'overdue_goal': GoalSerializer(missed_goal, context=self.get_serializer_context()).data
+            }
+            return Response(data, status=status.HTTP_200_OK)
+
+    @staticmethod
+    def get_deadline_missed_goal():
+        all_goals = Goal.objects.filter(state=Goal.ACTIVE)
+
+        for goal in all_goals:
+            if goal.is_goal_deadline_missed():
+                return goal
+
+        # Return all overdue goals
+        # return [g for g in all_goals if g.is_goal_deadline_missed() is True]
+
     @staticmethod
     def award_badges(request, goal):
         new_badges = [

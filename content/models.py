@@ -1094,7 +1094,12 @@ class Goal(models.Model):
 
     @property
     def weekly_target(self):
-        return ceil(self.target / self.week_count)
+        wk = self.week_count
+
+        if wk == 0:
+            return self.target
+        else:
+            return ceil(self.target / self.week_count)
 
     @staticmethod
     def _monday(d):
@@ -1106,6 +1111,12 @@ class Goal(models.Model):
 
     def is_target_modified(self):
         return self.target_modified is not None
+
+    def is_goal_deadline_missed(self):
+        if self.is_active and self.end_date < timezone.now().date() and self.is_goal_reached is False:
+            return True
+        else:
+            return False
 
     @staticmethod
     def _date_window(d):
