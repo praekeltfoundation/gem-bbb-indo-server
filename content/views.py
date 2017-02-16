@@ -1,4 +1,6 @@
 from collections import OrderedDict
+from datetime import timedelta
+from django.utils import timezone
 
 from django.contrib.auth.models import User
 from django.shortcuts import get_object_or_404, render
@@ -115,7 +117,6 @@ class ChallengeViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def winning(self, request, *args, **kwargs):
         """Returns winning status, and badge and challenge if available"""
-        # TODO: Filter by notification flag
         participant = Participant.objects.filter(user=request.user, is_winner=True, has_been_notified=False) \
             .order_by('date_completed') \
             .first()
@@ -152,6 +153,25 @@ class ChallengeViewSet(viewsets.ModelViewSet):
             p.save()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @list_route(methods=['get'])
+    def participation(self, request, *args, **kwargs):
+        """Returns true if a user has started a challenge within 2 days of it being created, otherwise false"""
+        challenge = Challenge.objects.get(state=Challenge.CST_PUBLISHED,
+                                          activation_date__lt=(timezone.now() - timedelta(days=2)))
+
+        # If there is no challenge active at the time
+        if challenge is None:
+            return Response({"available": False, "challenge_name": None})
+
+        participant = Participant.objects.filter(user_id=request.user.id,
+                                                 # date_created__gt=(timezone.now() - timedelta(days=2)),
+                                                 challenge=challenge)
+
+        # If participant is None, there is no challenge available reminder notification
+        if not participant:
+            return Response({"available": False, "challenge_name": None})
+        return Response({"available": True, "challenge_name": challenge.name})
 
 
 # ================= #
