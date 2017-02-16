@@ -76,6 +76,9 @@ class ChallengeViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     http_method_names = ('options', 'head', 'get', 'post',)
 
+    response_false = Response({"available:": False})
+    response_true = Response({"available:": True})
+
     def list(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_queryset(), many=True)
         return Response(serializer.data)
@@ -162,7 +165,7 @@ class ChallengeViewSet(viewsets.ModelViewSet):
 
         # If there is no challenge active at the time
         if challenge is None:
-            return Response({"available": False, "challenge_name": None})
+            return self.response_false
 
         participant = Participant.objects.filter(user_id=request.user.id,
                                                  # date_created__gt=(timezone.now() - timedelta(days=2)),
@@ -170,8 +173,40 @@ class ChallengeViewSet(viewsets.ModelViewSet):
 
         # If participant is None, there is no challenge available reminder notification
         if not participant:
-            return Response({"available": False, "challenge_name": None})
-        return Response({"available": True, "challenge_name": challenge.name})
+            return self.response_false
+        return self.response_true
+
+    @list_route(methods=['get'])
+    def challenge_incomplete(self, request, *args, **kwargs):
+        """Returns true if the user has started a challenge but not submitted their entry"""
+
+        # TODO: Unclear how soon before the deadline this must trigger
+
+        try:
+            challenge = Challenge.objects.get(state=Challenge.CST_PUBLISHED)
+        except:
+            return self.response_false
+
+        # No active challenge
+        if not challenge:
+            return self.response_false
+
+        participant = Participant.objects.filter(user_id=request.user.id,
+                                                 challenge=challenge)
+
+        # User has not participated in challenge
+        if not participant:
+            return self.response_false
+
+        try:
+            entry = Entry.objects.get(participant=participant)
+        except:
+            return self.response_false
+
+        # User has not entered the challenge
+        if not entry:
+            return self.response_false
+        return self.response_true
 
 
 # ================= #
