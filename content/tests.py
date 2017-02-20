@@ -3,7 +3,7 @@ import json
 from datetime import datetime, date, timedelta
 import unittest
 from unittest import mock
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 from unittest.mock import PropertyMock
 
 # django imports
@@ -598,7 +598,20 @@ class TestGoalModel(TestCase):
             start_date=timezone.make_aware(datetime(2017, 2, 1)),
             end_date=timezone.make_aware(datetime(2017, 2, 16))
         )
-        self.assertEqual(3, goal.week_count, "Unexpected number of weeks.")
+        self.assertEqual(3, goal.weeks, "Unexpected number of weeks.")
+
+    def test_weeks_to_now(self):
+        dt = timezone.make_aware(datetime(2017, 2, 8))
+        with patch.object(timezone, 'now', lambda: dt):
+            user = create_test_regular_user()
+            goal = Goal.objects.create(
+                name='Goal 1',
+                user=user,
+                target=25000,
+                start_date=timezone.make_aware(datetime(2017, 2, 1)),
+                end_date=timezone.make_aware(datetime(2017, 2, 16))
+            )
+            self.assertEqual(2, goal.weeks_left, "Unexpected weeks left.")
 
     def test_week_aggregates(self):
         user = create_test_regular_user()
@@ -623,17 +636,17 @@ class TestGoalModel(TestCase):
         goal.transactions.create(date=date(2016, 11, 17), value=100)
 
         # Week 4
-        goal.transactions.create(date=date(2016, 11, 21), value=100)
         goal.transactions.create(date=date(2016, 11, 22), value=100)
         goal.transactions.create(date=date(2016, 11, 23), value=100)
         goal.transactions.create(date=date(2016, 11, 24), value=100)
+        goal.transactions.create(date=date(2016, 11, 25), value=100)
 
         weekly_aggregates = goal.get_weekly_aggregates()
 
-        self.assertEqual(weekly_aggregates[0].value, 100)
-        self.assertEqual(weekly_aggregates[1].value, 200)
-        self.assertEqual(weekly_aggregates[2].value, 300)
-        self.assertEqual(weekly_aggregates[3].value, 400)
+        self.assertEqual(weekly_aggregates[0], 100)
+        self.assertEqual(weekly_aggregates[1], 200)
+        self.assertEqual(weekly_aggregates[2], 300)
+        self.assertEqual(weekly_aggregates[3], 400)
 
 
 class TestGoalAPI(APITestCase):

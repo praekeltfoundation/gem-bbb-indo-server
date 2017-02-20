@@ -1101,34 +1101,33 @@ class Goal(models.Model):
         return self.prototype is None
 
     @property
-    def week_count(self):
+    def weeks(self):
         """The number of weeks from the start date to the end date."""
         return WeekCalc.week_diff(self.start_date, self.end_date, WeekCalc.Rounding.UP)
 
     @property
-    def week_count_to_now(self):
+    def weeks_to_now(self):
         """Provides the number of weeks from the start date to the current date."""
-        monday1 = Goal._monday(self.start_date)
-        monday2 = Goal._monday(timezone.now().date())
-        return int(((monday2 - monday1).days / 7) + 1)
+        return WeekCalc.week_diff(self.start_date, timezone.now(), WeekCalc.Rounding.UP)
 
     @property
     def weeks_left(self):
-        monday1 = Goal._monday(timezone.now().date())
-        monday2 = Goal._monday(self.end_date)
-        return max(int((monday2 - monday1).days / 7), 0)
+        """The number of weeks that a Goal has left."""
+        return WeekCalc.week_diff(timezone.now(), self.end_date, WeekCalc.Rounding.UP)
 
     @property
     def days_left(self):
-        return max((self.end_date - timezone.now().date()).days, 0)
+        return max(WeekCalc.day_diff(self.end_date, timezone.now()), 0)
 
     @property
     def weekly_average(self):
-        return ceil(self.value / self.week_count_to_now)
+        """The average savings for the past weeks."""
+        return ceil(self.value / self.weeks_to_now)
 
     @property
     def weekly_target(self):
-        return ceil(self.target / self.week_count)
+        """The weekly target for the entire Goal."""
+        return ceil(self.target / self.weeks)
 
     @staticmethod
     def _monday(d):
@@ -1140,22 +1139,25 @@ class Goal(models.Model):
         return monday, monday + timedelta(days=6)
 
     def get_weekly_aggregates(self):
-        monday, sunday = self._date_window(self.start_date)
-        agg = OrderedDict()
-        week_id = 1
-        agg[monday] = self.WeekAggregate(week_id, monday, sunday)
+        date = self.start_date
 
-        while sunday <= self.end_date:
-            week_id += 1
-            monday, sunday = self._date_window(sunday + timedelta(days=1))
-            agg[monday] = self.WeekAggregate(week_id, monday, sunday)
+        # Ensure elements so weeks with no transactions will have 0
+        agg = [0 for _ in range(self.weeks)]
 
-        for t in self.transactions.all():
-            monday = Goal._monday(t.date.date())
-            if monday in agg:
-                agg[monday].value += t.value
+        week_id = 0
+        for trans in self.transactions.all().order_by('date'):
+            if WeekCalc.day_diff(date, trans.date.date()) >= 7:
+                # Next weekly window
+                week_id += 1
+                date = (date + timedelta(days=7))
 
-        return [v for k, v in agg.items()]
+            # Ignore savings after the deadline
+            if week_id >= len(agg):
+                break
+
+            agg[week_id] += trans.value
+
+        return agg
 
     @classmethod
     def get_current_streak(cls, user, now=None, weeks_back=6):
