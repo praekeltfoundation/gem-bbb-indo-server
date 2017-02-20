@@ -941,9 +941,9 @@ def get_goal_image_filename(instance, filename):
     return '/'.join(('goal', str(instance.user.pk), filename))
 
 
-# ===== #
-# Goals #
-# ===== #
+# ================= #
+# Week Calculations #
+# ================= #
 
 
 class WeekCalc:
@@ -957,9 +957,18 @@ class WeekCalc:
         else:
             return int(floor((to_date - from_date).days / 7.0))
 
+    @classmethod
+    def day_diff(cls, from_date, to_date):
+        return (to_date - from_date).days
+
     class Rounding:
         UP = 0
         DOWN = 1
+
+
+# ===== #
+# Goals #
+# ===== #
 
 
 @python_2_unicode_compatible

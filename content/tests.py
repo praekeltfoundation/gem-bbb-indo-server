@@ -553,17 +553,21 @@ class TestWeekCalc(unittest.TestCase):
         end = datetime(2017, 2, 17)
 
         self.assertEqual(3, WeekCalc.week_diff(start, end, WeekCalc.Rounding.UP),
-                         "Week calculation unexpected result")
+                         "Week calculation unexpected result.")
 
     def test_week_diff_round_down(self):
         start = datetime(2017, 2, 1)
         end = datetime(2017, 2, 17)
 
         self.assertEqual(2, WeekCalc.week_diff(start, end, WeekCalc.Rounding.DOWN),
-                         "Week calculation unexpected result")
+                         "Week calculation unexpected result.")
 
     def test_day_diff_basic(self):
-        self.skipTest('TODO')
+        start = datetime(2017, 2, 1)
+        end = datetime(2017, 2, 17)
+
+        self.assertEqual(16, WeekCalc.day_diff(start, end),
+                         "Day calculation unexpected result.")
 
     def test_remainder_basic(self):
         self.skipTest('TODO')
