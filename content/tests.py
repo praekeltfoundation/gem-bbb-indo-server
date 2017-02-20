@@ -589,7 +589,7 @@ class TestWeekCalc(unittest.TestCase):
 
 class TestGoalModel(TestCase):
 
-    def test_target_property(self):
+    def test_value_property(self):
         user = create_test_regular_user()
         goal = create_goal('Goal 1', user, 1000)
         goal.transactions.create(date=timezone.now(), value=100)
