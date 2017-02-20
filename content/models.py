@@ -946,6 +946,22 @@ def get_goal_image_filename(instance, filename):
 # ===== #
 
 
+class WeekCalc:
+
+    @classmethod
+    def week_diff(cls, from_date, to_date, rounding):
+        assert(rounding == cls.Rounding.UP or rounding == cls.Rounding.DOWN)
+
+        if rounding == cls.Rounding.UP:
+            return int(ceil((to_date - from_date).days / 7.0))
+        else:
+            return int(floor((to_date - from_date).days / 7.0))
+
+    class Rounding:
+        UP = 0
+        DOWN = 1
+
+
 @python_2_unicode_compatible
 class GoalPrototype(models.Model):
     INACTIVE = 0

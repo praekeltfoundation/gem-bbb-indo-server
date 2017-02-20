@@ -1,11 +1,12 @@
+
 import json
 from datetime import datetime, date, timedelta
-
-# django imports
+import unittest
 from unittest import mock
 from unittest.mock import Mock
 from unittest.mock import PropertyMock
 
+# django imports
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -29,6 +30,7 @@ from .models import award_challenge_win, QuizQuestion, FreeTextQuestion, Picture
 from .models import Badge, BadgeSettings, UserBadge
 from .models import Challenge, Participant
 from .models import Feedback
+from .models import WeekCalc
 from .models import GoalPrototype, Goal, GoalTransaction
 from .models import Tip, TipFavourite
 
@@ -537,6 +539,36 @@ class TestFavouriteAPI(APITestCase):
 # ===== #
 
 
+class TestWeekCalc(unittest.TestCase):
+
+    def test_week_diff_basic(self):
+        start = datetime(2017, 2, 1)
+        end = datetime(2017, 2, 15)
+
+        self.assertEqual(2, WeekCalc.week_diff(start, end, WeekCalc.Rounding.DOWN),
+                         "Week calculation unexpected result")
+
+    def test_week_diff_up(self):
+        start = datetime(2017, 2, 1)
+        end = datetime(2017, 2, 17)
+
+        self.assertEqual(3, WeekCalc.week_diff(start, end, WeekCalc.Rounding.UP),
+                         "Week calculation unexpected result")
+
+    def test_week_diff_round_down(self):
+        start = datetime(2017, 2, 1)
+        end = datetime(2017, 2, 17)
+
+        self.assertEqual(2, WeekCalc.week_diff(start, end, WeekCalc.Rounding.DOWN),
+                         "Week calculation unexpected result")
+
+    def test_day_diff_basic(self):
+        self.skipTest('TODO')
+
+    def test_remainder_basic(self):
+        self.skipTest('TODO')
+
+
 class TestGoalModel(TestCase):
 
     def test_target_property(self):
@@ -918,6 +950,7 @@ class TestGoalPrototypesAPI(APITestCase):
         self.assertEquals(proto1.num_users, 2, "num_users field on Goal Prototype not calculated correctly")
         self.assertEquals(proto2.num_users, 1, "num_users field on Goal Prototype not calculated correctly")
 
+
 class TestGoalPrototypesModel(TestCase):
 
     def test_goal_proto_num_users_field_caculation(self):
@@ -1055,6 +1088,7 @@ class TestWeeklyStreaks(TestCase):
         streak = Goal.get_current_streak(user, now)
 
         self.assertEqual(streak, 0, "Unexpected weekly streak.")
+
 
 class TestWeeklyTargetStreaks(TestCase):
 
@@ -1243,6 +1277,7 @@ class TestWeeklyTargetStreaks(TestCase):
         streak = Goal.get_current_weekly_target_badge(user, goal, now)
 
         self.assertEqual(streak, 0, "Unexpected weekly streak, should be 0")
+
 
 class TestAchievementAPI(APITestCase):
 
