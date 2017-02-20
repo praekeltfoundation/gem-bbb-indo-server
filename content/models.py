@@ -1102,11 +1102,8 @@ class Goal(models.Model):
 
     @property
     def week_count(self):
-        monday1 = Goal._monday(self.start_date)
-        monday2 = Goal._monday(self.end_date)
-
-        # Weeks are inclusive, so 1 is added
-        return int(((monday2 - monday1).days / 7) + 1)
+        """The number of weeks from the start date to the end date."""
+        return WeekCalc.week_diff(self.start_date, self.end_date, WeekCalc.Rounding.UP)
 
     @property
     def week_count_to_now(self):

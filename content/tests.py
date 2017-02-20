@@ -595,11 +595,10 @@ class TestGoalModel(TestCase):
             name='Goal 1',
             user=user,
             target=25000,
-            start_date=timezone.now() - timedelta(days=14),
-            end_date=timezone.now()
+            start_date=timezone.make_aware(datetime(2017, 2, 1)),
+            end_date=timezone.make_aware(datetime(2017, 2, 16))
         )
-        weeks = goal.week_count
-        self.assertEqual(3, weeks, "Unexpected number of weeks.")
+        self.assertEqual(3, goal.week_count, "Unexpected number of weeks.")
 
     def test_week_aggregates(self):
         user = create_test_regular_user()
