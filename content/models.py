@@ -991,7 +991,6 @@ class GoalPrototype(models.Model):
     ), default=INACTIVE)
     default_price = models.DecimalField(max_digits=18, decimal_places=2, default=0.0, editable=True)
 
-
     @property
     def is_active(self):
         return self.state == GoalPrototype.ACTIVE
@@ -1079,6 +1078,14 @@ class Goal(models.Model):
         return self.value >= self.target
 
     @property
+    def is_end_date_modified(self):
+        return self.end_date_modified is not None
+
+    @property
+    def is_target_modified(self):
+        return self.target_modified is not None
+
+    @property
     def progress(self):
         """Returns the progress of the Goal's savings as percentage."""
         return int((self.value / self.target) * 100)
@@ -1129,13 +1136,6 @@ class Goal(models.Model):
     @staticmethod
     def _monday(d):
         return d - timedelta(days=d.weekday())
-
-    # Should these two functions have any decorators on them?
-    def is_end_date_modified(self):
-        return self.end_date_modified is not None
-
-    def is_target_modified(self):
-        return self.target_modified is not None
 
     @staticmethod
     def _date_window(d):

@@ -551,6 +551,7 @@ class GoalSerializer(serializers.ModelSerializer):
     week_count_to_now = serializers.ReadOnlyField()
     weekly_average = serializers.ReadOnlyField()
     weekly_target = serializers.ReadOnlyField()
+
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
     image_url = serializers.SerializerMethodField()
     new_badges = UserBadgeSerializer(many=True, required=False, read_only=True)
