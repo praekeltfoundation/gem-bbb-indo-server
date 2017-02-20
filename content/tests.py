@@ -562,6 +562,16 @@ class TestWeekCalc(unittest.TestCase):
         self.assertEqual(2, WeekCalc.week_diff(start, end, WeekCalc.Rounding.DOWN),
                          "Week calculation unexpected result.")
 
+    def test_week_diff_seven(self):
+        """Ensure that when two days are separated by seven days, a full week will be counted. Historic issue with
+        frontend counting days inclusively.
+        """
+        start = datetime(2017, 2, 1)
+        end = datetime(2017, 2, 8)
+
+        self.assertEqual(1, WeekCalc.week_diff(start, end, WeekCalc.Rounding.UP),
+                         "Expected one full week.")
+
     def test_day_diff_basic(self):
         start = datetime(2017, 2, 1)
         end = datetime(2017, 2, 17)
@@ -611,7 +621,7 @@ class TestGoalModel(TestCase):
                 start_date=timezone.make_aware(datetime(2017, 2, 1)).date(),
                 end_date=timezone.make_aware(datetime(2017, 2, 16)).date()
             )
-            self.assertEqual(2, goal.weeks_left, "Unexpected weeks left.")
+            self.assertEqual(1, goal.weeks_to_now, "Unexpected weeks left.")
 
     def test_week_aggregates(self):
         user = create_test_regular_user()
