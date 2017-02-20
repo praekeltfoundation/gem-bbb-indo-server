@@ -570,7 +570,11 @@ class TestWeekCalc(unittest.TestCase):
                          "Day calculation unexpected result.")
 
     def test_remainder_basic(self):
-        self.skipTest('TODO')
+        start = datetime(2017, 2, 1)
+        end = datetime(2017, 2, 18)
+
+        self.assertEqual(3, WeekCalc.remainder(start, end),
+                         "Remainder calculation unexpected result.")
 
 
 class TestGoalModel(TestCase):

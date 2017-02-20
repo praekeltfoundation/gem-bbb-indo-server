@@ -961,6 +961,11 @@ class WeekCalc:
     def day_diff(cls, from_date, to_date):
         return (to_date - from_date).days
 
+    @classmethod
+    def remainder(cls, from_date, to_date):
+        """Calculates the remaining days after a week difference has been calculated and rounded down."""
+        return cls.day_diff(from_date, to_date) - cls.week_diff(from_date, to_date, cls.Rounding.DOWN) * 7
+
     class Rounding:
         UP = 0
         DOWN = 1
