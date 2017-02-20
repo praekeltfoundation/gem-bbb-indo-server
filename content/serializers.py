@@ -547,8 +547,8 @@ class GoalSerializer(serializers.ModelSerializer):
     target = serializers.DecimalField(18, 2, coerce_to_string=False)
 
     # TODO: Calculated week and target values will be done on the frontend. They can be removed in the future when frontend installs no longer rely on them
-    week_count = serializers.ReadOnlyField()
-    week_count_to_now = serializers.ReadOnlyField()
+    week_count = serializers.SerializerMethodField()
+    week_count_to_now = serializers.SerializerMethodField()
     weekly_average = serializers.ReadOnlyField()
     weekly_target = serializers.ReadOnlyField()
 
@@ -564,6 +564,18 @@ class GoalSerializer(serializers.ModelSerializer):
         fields = '__all__'
         read_only_fields = ('id', 'weekly_totals')
         extra_kwargs = {'image': {'write_only': True}}
+
+    @staticmethod
+    def get_week_count(obj):
+        """Field name changed. To maintain compatibility with older frontend versions."""
+        # TODO: Remove with serializer fields
+        return obj.weeks
+
+    @staticmethod
+    def get_week_count_to_now(obj):
+        """Field name changed. To maintain compatibility with older frontend versions."""
+        # TODO: Remove with serializer fields
+        return obj.weeks_to_now
 
     def get_image_url(self, obj):
         request = self.context['request']
