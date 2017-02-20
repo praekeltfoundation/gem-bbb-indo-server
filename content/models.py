@@ -1103,25 +1103,29 @@ class Goal(models.Model):
     @property
     def weeks(self):
         """The number of weeks from the start date to the end date."""
-        return WeekCalc.week_diff(self.start_date, self.end_date, WeekCalc.Rounding.UP)
+        return WeekCalc.week_diff(self.start_date, self.end_date, WeekCalc.Rounding.UP) or 1
 
     @property
     def weeks_to_now(self):
         """Provides the number of weeks from the start date to the current date."""
-        return WeekCalc.week_diff(self.start_date, timezone.now(), WeekCalc.Rounding.UP)
+        return WeekCalc.week_diff(self.start_date, timezone.now().date(), WeekCalc.Rounding.UP)
 
     @property
     def weeks_left(self):
-        """The number of weeks that a Goal has left."""
-        return WeekCalc.week_diff(timezone.now(), self.end_date, WeekCalc.Rounding.UP)
+        """The number of weeks that the Goal has left."""
+        return WeekCalc.week_diff(timezone.now().date(), self.end_date, WeekCalc.Rounding.UP)
 
     @property
     def days_left(self):
-        return max(WeekCalc.day_diff(self.end_date, timezone.now()), 0)
+        """The total number of days the Goal has left."""
+        return max(WeekCalc.day_diff(self.end_date, timezone.now().date()), 0)
 
     @property
     def weekly_average(self):
         """The average savings for the past weeks."""
+        weeks_to_now = self.weeks_to_now
+        if weeks_to_now == 0:
+            return self.value
         return ceil(self.value / self.weeks_to_now)
 
     @property

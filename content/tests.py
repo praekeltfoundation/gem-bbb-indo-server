@@ -608,8 +608,8 @@ class TestGoalModel(TestCase):
                 name='Goal 1',
                 user=user,
                 target=25000,
-                start_date=timezone.make_aware(datetime(2017, 2, 1)),
-                end_date=timezone.make_aware(datetime(2017, 2, 16))
+                start_date=timezone.make_aware(datetime(2017, 2, 1)).date(),
+                end_date=timezone.make_aware(datetime(2017, 2, 16)).date()
             )
             self.assertEqual(2, goal.weeks_left, "Unexpected weeks left.")
 
@@ -1341,7 +1341,7 @@ class TestBadgeAwarding(APITestCase):
     def setUpTestData(cls):
         cls.goal_first_created = Badge.objects.create(name='First Goal')
         cls.goal_halfway = Badge.objects.create(name='First Goal Halfway')
-        cls.goal_week_left = Badge.objects.create(name='First Goal Halfway')
+        cls.goal_week_left = Badge.objects.create(name='Week Left')
         cls.goal_first_done = Badge.objects.create(name='First Goal Done')
         cls.transaction_first = Badge.objects.create(name='First Savings Created')
         cls.streak_2 = Badge.objects.create(name='2 Week Streak')
@@ -1466,28 +1466,29 @@ class TestBadgeAwarding(APITestCase):
     # ------------------------ #
 
     def test_goal_halfway(self):
-        now = timezone.now()
-        user = create_test_regular_user('anon')
-        goal = Goal.objects.create(
-            name='Goal 1',
-            user=user,
-            target=10000,
-            start_date=now - timedelta(days=30),
-            end_date=now + timedelta(days=30)
-        )
+        dt = timezone.make_aware(datetime(2017, 2, 15))
+        with patch.object(timezone, 'now', lambda: dt):
+            user = create_test_regular_user('anon')
+            goal = Goal.objects.create(
+                name='Goal 1',
+                user=user,
+                target=10000,
+                start_date=timezone.make_aware(datetime(2017, 2, 1)),
+                end_date=timezone.make_aware(datetime(2017, 2, 28))
+            )
 
-        data = [{
-            'date': now.isoformat(),
-            'value': 5000
-        }]
+            data = [{
+                'date': timezone.now().isoformat(),
+                'value': 5000
+            }]
 
-        self.client.force_authenticate(user=user)
-        response = self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}), data, format='json')
+            self.client.force_authenticate(user=user)
+            response = self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}), data, format='json')
 
-        self.assertNotEqual(len(response.data), 0, "No new Badges were returned.")
+            self.assertNotEqual(len(response.data), 0, "No new Badges were returned.")
 
-        badges = [b for b in response.data['new_badges'] if b['name'] == self.goal_halfway.name]
-        self.assertEqual(len(badges), 1, "Expected badge was not included")
+            badges = [b for b in response.data['new_badges'] if b['name'] == self.goal_halfway.name]
+            self.assertEqual(len(badges), 1, "Expected badge was not included")
 
     def test_goal_halfway_early(self):
         """User should not receive this badge before the halfway mark"""
