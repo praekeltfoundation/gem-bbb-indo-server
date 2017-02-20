@@ -623,6 +623,19 @@ class TestGoalModel(TestCase):
             )
             self.assertEqual(1, goal.weeks_to_now, "Unexpected weeks left.")
 
+    def test_weeks_left(self):
+        dt = timezone.make_aware(datetime(2017, 2, 8))
+        with patch.object(timezone, 'now', lambda: dt):
+            user = create_test_regular_user()
+            goal = Goal.objects.create(
+                name='Goal 1',
+                user=user,
+                target=25000,
+                start_date=timezone.make_aware(datetime(2017, 2, 1)).date(),
+                end_date=timezone.make_aware(datetime(2017, 2, 16)).date()
+            )
+            self.assertEqual(2, goal.weeks_left, "Unexpected weeks left.")
+
     def test_week_aggregates(self):
         user = create_test_regular_user()
         goal = Goal.objects.create(
