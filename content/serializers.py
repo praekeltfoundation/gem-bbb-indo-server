@@ -677,12 +677,12 @@ class CustomNotificationSerializer(serializers.ModelSerializer):
     message = serializers.ReadOnlyField()
     publish_date = serializers.DateField()
     expiration_date = serializers.DateField()
-    persist = serializers.BooleanField()
+    # persist = serializers.BooleanField()
     icon = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomNotification
-        fields = ('message', 'publish_date', 'expiration_date', 'persist', 'icon')
+        fields = ('message', 'publish_date', 'expiration_date', 'icon')
 
     def get_icon(self, obj):
         request = self.context['request']

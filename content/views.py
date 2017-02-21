@@ -640,12 +640,33 @@ class FeedbackViewSet(viewsets.ModelViewSet):
 class CustomNotificationViewSet(viewsets.ModelViewSet):
     serializer_class = CustomNotificationSerializer
 
+    # @list_route(methods=['get'])
+    # """Returns current available custom notifcation"""
+    # def current(self, request, *args, **kwargs):
+    #     notification = CustomNotification.get_current()
+    #
+    #     if notification is None:
+    #         raise NotFound("No notification is available.")
+    #
+    #     serializer = self.get_serializer(notification)
+    #     return Response(serializer.data)
+
     @list_route(methods=['get'])
-    def current(self, request, *args, **kwargs):
-        notification = CustomNotification.get_current()
+    def current(self, request, *args, **kawrgs):
+        """Returns an available flag and list of all current custom notifications"""
+        notifications = CustomNotification.get_all_current_notifications()
 
-        if notification is None:
-            raise NotFound("No notification is available.")
+        if not notifications:
+            raise NotFound("No notification is available")
 
-        serializer = self.get_serializer(notification)
-        return Response(serializer.data)
+        ndata = []
+
+        for n in notifications:
+            ndata.append(self.get_serializer(n).data)
+
+        data = {
+            "available": True,
+            "data": ndata
+        }
+
+        return Response(data)

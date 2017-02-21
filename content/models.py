@@ -1621,32 +1621,39 @@ def get_custom_notification_image_filename(instance, filename):
 
 class CustomNotification(models.Model):
     message = models.TextField(_('message'), help_text=_('The message shown to the user'), blank=False)
-    publish_date = models.DateField(_('start date'),
+    publish_date = models.DateField(_('publish date'),
                                     help_text=_('The date the notification should start displaying'), blank=False)
-    expiration_date = models.DateField(_('End date'),
+    expiration_date = models.DateField(_('end date'),
                                        help_text="The date when the notification should stop displaying")
     icon = models.ForeignKey(wagtail_image_models.Image, on_delete=models.SET_NULL, related_name='+',
                              null=True, blank=True)
-    persist = models.BooleanField(_("persist"), help_text="Should the notification appear every time "
-                                                          "the user opens the app or just once",
-                                  blank=False)
+
+    # @classmethod
+    # def get_current(cls):
+    # """Returns the earliest available custom notification"""
+    #     notifications = CustomNotification.objects.order_by('publish_date').filter(expiration_date__gt=timezone.now())
+    #
+    #     if notifications is None:
+    #         pass
+    #         # Raise exception? Return nothing?
+    #
+    #     return notifications.first()
 
     @classmethod
-    def get_current(cls):
-        q = CustomNotification.objects.order_by('publish_date').filter(expiration_date__gt=timezone.now())
+    def get_all_current_notifications(cls):
+        """Returns all currently available custom notifications"""
+        notifications = CustomNotification.objects.filter(publish_date__lt=timezone.now(),
+                                                          expiration_date__gt=timezone.now())
 
-        if q is None:
-            pass
-            # Raise exception? Return nothing?
-
-        return q.first()
+        if not notifications:
+            return None
+        return notifications
 
 CustomNotification.panels = [
     wagtail_edit_handlers.MultiFieldPanel([
         wagtail_edit_handlers.FieldPanel('message'),
         wagtail_edit_handlers.FieldPanel('publish_date'),
         wagtail_edit_handlers.FieldPanel('expiration_date'),
-        wagtail_edit_handlers.FieldPanel('persist'),
         wagtail_image_edit.ImageChooserPanel('icon'),
     ],
         # Translators: Admin field name
