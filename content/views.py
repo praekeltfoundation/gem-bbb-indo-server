@@ -76,8 +76,8 @@ class ChallengeViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     http_method_names = ('options', 'head', 'get', 'post',)
 
-    response_false = Response({"available:": False})
-    response_true = Response({"available:": True})
+    response_false = Response({"available": False})
+    response_true = Response({"available": True})
 
     def list(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_queryset(), many=True)
@@ -183,7 +183,8 @@ class ChallengeViewSet(viewsets.ModelViewSet):
         # TODO: Unclear how soon before the deadline this must trigger
 
         try:
-            challenge = Challenge.objects.get(state=Challenge.CST_PUBLISHED)
+            challenge = Challenge.objects.get(state=Challenge.CST_PUBLISHED,
+                                              deactivation_date__lt=(timezone.now() + timedelta(days=1)))
         except:
             return self.response_false
 
@@ -199,7 +200,12 @@ class ChallengeViewSet(viewsets.ModelViewSet):
             return self.response_false
 
         try:
-            entry = Entry.objects.get(participant=participant)
+            if challenge.type == Challenge.CTP_QUIZ:
+                entry = ParticipantAnswer.objects.get(participant=participant)
+            if challenge.type == Challenge.CTP_PICTURE:
+                entry = ParticipantPicture.objects.get(participant=participant)
+            if challenge.type == Challenge.CTP_FREEFORM:
+                entry = ParticipantFreeText.objects.get(participant=participant)
         except:
             return self.response_false
 
