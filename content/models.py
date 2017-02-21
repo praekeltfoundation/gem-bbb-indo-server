@@ -1124,14 +1124,13 @@ class Goal(models.Model):
     def weekly_average(self):
         """The average savings for the past weeks."""
         weeks_to_now = self.weeks_to_now
-        if weeks_to_now == 0:
-            return self.value
-        return ceil(self.value / self.weeks_to_now)
+        return self.value if weeks_to_now == 0 else ceil(self.value / self.weeks_to_now)
 
     @property
     def weekly_target(self):
         """The weekly target for the entire Goal."""
-        return ceil(self.target / self.weeks)
+        weeks = self.weeks
+        return self.target if weeks == 0 else ceil(self.target / weeks)
 
     @staticmethod
     def _monday(d):

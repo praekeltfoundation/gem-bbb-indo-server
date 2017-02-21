@@ -631,10 +631,52 @@ class TestGoalModel(TestCase):
                 name='Goal 1',
                 user=user,
                 target=25000,
-                start_date=timezone.make_aware(datetime(2017, 2, 1)).date(),
-                end_date=timezone.make_aware(datetime(2017, 2, 16)).date()
+                start_date=date(2017, 2, 1),
+                end_date=date(2017, 2, 16)
             )
             self.assertEqual(2, goal.weeks_left, "Unexpected weeks left.")
+
+    def test_weekly_target(self):
+        user = create_test_regular_user()
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=1000,
+            start_date=date(2017, 2, 1),
+            end_date=date(2017, 3, 1)
+        )
+
+        self.assertEqual(250, goal.weekly_target, "Unexpected weekly target.")
+
+    def test_weekly_average(self):
+        dt = timezone.make_aware(datetime(2017, 2, 15))
+        with patch.object(timezone, 'now', lambda: dt):
+            user = create_test_regular_user()
+            goal = Goal.objects.create(
+                name='Goal 1',
+                user=user,
+                target=10000,
+                start_date=date(2017, 2, 1),
+                end_date=date(2017, 2, 28)
+            )
+
+            # Week 1
+            goal.transactions.create(
+                date=timezone.make_aware(datetime(2017, 2, 2)),
+                value=200
+            )
+
+            # Week 2
+            goal.transactions.create(
+                date=timezone.make_aware(datetime(2017, 2, 9)),
+                value=200
+            )
+            goal.transactions.create(
+                date=timezone.make_aware(datetime(2017, 2, 10)),
+                value=200
+            )
+
+            self.assertEqual(300, goal.weekly_average, "Unexpected weekly average.")
 
     def test_week_aggregates(self):
         user = create_test_regular_user()
@@ -1916,6 +1958,7 @@ class TestNotification(APITestCase):
         self.assertIsNone(winning_response.data['badge'], "Badge still available")
         self.assertIsNot(winning_response.data['challenge'], "Challenge still available")
 
+
 class TestBadgeUrls(APITestCase):
     def test_urls_returned(self):
         with mock.patch('content.models.Badge.image', new_callable=PropertyMock) as mock_image:
@@ -1944,6 +1987,7 @@ class TestBadgeUrls(APITestCase):
             )
             response = self.client.get(reverse('api:badge-urls', kwargs={}), format='json')
             self.assertEquals(response.data['urls'].__len__(), 0, "No urls should have been returned")
+
 
 class TestFeedback(APITestCase):
     def test_create_feedback(self):
