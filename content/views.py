@@ -160,8 +160,12 @@ class ChallengeViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def participation(self, request, *args, **kwargs):
         """Returns true if a user has started a challenge within 2 days of it being created, otherwise false"""
-        challenge = Challenge.objects.get(state=Challenge.CST_PUBLISHED,
-                                          activation_date__lt=(timezone.now() - timedelta(days=2)))
+
+        try:
+            challenge = Challenge.objects.get(state=Challenge.CST_PUBLISHED,
+                                              activation_date__lt=(timezone.now() - timedelta(days=2)))
+        except:
+            return self.response_false
 
         # If there is no challenge active at the time
         if challenge is None:
