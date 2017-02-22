@@ -807,6 +807,8 @@ class ParticipantPicture(models.Model):
                                 null=True,
                                 blank=True)
 
+    caption = models.CharField(_('caption'), max_length=255, null=True, blank=True)
+
     # Translators: CMS field name (refers to dates)
     date_answered = models.DateTimeField(_('answered on'), default=timezone.now)
 
