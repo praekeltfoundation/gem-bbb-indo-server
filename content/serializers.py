@@ -589,7 +589,8 @@ class GoalSerializer(serializers.ModelSerializer):
     def get_weekly_totals(self, obj):
         d = OrderedDict()
         for index, week in enumerate(obj.get_weekly_aggregates()):
-            d[str(index)] = float(week)
+            # The frontend displays the weeks starting from 1
+            d[str(index + 1)] = float(week)
         return d
 
     def get_new_badges(self, obj):
