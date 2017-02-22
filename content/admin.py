@@ -153,7 +153,7 @@ class GoalAdmin(admin.ModelAdmin):
             'fields': ('name', 'state', 'start_date', 'end_date', 'target', 'image', 'user')
         }),
         ('Calculated', {
-            'fields': ('value', 'week_count', 'week_count_to_now', 'weeks_left', 'days_left', 'weekly_target',
+            'fields': ('value', 'weeks', 'weeks_to_now', 'weeks_left', 'days_left', 'weekly_target',
                        'weekly_average',)
         })
     )

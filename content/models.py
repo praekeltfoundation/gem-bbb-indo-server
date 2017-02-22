@@ -950,12 +950,12 @@ class WeekCalc:
 
     @classmethod
     def week_diff(cls, from_date, to_date, rounding):
-        assert(rounding == cls.Rounding.UP or rounding == cls.Rounding.DOWN)
-
         if rounding == cls.Rounding.UP:
-            return int(ceil((to_date - from_date).days / 7.0))
+            return ceil((to_date - from_date).days / 7.0)
+        elif rounding == cls.Rounding.DOWN:
+            return floor((to_date - from_date).days / 7.0)
         else:
-            return int(floor((to_date - from_date).days / 7.0))
+            return (to_date - from_date).days / 7.0
 
     @classmethod
     def day_diff(cls, from_date, to_date):
@@ -967,8 +967,9 @@ class WeekCalc:
         return cls.day_diff(from_date, to_date) - cls.week_diff(from_date, to_date, cls.Rounding.DOWN) * 7
 
     class Rounding:
-        UP = 0
-        DOWN = 1
+        NONE = 0
+        UP = 1
+        DOWN = 2
 
 
 # ===== #
