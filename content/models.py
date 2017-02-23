@@ -1611,14 +1611,6 @@ class Feedback(models.Model):
 ########################
 
 
-def get_custom_notification_image_filename(instance, filename):
-    if instance and instance.pk:
-        new_name = instance.pk
-    else:
-        new_name = uuid4().hex
-    return 'cnotification-{}{}'.format(new_name, splitext(filename)[-1])
-
-
 class CustomNotification(models.Model):
     message = models.TextField(_('message'), help_text=_('The message shown to the user'), blank=False)
     publish_date = models.DateField(_('publish date'),
@@ -1627,17 +1619,6 @@ class CustomNotification(models.Model):
                                        help_text="The date when the notification should stop displaying")
     icon = models.ForeignKey(wagtail_image_models.Image, on_delete=models.SET_NULL, related_name='+',
                              null=True, blank=True)
-
-    # @classmethod
-    # def get_current(cls):
-    # """Returns the earliest available custom notification"""
-    #     notifications = CustomNotification.objects.order_by('publish_date').filter(expiration_date__gt=timezone.now())
-    #
-    #     if notifications is None:
-    #         pass
-    #         # Raise exception? Return nothing?
-    #
-    #     return notifications.first()
 
     @classmethod
     def get_all_current_notifications(cls):
