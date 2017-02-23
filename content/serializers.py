@@ -402,7 +402,7 @@ class ParticipantPictureSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ParticipantPicture
-        fields = ('participant', 'question', 'picture', 'date_answered', 'date_saved')
+        fields = ('participant', 'question', 'picture', 'date_answered', 'date_saved', 'caption')
         read_only_fields = ('date_saved',)
         extra_kwargs = {'picture': {'required': False}}
 
