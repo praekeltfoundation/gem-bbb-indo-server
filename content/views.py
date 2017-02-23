@@ -596,7 +596,7 @@ class GoalViewSet(viewsets.ModelViewSet):
         goal = Goal.objects.filter(state=Goal.ACTIVE)
         if not goal:
             data = {'available': False, 'overdue_goal': None}
-            return Response(data, status=status.HTTP_204_NO_CONTENT)
+            return Response(data, status=status.HTTP_200_OK)
         serializer = GoalSerializer(data=request.data, many=True)
         if serializer.is_valid(raise_exception=True):
             missed_goal = self.get_deadline_missed_goal()
