@@ -2,6 +2,14 @@
 Changelog
 =========
 
+0.1.4
+-----
+
+- Implemented Ad Hoc Notifications
+- Implemented Challenge Reminder Notification
+- Implemented Challenge Completion Reminder Notification
+- Implemented Goal Deadline Missed Notification
+
 0.1.3
 -----
 
