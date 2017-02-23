@@ -5,7 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 from wagtail.contrib.modeladmin.options import ModelAdmin, ModelAdminGroup, modeladmin_register
 from wagtail.wagtailcore import hooks
 
-from .models import Challenge, Participant
+from .models import Challenge, Participant, CustomNotification
 from .models import FreeTextQuestion, PictureQuestion, QuizQuestion
 from .models import GoalPrototype
 from .models import Badge
@@ -132,3 +132,17 @@ class Achievements(ModelAdminGroup):
 
 
 modeladmin_register(Achievements)
+
+
+#######################
+# Custom Notification #
+#######################
+
+class CustomNotificationAdmin(ModelAdmin):
+    model = CustomNotification
+    menu_label = _("Custom Notification")
+    menu_icon = 'mail'
+    list_display = ('message', 'publish_date', 'expiration_date')
+    add_to_settings_menu = False
+
+modeladmin_register(CustomNotificationAdmin)

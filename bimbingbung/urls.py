@@ -28,6 +28,7 @@ router.register(r'tips', content_views.TipViewSet, base_name='tips')
 router.register(r'users', user_views.RegUserViewSet, base_name='users')
 router.register(r'surveys', survey_views.CoachSurveyViewSet, base_name='surveys')
 router.register(r'goal-prototypes', content_views.GoalPrototypeView, base_name='goal-prototypes')
+router.register(r'notifications', content_views.CustomNotificationViewSet, base_name='notifications')
 
 api_urls = [
     # authentication endpoints
