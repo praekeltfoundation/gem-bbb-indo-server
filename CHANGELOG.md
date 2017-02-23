@@ -2,6 +2,12 @@
 Changelog
 =========
 
+0.1.3
+-----
+
+- Implemented endpoint for use in pre-fetching badge images
+- Changed weekly calculations from Monday-Sunday window to counted from starting date
+
 0.1.2
 -----
 

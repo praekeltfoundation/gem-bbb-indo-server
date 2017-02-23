@@ -34,9 +34,6 @@ api_urls = [
     url(r'token/', user_views.ObtainUserAuthTokenView.as_view(), name='token'),
     url(r'^security_question/', user_views.SecurityQuestionView.as_view(), name='security_question'),
 
-    #challenge winner endpoint
-    #url(r'challenges/(\d+)/winner', content_views.ChallengeViewSet.winner, name='challenges-winner'),
-
     # image endpoints
     url(r'challenge-image/(?P<challenge_pk>\d+)/$', content_views.ChallengeImageView.as_view(), name='challenge-image'),
     url(r'goal-image/(?P<goal_pk>\d+)/$', content_views.GoalImageView.as_view(), name='goal-image'),
@@ -46,6 +43,9 @@ api_urls = [
 
     # misc endpoints
     url(r'achievements/(?P<user_pk>\d+)/$', content_views.AchievementsView.as_view(), name='achievements'),
+
+    #all badge url
+    url(r'badge-urls/', content_views.BadgesView.as_view(), name='badge-urls'),
 
     # include viewset routes
     url(r'', include(router.urls)),
