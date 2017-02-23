@@ -76,9 +76,6 @@ class ChallengeViewSet(viewsets.ModelViewSet):
     permission_classes = (IsAuthenticated,)
     http_method_names = ('options', 'head', 'get', 'post',)
 
-    response_false = Response({"available": False})
-    response_true = Response({"available": True})
-
     def list(self, request, *args, **kwargs):
         serializer = self.get_serializer(self.get_queryset(), many=True)
         return Response(serializer.data)
@@ -165,11 +162,11 @@ class ChallengeViewSet(viewsets.ModelViewSet):
             challenge = Challenge.objects.get(state=Challenge.CST_PUBLISHED,
                                               activation_date__lt=(timezone.now() - timedelta(days=2)))
         except:
-            return self.response_false
+            return Response({"available": False})
 
         # If there is no challenge active at the time
         if challenge is None:
-            return self.response_false
+            return Response({"available": False})
 
         participant = Participant.objects.filter(user_id=request.user.id,
                                                  # date_created__gt=(timezone.now() - timedelta(days=2)),
@@ -177,8 +174,8 @@ class ChallengeViewSet(viewsets.ModelViewSet):
 
         # If participant is None, there is no challenge available reminder notification
         if not participant:
-            return self.response_false
-        return self.response_true
+            return Response({"available": False})
+        return Response({"available": True})
 
     @list_route(methods=['get'])
     def challenge_incomplete(self, request, *args, **kwargs):
@@ -190,18 +187,18 @@ class ChallengeViewSet(viewsets.ModelViewSet):
             challenge = Challenge.objects.get(state=Challenge.CST_PUBLISHED,
                                               deactivation_date__lt=(timezone.now() + timedelta(days=1)))
         except:
-            return self.response_false
+            return Response({"available": False})
 
         # No active challenge
         if not challenge:
-            return self.response_false
+            return Response({"available": False})
 
         participant = Participant.objects.filter(user_id=request.user.id,
                                                  challenge=challenge)
 
         # User has not participated in challenge
         if not participant:
-            return self.response_false
+            return Response({"available": False})
 
         try:
             if challenge.type == Challenge.CTP_QUIZ:
@@ -211,12 +208,12 @@ class ChallengeViewSet(viewsets.ModelViewSet):
             if challenge.type == Challenge.CTP_FREEFORM:
                 entry = ParticipantFreeText.objects.get(participant=participant)
         except:
-            return self.response_false
+            return Response({"available": False})
 
         # User has not entered the challenge
         if not entry:
-            return self.response_false
-        return self.response_true
+            return Response({"available": False})
+        return Response({"available": True})
 
 
 # ================= #
