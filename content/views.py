@@ -35,6 +35,7 @@ from .serializers import GoalPrototypeSerializer, GoalSerializer, GoalTransactio
 from .serializers import ParticipantAnswerSerializer, ParticipantFreeTextSerializer, ParticipantPictureSerializer, \
     ParticipantRegisterSerializer
 from .serializers import TipSerializer
+import json
 
 
 # ========== #
@@ -583,10 +584,25 @@ class GoalPrototypeView(viewsets.ModelViewSet):
 
         return Response(serializer.data)
 
+# ====== #
+# Badges #
+# ====== #
+
+class BadgesView(GenericAPIView):
+    def get(self, request, *args, **kwargs):
+        queryset = Badge.objects.all()
+        urls = []
+        for badge in queryset:
+            if badge.image is not None:
+                urls.append(request.build_absolute_uri(badge.image.file.url))
+
+        return Response({
+            'urls' :  urls
+        })
+
 # ============ #
 # Achievements #
 # ============ #
-
 
 class AchievementsView(GenericAPIView):
     permission_classes = (IsAuthenticated,)

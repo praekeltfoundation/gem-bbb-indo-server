@@ -941,6 +941,37 @@ def get_goal_image_filename(instance, filename):
     return '/'.join(('goal', str(instance.user.pk), filename))
 
 
+# ================= #
+# Week Calculations #
+# ================= #
+
+
+class WeekCalc:
+
+    @classmethod
+    def week_diff(cls, from_date, to_date, rounding):
+        if rounding == cls.Rounding.UP:
+            return ceil((to_date - from_date).days / 7.0)
+        elif rounding == cls.Rounding.DOWN:
+            return floor((to_date - from_date).days / 7.0)
+        else:
+            return (to_date - from_date).days / 7.0
+
+    @classmethod
+    def day_diff(cls, from_date, to_date):
+        return (to_date - from_date).days
+
+    @classmethod
+    def remainder(cls, from_date, to_date):
+        """Calculates the remaining days after a week difference has been calculated and rounded down."""
+        return cls.day_diff(from_date, to_date) - cls.week_diff(from_date, to_date, cls.Rounding.DOWN) * 7
+
+    class Rounding:
+        NONE = 0
+        UP = 1
+        DOWN = 2
+
+
 # ===== #
 # Goals #
 # ===== #
@@ -960,7 +991,6 @@ class GoalPrototype(models.Model):
         (ACTIVE, _('Active')),
     ), default=INACTIVE)
     default_price = models.DecimalField(max_digits=18, decimal_places=2, default=0.0, editable=True)
-
 
     @property
     def is_active(self):
@@ -1049,6 +1079,14 @@ class Goal(models.Model):
         return self.value >= self.target
 
     @property
+    def is_end_date_modified(self):
+        return self.end_date_modified is not None
+
+    @property
+    def is_target_modified(self):
+        return self.target_modified is not None
+
+    @property
     def progress(self):
         """Returns the progress of the Goal's savings as percentage."""
         return int((self.value / self.target) * 100)
@@ -1064,48 +1102,40 @@ class Goal(models.Model):
         return self.prototype is None
 
     @property
-    def week_count(self):
-        monday1 = Goal._monday(self.start_date)
-        monday2 = Goal._monday(self.end_date)
-
-        # Weeks are inclusive, so 1 is added
-        return int(((monday2 - monday1).days / 7) + 1)
+    def weeks(self):
+        """The number of weeks from the start date to the end date."""
+        return WeekCalc.week_diff(self.start_date, self.end_date, WeekCalc.Rounding.UP) or 1
 
     @property
-    def week_count_to_now(self):
+    def weeks_to_now(self):
         """Provides the number of weeks from the start date to the current date."""
-        monday1 = Goal._monday(self.start_date)
-        monday2 = Goal._monday(timezone.now().date())
-        return int(((monday2 - monday1).days / 7) + 1)
+        return WeekCalc.week_diff(self.start_date, timezone.now().date(), WeekCalc.Rounding.UP)
 
     @property
     def weeks_left(self):
-        monday1 = Goal._monday(timezone.now().date())
-        monday2 = Goal._monday(self.end_date)
-        return max(int((monday2 - monday1).days / 7), 0)
+        """The number of weeks that the Goal has left."""
+        return WeekCalc.week_diff(timezone.now().date(), self.end_date, WeekCalc.Rounding.UP)
 
     @property
     def days_left(self):
-        return max((self.end_date - timezone.now().date()).days, 0)
+        """The total number of days the Goal has left."""
+        return max(WeekCalc.day_diff(self.end_date, timezone.now().date()), 0)
 
     @property
     def weekly_average(self):
-        return ceil(self.value / self.week_count_to_now)
+        """The average savings for the past weeks."""
+        weeks_to_now = self.weeks_to_now
+        return self.value if weeks_to_now == 0 else ceil(self.value / self.weeks_to_now)
 
     @property
     def weekly_target(self):
-        return ceil(self.target / self.week_count)
+        """The weekly target for the entire Goal."""
+        weeks = self.weeks
+        return self.target if weeks == 0 else ceil(self.target / weeks)
 
     @staticmethod
     def _monday(d):
         return d - timedelta(days=d.weekday())
-
-    # Should these two functions have any decorators on them?
-    def is_end_date_modified(self):
-        return self.end_date_modified is not None
-
-    def is_target_modified(self):
-        return self.target_modified is not None
 
     @staticmethod
     def _date_window(d):
@@ -1113,22 +1143,25 @@ class Goal(models.Model):
         return monday, monday + timedelta(days=6)
 
     def get_weekly_aggregates(self):
-        monday, sunday = self._date_window(self.start_date)
-        agg = OrderedDict()
-        week_id = 1
-        agg[monday] = self.WeekAggregate(week_id, monday, sunday)
+        date = self.start_date
 
-        while sunday <= self.end_date:
-            week_id += 1
-            monday, sunday = self._date_window(sunday + timedelta(days=1))
-            agg[monday] = self.WeekAggregate(week_id, monday, sunday)
+        # Ensure elements so weeks with no transactions will have 0
+        agg = [0 for _ in range(self.weeks)]
 
-        for t in self.transactions.all():
-            monday = Goal._monday(t.date.date())
-            if monday in agg:
-                agg[monday].value += t.value
+        week_id = 0
+        for trans in self.transactions.all().order_by('date'):
+            if WeekCalc.day_diff(date, trans.date.date()) >= 7:
+                # Next weekly window
+                week_id += 1
+                date = (date + timedelta(days=7))
 
-        return [v for k, v in agg.items()]
+            # Ignore savings after the deadline
+            if week_id >= len(agg):
+                break
+
+            agg[week_id] += trans.value
+
+        return agg
 
     @classmethod
     def get_current_streak(cls, user, now=None, weeks_back=6):
