@@ -291,7 +291,7 @@ class ParticipantPictureViewSet(viewsets.ModelViewSet):
         #if the participantpicture does not exist then you cant add a caption to it, ie the calls were sent in the
         #incorrect order on the front end
         #The get_object_or_404 will then trow the 404 error
-        participant_picture.caption = request.data
+        participant_picture.caption = request.data['caption']
         participant_picture.save()
 
         return Response(status=status.HTTP_204_NO_CONTENT)

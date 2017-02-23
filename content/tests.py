@@ -23,7 +23,7 @@ from users.models import User, RegUser, Profile
 
 # content function imports
 from .models import award_challenge_win, QuizQuestion, FreeTextQuestion, PictureQuestion, QuestionOption, \
-    award_first_goal
+    award_first_goal, ParticipantPicture
 
 # content model imports
 from .models import Badge, BadgeSettings, UserBadge
@@ -334,6 +334,64 @@ class ChallengeParticipantIntegrationAPI(APITestCase):
 
         self.assertEqual(response.data['id'], challenge_second.id, "Unexpected challenge returned.")
 
+class TestParticipantPicture(APITestCase):
+
+    def test_adding_caption_to_participant_picture_that_exists(self):
+        user = create_test_regular_user('anon')
+
+        challenge_first = Challenge.objects.create(
+            name='First Challenge',
+            activation_date=timezone.now() + timedelta(days=-7),
+            deactivation_date=timezone.now() + timedelta(days=7,),
+            type=2
+        )
+        challenge_first.publish()
+        challenge_first.save()
+
+        participant = Participant.objects.create(user=user,
+                                   challenge=challenge_first,
+                                   date_created=timezone.now(),
+                                   date_completed=timezone.now())
+
+        question = PictureQuestion.objects.create(challenge=challenge_first,
+                                                  text="A Question?")
+
+        ParticipantPicture.objects.create(participant=participant,
+                                          question=question)
+
+
+        self.client.force_authenticate(user=user)
+
+        response = self.client.post(reverse('api:participantpicture-caption', kwargs={'pk' : participant.id}),
+                                    data={'caption':"caption words"})
+        self.assertEquals(response.status_code, status.HTTP_204_NO_CONTENT)
+
+    def test_adding_caption_to_participant_picture_that_does_not_exist(self):
+        user = create_test_regular_user('anon')
+
+        challenge_first = Challenge.objects.create(
+            name='First Challenge',
+            activation_date=timezone.now() + timedelta(days=-7),
+            deactivation_date=timezone.now() + timedelta(days=7,),
+            type=2
+        )
+        challenge_first.publish()
+        challenge_first.save()
+
+        participant = Participant.objects.create(user=user,
+                                   challenge=challenge_first,
+                                   date_created=timezone.now(),
+                                   date_completed=timezone.now())
+
+        question = PictureQuestion.objects.create(challenge=challenge_first,
+                                                  text="A Question?")
+
+
+        self.client.force_authenticate(user=user)
+
+        response = self.client.post(reverse('api:participantpicture-caption', kwargs={'pk' : participant.id}),
+                                    data={'caption':"caption words"})
+        self.assertEquals(response.status_code, status.HTTP_404_NOT_FOUND)
 
 # ==== #
 # Tips #
