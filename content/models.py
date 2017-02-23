@@ -1645,8 +1645,6 @@ class CustomNotification(models.Model):
         notifications = CustomNotification.objects.filter(publish_date__lt=timezone.now(),
                                                           expiration_date__gt=timezone.now())
 
-        if not notifications:
-            return None
         return notifications
 
 CustomNotification.panels = [
