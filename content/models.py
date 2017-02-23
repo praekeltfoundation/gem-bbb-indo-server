@@ -1639,3 +1639,35 @@ class Feedback(models.Model):
         # Translators: Collection name on CMS
         verbose_name_plural = _('feedback entries')
 
+########################
+# Ad Hoc Notification #
+########################
+
+
+class CustomNotification(models.Model):
+    message = models.TextField(_('message'), help_text=_('The message shown to the user'), blank=False)
+    publish_date = models.DateField(_('publish date'),
+                                    help_text=_('The date the notification should start displaying'), blank=False)
+    expiration_date = models.DateField(_('end date'),
+                                       help_text="The date when the notification should stop displaying")
+    icon = models.ForeignKey(wagtail_image_models.Image, on_delete=models.SET_NULL, related_name='+',
+                             null=True, blank=True)
+
+    @classmethod
+    def get_all_current_notifications(cls):
+        """Returns all currently available custom notifications"""
+        notifications = CustomNotification.objects.filter(publish_date__lt=timezone.now(),
+                                                          expiration_date__gt=timezone.now())
+
+        return notifications
+
+CustomNotification.panels = [
+    wagtail_edit_handlers.MultiFieldPanel([
+        wagtail_edit_handlers.FieldPanel('message'),
+        wagtail_edit_handlers.FieldPanel('publish_date'),
+        wagtail_edit_handlers.FieldPanel('expiration_date'),
+        wagtail_image_edit.ImageChooserPanel('icon'),
+    ],
+        # Translators: Admin field name
+        heading=_('Custom Notifications')),
+]
