@@ -1169,6 +1169,11 @@ class Goal(models.Model):
         return agg
 
     @classmethod
+    def calculate_weekly_target(cls, start_date, end_date, target):
+        weeks = WeekCalc.week_diff(start_date, end_date, WeekCalc.Rounding.UP) or 1
+        return target if weeks == 0 else ceil(target / weeks)
+
+    @classmethod
     def get_current_streak(cls, user, now=None, weeks_back=6):
         """Calculates the weekly savings streak for a user, starting at the current time.
         """
