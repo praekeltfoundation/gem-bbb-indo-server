@@ -1284,7 +1284,7 @@ class Goal(models.Model):
         return streak
 
     def is_goal_deadline_missed(self):
-        if timezone.now().date() > self.end_date:
+        if timezone.now().date() > self.end_date and self.is_active:
             return True
         else:
             return False
