@@ -550,8 +550,8 @@ class GoalSerializer(serializers.ModelSerializer):
     week_count = serializers.SerializerMethodField()
     week_count_to_now = serializers.SerializerMethodField()
     weekly_average = serializers.ReadOnlyField()
-    weekly_target = serializers.DecimalField(18, 2, coerce_to_string=False,
-                                             default=Goal.calculate_weekly_target(start_date, end_date, target))
+    weekly_target = serializers.DecimalField(18, 2, coerce_to_string=False)
+                                             # default=Goal.calculate_weekly_target(start_date, end_date, target))
 
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
     image_url = serializers.SerializerMethodField()

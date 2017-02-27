@@ -10,6 +10,7 @@ from django.apps import apps
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Count
+import datetime
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.html import format_html
@@ -951,6 +952,12 @@ class WeekCalc:
     @classmethod
     def week_diff(cls, from_date, to_date, rounding):
         if rounding == cls.Rounding.UP:
+            # start_date = datetime.datetime(year=from_date.year, month=from_date._month, day=from_date._day)
+            # end_endate = datetime.datetime(year=to_date.year, month=to_date.month, day=to_date.day)
+            # m = datetime.datetime(from_date)
+            # days = from_date - to_date
+            # weeks = days / 7.0
+            # return ceil(weeks)
             return ceil((to_date - from_date).days / 7.0)
         elif rounding == cls.Rounding.DOWN:
             return floor((to_date - from_date).days / 7.0)
@@ -1055,6 +1062,12 @@ class Goal(models.Model):
 
         # Translators: Plural collection name on CMS
         verbose_name_plural = _('goals')
+
+    def save(self, *args, **kwargs):
+        # Ensure Weekly Target
+        if self.weekly_target is None:
+            self.weekly_target = self.get_calculated_weekly_target()
+        return super(Goal, self).save(*args, **kwargs)
 
     def add_new_badge(self, badge):
         if not hasattr(self, '_new_badges'):
