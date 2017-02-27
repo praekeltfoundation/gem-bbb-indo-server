@@ -1,11 +1,12 @@
+
 import json
 from datetime import datetime, date, timedelta
-
-# django imports
+import unittest
 from unittest import mock
-from unittest.mock import Mock
+from unittest.mock import Mock, patch
 from unittest.mock import PropertyMock
 
+# django imports
 from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
@@ -29,6 +30,7 @@ from .models import award_challenge_win, QuizQuestion, FreeTextQuestion, Picture
 from .models import Badge, BadgeSettings, UserBadge
 from .models import Challenge, Participant
 from .models import Feedback
+from .models import WeekCalc
 from .models import GoalPrototype, Goal, GoalTransaction
 from .models import Tip, TipFavourite
 
@@ -595,9 +597,57 @@ class TestFavouriteAPI(APITestCase):
 # ===== #
 
 
+class TestWeekCalc(unittest.TestCase):
+
+    def test_week_diff_basic(self):
+        start = datetime(2017, 2, 1)
+        end = datetime(2017, 2, 15)
+
+        self.assertEqual(2, WeekCalc.week_diff(start, end, WeekCalc.Rounding.DOWN),
+                         "Week calculation unexpected result")
+
+    def test_week_diff_up(self):
+        start = datetime(2017, 2, 1)
+        end = datetime(2017, 2, 17)
+
+        self.assertEqual(3, WeekCalc.week_diff(start, end, WeekCalc.Rounding.UP),
+                         "Week calculation unexpected result.")
+
+    def test_week_diff_round_down(self):
+        start = datetime(2017, 2, 1)
+        end = datetime(2017, 2, 17)
+
+        self.assertEqual(2, WeekCalc.week_diff(start, end, WeekCalc.Rounding.DOWN),
+                         "Week calculation unexpected result.")
+
+    def test_week_diff_seven(self):
+        """Ensure that when two days are separated by seven days, a full week will be counted. Historic issue with
+        frontend counting days inclusively.
+        """
+        start = datetime(2017, 2, 1)
+        end = datetime(2017, 2, 8)
+
+        self.assertEqual(1, WeekCalc.week_diff(start, end, WeekCalc.Rounding.UP),
+                         "Expected one full week.")
+
+    def test_day_diff_basic(self):
+        start = datetime(2017, 2, 1)
+        end = datetime(2017, 2, 17)
+
+        self.assertEqual(16, WeekCalc.day_diff(start, end),
+                         "Day calculation unexpected result.")
+
+    def test_remainder_basic(self):
+        start = datetime(2017, 2, 1)
+        end = datetime(2017, 2, 18)
+
+        self.assertEqual(3, WeekCalc.remainder(start, end),
+                         "Remainder calculation unexpected result.")
+
+
 class TestGoalModel(TestCase):
 
-    def test_target_property(self):
+    def test_value_property(self):
         user = create_test_regular_user()
         goal = create_goal('Goal 1', user, 1000)
         goal.transactions.create(date=timezone.now(), value=100)
@@ -613,11 +663,78 @@ class TestGoalModel(TestCase):
             name='Goal 1',
             user=user,
             target=25000,
-            start_date=timezone.now() - timedelta(days=14),
-            end_date=timezone.now()
+            start_date=timezone.make_aware(datetime(2017, 2, 1)),
+            end_date=timezone.make_aware(datetime(2017, 2, 16))
         )
-        weeks = goal.week_count
-        self.assertEqual(3, weeks, "Unexpected number of weeks.")
+        self.assertEqual(3, goal.weeks, "Unexpected number of weeks.")
+
+    def test_weeks_to_now(self):
+        dt = timezone.make_aware(datetime(2017, 2, 8))
+        with patch.object(timezone, 'now', lambda: dt):
+            user = create_test_regular_user()
+            goal = Goal.objects.create(
+                name='Goal 1',
+                user=user,
+                target=25000,
+                start_date=timezone.make_aware(datetime(2017, 2, 1)).date(),
+                end_date=timezone.make_aware(datetime(2017, 2, 16)).date()
+            )
+            self.assertEqual(1, goal.weeks_to_now, "Unexpected weeks left.")
+
+    def test_weeks_left(self):
+        dt = timezone.make_aware(datetime(2017, 2, 8))
+        with patch.object(timezone, 'now', lambda: dt):
+            user = create_test_regular_user()
+            goal = Goal.objects.create(
+                name='Goal 1',
+                user=user,
+                target=25000,
+                start_date=date(2017, 2, 1),
+                end_date=date(2017, 2, 16)
+            )
+            self.assertEqual(2, goal.weeks_left, "Unexpected weeks left.")
+
+    def test_weekly_target(self):
+        user = create_test_regular_user()
+        goal = Goal.objects.create(
+            name='Goal 1',
+            user=user,
+            target=1000,
+            start_date=date(2017, 2, 1),
+            end_date=date(2017, 3, 1)
+        )
+
+        self.assertEqual(250, goal.weekly_target, "Unexpected weekly target.")
+
+    def test_weekly_average(self):
+        dt = timezone.make_aware(datetime(2017, 2, 15))
+        with patch.object(timezone, 'now', lambda: dt):
+            user = create_test_regular_user()
+            goal = Goal.objects.create(
+                name='Goal 1',
+                user=user,
+                target=10000,
+                start_date=date(2017, 2, 1),
+                end_date=date(2017, 2, 28)
+            )
+
+            # Week 1
+            goal.transactions.create(
+                date=timezone.make_aware(datetime(2017, 2, 2)),
+                value=200
+            )
+
+            # Week 2
+            goal.transactions.create(
+                date=timezone.make_aware(datetime(2017, 2, 9)),
+                value=200
+            )
+            goal.transactions.create(
+                date=timezone.make_aware(datetime(2017, 2, 10)),
+                value=200
+            )
+
+            self.assertEqual(300, goal.weekly_average, "Unexpected weekly average.")
 
     def test_week_aggregates(self):
         user = create_test_regular_user()
@@ -642,17 +759,17 @@ class TestGoalModel(TestCase):
         goal.transactions.create(date=date(2016, 11, 17), value=100)
 
         # Week 4
-        goal.transactions.create(date=date(2016, 11, 21), value=100)
         goal.transactions.create(date=date(2016, 11, 22), value=100)
         goal.transactions.create(date=date(2016, 11, 23), value=100)
         goal.transactions.create(date=date(2016, 11, 24), value=100)
+        goal.transactions.create(date=date(2016, 11, 25), value=100)
 
         weekly_aggregates = goal.get_weekly_aggregates()
 
-        self.assertEqual(weekly_aggregates[0].value, 100)
-        self.assertEqual(weekly_aggregates[1].value, 200)
-        self.assertEqual(weekly_aggregates[2].value, 300)
-        self.assertEqual(weekly_aggregates[3].value, 400)
+        self.assertEqual(weekly_aggregates[0], 100)
+        self.assertEqual(weekly_aggregates[1], 200)
+        self.assertEqual(weekly_aggregates[2], 300)
+        self.assertEqual(weekly_aggregates[3], 400)
 
 
 class TestGoalAPI(APITestCase):
@@ -976,6 +1093,7 @@ class TestGoalPrototypesAPI(APITestCase):
         self.assertEquals(proto1.num_users, 2, "num_users field on Goal Prototype not calculated correctly")
         self.assertEquals(proto2.num_users, 1, "num_users field on Goal Prototype not calculated correctly")
 
+
 class TestGoalPrototypesModel(TestCase):
 
     def test_goal_proto_num_users_field_caculation(self):
@@ -1113,6 +1231,7 @@ class TestWeeklyStreaks(TestCase):
         streak = Goal.get_current_streak(user, now)
 
         self.assertEqual(streak, 0, "Unexpected weekly streak.")
+
 
 class TestWeeklyTargetStreaks(TestCase):
 
@@ -1302,6 +1421,7 @@ class TestWeeklyTargetStreaks(TestCase):
 
         self.assertEqual(streak, 0, "Unexpected weekly streak, should be 0")
 
+
 class TestAchievementAPI(APITestCase):
 
     def test_basic(self):
@@ -1344,7 +1464,7 @@ class TestBadgeAwarding(APITestCase):
     def setUpTestData(cls):
         cls.goal_first_created = Badge.objects.create(name='First Goal')
         cls.goal_halfway = Badge.objects.create(name='First Goal Halfway')
-        cls.goal_week_left = Badge.objects.create(name='First Goal Halfway')
+        cls.goal_week_left = Badge.objects.create(name='Week Left')
         cls.goal_first_done = Badge.objects.create(name='First Goal Done')
         cls.transaction_first = Badge.objects.create(name='First Savings Created')
         cls.streak_2 = Badge.objects.create(name='2 Week Streak')
@@ -1469,28 +1589,29 @@ class TestBadgeAwarding(APITestCase):
     # ------------------------ #
 
     def test_goal_halfway(self):
-        now = timezone.now()
-        user = create_test_regular_user('anon')
-        goal = Goal.objects.create(
-            name='Goal 1',
-            user=user,
-            target=10000,
-            start_date=now - timedelta(days=30),
-            end_date=now + timedelta(days=30)
-        )
+        dt = timezone.make_aware(datetime(2017, 2, 15))
+        with patch.object(timezone, 'now', lambda: dt):
+            user = create_test_regular_user('anon')
+            goal = Goal.objects.create(
+                name='Goal 1',
+                user=user,
+                target=10000,
+                start_date=timezone.make_aware(datetime(2017, 2, 1)),
+                end_date=timezone.make_aware(datetime(2017, 2, 28))
+            )
 
-        data = [{
-            'date': now.isoformat(),
-            'value': 5000
-        }]
+            data = [{
+                'date': timezone.now().isoformat(),
+                'value': 5000
+            }]
 
-        self.client.force_authenticate(user=user)
-        response = self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}), data, format='json')
+            self.client.force_authenticate(user=user)
+            response = self.client.post(reverse('api:goals-transactions', kwargs={'pk': goal.pk}), data, format='json')
 
-        self.assertNotEqual(len(response.data), 0, "No new Badges were returned.")
+            self.assertNotEqual(len(response.data), 0, "No new Badges were returned.")
 
-        badges = [b for b in response.data['new_badges'] if b['name'] == self.goal_halfway.name]
-        self.assertEqual(len(badges), 1, "Expected badge was not included")
+            badges = [b for b in response.data['new_badges'] if b['name'] == self.goal_halfway.name]
+            self.assertEqual(len(badges), 1, "Expected badge was not included")
 
     def test_goal_halfway_early(self):
         """User should not receive this badge before the halfway mark"""
@@ -1895,6 +2016,7 @@ class TestNotification(APITestCase):
         self.assertIsNone(winning_response.data['badge'], "Badge still available")
         self.assertIsNot(winning_response.data['challenge'], "Challenge still available")
 
+
 class TestBadgeUrls(APITestCase):
     def test_urls_returned(self):
         with mock.patch('content.models.Badge.image', new_callable=PropertyMock) as mock_image:
@@ -1923,6 +2045,7 @@ class TestBadgeUrls(APITestCase):
             )
             response = self.client.get(reverse('api:badge-urls', kwargs={}), format='json')
             self.assertEquals(response.data['urls'].__len__(), 0, "No urls should have been returned")
+
 
 class TestFeedback(APITestCase):
     def test_create_feedback(self):

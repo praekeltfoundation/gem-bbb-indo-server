@@ -6,7 +6,7 @@ from django.utils import timezone
 from rest_framework import serializers
 from rest_framework.reverse import reverse
 
-from .models import Challenge, FreeTextQuestion, QuestionOption, QuizQuestion, PictureQuestion
+from .models import Challenge, FreeTextQuestion, QuestionOption, QuizQuestion, PictureQuestion, CustomNotification
 from .models import Entry, Participant, ParticipantAnswer, ParticipantFreeText, ParticipantPicture
 from .models import Feedback
 from .models import Goal, GoalPrototype, GoalTransaction
@@ -545,10 +545,13 @@ class GoalSerializer(serializers.ModelSerializer):
     end_date = serializers.DateField()
     value = serializers.ReadOnlyField()
     target = serializers.DecimalField(18, 2, coerce_to_string=False)
-    week_count = serializers.ReadOnlyField()
-    week_count_to_now = serializers.ReadOnlyField()
+
+    # TODO: Calculated week and target values will be done on the frontend. They can be removed in the future when frontend installs no longer rely on them
+    week_count = serializers.SerializerMethodField()
+    week_count_to_now = serializers.SerializerMethodField()
     weekly_average = serializers.ReadOnlyField()
     weekly_target = serializers.ReadOnlyField()
+
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
     image_url = serializers.SerializerMethodField()
     new_badges = UserBadgeSerializer(many=True, required=False, read_only=True)
@@ -562,6 +565,18 @@ class GoalSerializer(serializers.ModelSerializer):
         read_only_fields = ('id', 'weekly_totals')
         extra_kwargs = {'image': {'write_only': True}}
 
+    @staticmethod
+    def get_week_count(obj):
+        """Field name changed. To maintain compatibility with older frontend versions."""
+        # TODO: Remove with serializer fields
+        return obj.weeks
+
+    @staticmethod
+    def get_week_count_to_now(obj):
+        """Field name changed. To maintain compatibility with older frontend versions."""
+        # TODO: Remove with serializer fields
+        return obj.weeks_to_now
+
     def get_image_url(self, obj):
         request = self.context['request']
         if obj.image:
@@ -573,8 +588,9 @@ class GoalSerializer(serializers.ModelSerializer):
 
     def get_weekly_totals(self, obj):
         d = OrderedDict()
-        for week in obj.get_weekly_aggregates():
-            d[str(week.id)] = float(week.value)
+        for index, week in enumerate(obj.get_weekly_aggregates()):
+            # The frontend displays the weeks starting from 1
+            d[str(index + 1)] = float(week)
         return d
 
     def get_new_badges(self, obj):
@@ -666,3 +682,27 @@ class FeedbackSerializer(serializers.ModelSerializer):
 
     def create(self, validated_data):
         return Feedback.objects.create(**validated_data)
+
+
+########################
+# Custom Notifications #
+########################
+
+
+class CustomNotificationSerializer(serializers.ModelSerializer):
+    message = serializers.ReadOnlyField()
+    publish_date = serializers.DateField()
+    expiration_date = serializers.DateField()
+    # persist = serializers.BooleanField()
+    icon = serializers.SerializerMethodField()
+
+    class Meta:
+        model = CustomNotification
+        fields = ('message', 'publish_date', 'expiration_date', 'icon')
+
+    def get_icon(self, obj):
+        request = self.context['request']
+        if obj.icon:
+            return request.build_absolute_uri(obj.icon.file.url)
+        else:
+            return None

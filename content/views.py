@@ -1,4 +1,6 @@
 from collections import OrderedDict
+from datetime import timedelta
+from django.utils import timezone
 
 from django.contrib.auth.models import User
 from django.http import Http404
@@ -16,7 +18,7 @@ from wagtail.wagtailcore.models import Site
 
 from .exceptions import ImageNotFound
 
-from .models import award_entry_badge
+from .models import award_entry_badge, CustomNotification
 from .models import AchievementStat
 from .models import Badge, Challenge, Entry
 from .models import BadgeSettings, award_challenge_win
@@ -29,7 +31,7 @@ from .models import award_first_goal, award_goal_done, award_goal_halfway, award
     award_transaction_first, award_week_streak
 from .models import award_weekly_target_badge, WEEKLY_TARGET_2, WEEKLY_TARGET_4, WEEKLY_TARGET_6
 from .permissions import IsAdminOrOwner, IsUserSelf
-from .serializers import AchievementStatSerializer, UserBadgeSerializer
+from .serializers import AchievementStatSerializer, UserBadgeSerializer, CustomNotificationSerializer
 from .serializers import ChallengeSerializer, EntrySerializer
 from .serializers import FeedbackSerializer
 from .serializers import GoalPrototypeSerializer, GoalSerializer, GoalTransactionSerializer
@@ -117,7 +119,6 @@ class ChallengeViewSet(viewsets.ModelViewSet):
     @list_route(methods=['get'])
     def winning(self, request, *args, **kwargs):
         """Returns winning status, and badge and challenge if available"""
-        # TODO: Filter by notification flag
         participant = Participant.objects.filter(user=request.user, is_winner=True, has_been_notified=False) \
             .order_by('date_completed') \
             .first()
@@ -154,6 +155,67 @@ class ChallengeViewSet(viewsets.ModelViewSet):
             p.save()
 
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+    @list_route(methods=['get'])
+    def participation(self, request, *args, **kwargs):
+        """Returns true if a user has started a challenge within 2 days of it being created, otherwise false"""
+
+        try:
+            challenge = Challenge.objects.get(state=Challenge.CST_PUBLISHED,
+                                              activation_date__lt=(timezone.now() - timedelta(days=2)))
+        except:
+            return Response({"available": False})
+
+        # If there is no challenge active at the time
+        if challenge is None:
+            return Response({"available": False})
+
+        participant = Participant.objects.filter(user_id=request.user.id,
+                                                 # date_created__gt=(timezone.now() - timedelta(days=2)),
+                                                 challenge=challenge)
+
+        # If participant is None, there is no challenge available reminder notification
+        if not participant:
+            return Response({"available": False})
+        return Response({"available": True})
+
+    @list_route(methods=['get'])
+    def challenge_incomplete(self, request, *args, **kwargs):
+        """Returns true if the user has started a challenge but not submitted their entry"""
+
+        # TODO: Unclear how soon before the deadline this must trigger
+
+        try:
+            challenge = Challenge.objects.get(state=Challenge.CST_PUBLISHED,
+                                              deactivation_date__lt=(timezone.now() + timedelta(days=1)))
+        except:
+            return Response({"available": False})
+
+        # No active challenge
+        if not challenge:
+            return Response({"available": False})
+
+        participant = Participant.objects.filter(user_id=request.user.id,
+                                                 challenge=challenge)
+
+        # User has not participated in challenge
+        if not participant:
+            return Response({"available": False})
+
+        try:
+            if challenge.type == Challenge.CTP_QUIZ:
+                entry = ParticipantAnswer.objects.get(participant=participant)
+            if challenge.type == Challenge.CTP_PICTURE:
+                entry = ParticipantPicture.objects.get(participant=participant)
+            if challenge.type == Challenge.CTP_FREEFORM:
+                entry = ParticipantFreeText.objects.get(participant=participant)
+        except:
+            return Response({"available": False})
+
+        # User has not entered the challenge
+        if not entry:
+            return Response({"available": False})
+        return Response({"available": True})
 
 
 # ================= #
@@ -544,6 +606,32 @@ class GoalViewSet(viewsets.ModelViewSet):
             serializer = GoalTransactionSerializer(goal.transactions.all(), many=True)
             return Response(serializer.data, status=status.HTTP_200_OK)
 
+    @list_route(methods=['get'])
+    def deadline(self, request, pk=None, *args, **kwargs):
+        goal = Goal.objects.filter(state=Goal.ACTIVE)
+        if not goal:
+            data = {'available': False, 'overdue_goal': None}
+            return Response(data, status=status.HTTP_200_OK)
+        serializer = GoalSerializer(data=request.data, many=True)
+        if serializer.is_valid(raise_exception=True):
+            missed_goal = self.get_deadline_missed_goal()
+            data = {
+                'available': missed_goal is not None,
+                'overdue_goal': GoalSerializer(missed_goal, context=self.get_serializer_context()).data
+            }
+            return Response(data, status=status.HTTP_200_OK)
+
+    @staticmethod
+    def get_deadline_missed_goal():
+        all_goals = Goal.objects.filter(state=Goal.ACTIVE)
+
+        for goal in all_goals:
+            if goal.is_goal_deadline_missed():
+                return goal
+
+        # Return all overdue goals
+        # return [g for g in all_goals if g.is_goal_deadline_missed() is True]
+
     @staticmethod
     def award_badges(request, goal):
         new_badges = [
@@ -661,3 +749,21 @@ class FeedbackViewSet(viewsets.ModelViewSet):
         if serial.is_valid(raise_exception=True):
             serial.save()
             return Response(serial.data)
+
+
+########################
+# Custom Notifications #
+########################
+
+
+class CustomNotificationViewSet(viewsets.ModelViewSet):
+    serializer_class = CustomNotificationSerializer
+
+    @list_route(methods=['get'])
+    def current(self, request, *args, **kawrgs):
+        """Returns an available flag and list of all current custom notifications"""
+        ndata = self.get_serializer(CustomNotification.get_all_current_notifications(), many=True).data
+        return Response({
+            "available": bool(ndata),
+            "notifications": ndata
+        })

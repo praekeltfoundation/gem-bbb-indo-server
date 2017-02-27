@@ -2,10 +2,19 @@
 Changelog
 =========
 
+0.1.4
+-----
+
+- Implemented Ad Hoc Notifications
+- Implemented Challenge Reminder Notification
+- Implemented Challenge Completion Reminder Notification
+- Implemented Goal Deadline Missed Notification
+
 0.1.3
 -----
 
 - Implemented endpoint for use in pre-fetching badge images
+- Changed weekly calculations from Monday-Sunday window to counted from starting date
 
 0.1.2
 -----
