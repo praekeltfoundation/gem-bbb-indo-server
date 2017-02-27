@@ -2026,6 +2026,40 @@ class TestNotification(APITestCase):
         self.assertIsNone(winning_response.data['badge'], "Badge still available")
         self.assertIsNot(winning_response.data['challenge'], "Challenge still available")
 
+    def test_goal_deadline_missed_notification_active(self):
+        """Checks to see that a user gets a notification when they have missed challenge deadline"""
+        user = create_test_regular_user('anon')
+
+        goal = Goal.objects.create(name="goal 1",
+                                   user=user,
+                                   target=10000,
+                                   weekly_target=100,
+                                   start_date=timezone.now() - timedelta(days=30),
+                                   end_date=timezone.now() - timedelta(days=25))
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:goals-deadline'), format='json')
+
+        self.assertEqual(response.data['available'], True,
+                         "Could not retrieve goal deadline missed notifications")
+
+    def test_goal_deadline_missed_notification_inactive(self):
+        """Checks to see that a user gets a doesn't get a notification when no deadline is missed"""
+        user = create_test_regular_user('anon')
+
+        goal = Goal.objects.create(name="goal 1",
+                                   user=user,
+                                   target=10000,
+                                   weekly_target=100,
+                                   start_date=timezone.now() - timedelta(days=30),
+                                   end_date=timezone.now() + timedelta(days=30))
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:goals-deadline'), format='json')
+
+        self.assertEqual(response.data['available'], False,
+                         "Goal deadline notification was inadvertently sent")
+
     def test_custom_notifications_active(self):
         """Checks to see a custom notification can be retrieved"""
         user = create_test_regular_user('anon')
