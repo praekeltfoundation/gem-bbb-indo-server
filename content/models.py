@@ -1283,6 +1283,11 @@ class Goal(models.Model):
 
         return streak
 
+    def is_goal_deadline_missed(self):
+        if timezone.now().date() > self.end_date:
+            return True
+        else:
+            return False
 
     def __str__(self):
         return self.name
