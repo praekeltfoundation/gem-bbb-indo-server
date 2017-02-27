@@ -608,19 +608,12 @@ class GoalViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def deadline(self, request, pk=None, *args, **kwargs):
-        goal = Goal.objects.filter(user_id=request.user.id,
-                                   state=Goal.ACTIVE)
-        if not goal:
-            data = {'available': False, 'overdue_goal': None}
-            return Response(data, status=status.HTTP_200_OK)
-        serializer = GoalSerializer(data=request.data, many=True)
-        if serializer.is_valid(raise_exception=True):
-            missed_goal = self.get_deadline_missed_goal(request.user.id)
-            data = {
-                'available': missed_goal is not None,
-                'overdue_goal': GoalSerializer(missed_goal, context=self.get_serializer_context()).data
-            }
-            return Response(data, status=status.HTTP_200_OK)
+        missed_goal = self.get_deadline_missed_goal(request.user.id)
+        data = {
+            'available': missed_goal is not None,
+            'overdue_goal': GoalSerializer(missed_goal, context=self.get_serializer_context()).data
+        }
+        return Response(data, status=status.HTTP_200_OK)
 
     @staticmethod
     def get_deadline_missed_goal(user_id):
