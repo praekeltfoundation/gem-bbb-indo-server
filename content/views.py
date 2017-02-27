@@ -3,6 +3,7 @@ from datetime import timedelta
 from django.utils import timezone
 
 from django.contrib.auth.models import User
+from django.http import Http404
 from django.shortcuts import get_object_or_404, render
 from rest_framework import status
 from rest_framework import viewsets
@@ -342,6 +343,20 @@ class ParticipantPictureViewSet(viewsets.ModelViewSet):
         if not participantpicture.picture:
             raise ImageNotFound()
         return sendfile(request, participantpicture.picture.path)
+
+    @detail_route(methods=['post'])
+    def caption(self, request, pk=None, *args, **kwargs):
+        participant = get_object_or_404(Participant, pk=pk)
+        self.check_object_permissions(request, participant)
+        print(participant)
+        participant_picture = get_object_or_404(ParticipantPicture, participant=participant)
+        #if the participantpicture does not exist then you cant add a caption to it, ie the calls were sent in the
+        #incorrect order on the front end
+        #The get_object_or_404 will then trow the 404 error
+        participant_picture.caption = request.data['caption']
+        participant_picture.save()
+
+        return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 class ParticipantImageView(GenericAPIView):
