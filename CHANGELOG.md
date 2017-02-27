@@ -9,6 +9,7 @@ Changelog
 - Implemented Challenge Reminder Notification
 - Implemented Challenge Completion Reminder Notification
 - Implemented Goal Deadline Missed Notification
+- Changed Weekly Target from calculated property to db field
 
 0.1.3
 -----

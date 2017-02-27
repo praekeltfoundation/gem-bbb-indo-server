@@ -402,7 +402,7 @@ class ParticipantPictureSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ParticipantPicture
-        fields = ('participant', 'question', 'picture', 'date_answered', 'date_saved')
+        fields = ('participant', 'question', 'picture', 'date_answered', 'date_saved', 'caption')
         read_only_fields = ('date_saved',)
         extra_kwargs = {'picture': {'required': False}}
 
@@ -550,7 +550,8 @@ class GoalSerializer(serializers.ModelSerializer):
     week_count = serializers.SerializerMethodField()
     week_count_to_now = serializers.SerializerMethodField()
     weekly_average = serializers.ReadOnlyField()
-    weekly_target = serializers.ReadOnlyField()
+    weekly_target = serializers.DecimalField(18, 2, coerce_to_string=False)
+                                             # default=Goal.calculate_weekly_target(start_date, end_date, target))
 
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
     image_url = serializers.SerializerMethodField()
@@ -627,6 +628,8 @@ class GoalSerializer(serializers.ModelSerializer):
         # TODO: Image Field
         # Goal owner can not be updated.
         # instance.user = validated_data.get('user', instance.user)
+
+        instance.weekly_target = validated_data.get('weekly_target', instance.weekly_target)
 
         # If the new values are different to the existing, update them and record their modified date
         if instance.end_date != validated_data.get('end_date', instance.end_date):
