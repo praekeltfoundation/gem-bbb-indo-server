@@ -952,12 +952,6 @@ class WeekCalc:
     @classmethod
     def week_diff(cls, from_date, to_date, rounding):
         if rounding == cls.Rounding.UP:
-            # start_date = datetime.datetime(year=from_date.year, month=from_date._month, day=from_date._day)
-            # end_endate = datetime.datetime(year=to_date.year, month=to_date.month, day=to_date.day)
-            # m = datetime.datetime(from_date)
-            # days = from_date - to_date
-            # weeks = days / 7.0
-            # return ceil(weeks)
             return ceil((to_date - from_date).days / 7.0)
         elif rounding == cls.Rounding.DOWN:
             return floor((to_date - from_date).days / 7.0)
