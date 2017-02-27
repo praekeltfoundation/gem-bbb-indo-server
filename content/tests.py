@@ -24,7 +24,7 @@ from users.models import User, RegUser, Profile
 
 # content function imports
 from .models import award_challenge_win, QuizQuestion, FreeTextQuestion, PictureQuestion, QuestionOption, \
-    award_first_goal
+    award_first_goal, CustomNotification
 
 # content model imports
 from .models import Badge, BadgeSettings, UserBadge
@@ -1957,6 +1957,59 @@ class TestNotification(APITestCase):
         self.assertFalse(winning_response.data['available'], "Winner still available")
         self.assertIsNone(winning_response.data['badge'], "Badge still available")
         self.assertIsNot(winning_response.data['challenge'], "Challenge still available")
+
+    def test_custom_notifications_active(self):
+        """Checks to see a custom notification can be retrieved"""
+        user = create_test_regular_user('anon')
+        notification = CustomNotification.objects.create(message="Test notification 1",
+                                                         publish_date=timezone.now(),
+                                                         expiration_date=timezone.now() + timedelta(days=30))
+        notification.save()
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:notifications-current'))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Error when retrieving custom notifications")
+
+        self.assertTrue(response.data['available'], "Custom notification not available")
+        self.assertIsNotNone(response.data['notifications'], "Empty notification response")
+
+    def test_custom_notifications_inactive(self):
+        """Checks to see a custom notification can't be read once it's expired"""
+        user = create_test_regular_user('anon')
+        notification = CustomNotification.objects.create(message="Test notification 1",
+                                                         publish_date=timezone.now() - timedelta(days=30),
+                                                         expiration_date=timezone.now() - timedelta(days=5))
+        notification.save()
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:notifications-current'))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Error when retrieving custom notifications")
+
+        self.assertFalse(response.data['available'], "Custom notification available after expiration")
+        self.assertEqual(len(response.data['notifications']), 0, "Custom notification has unexpected content")
+
+    def test_multiple_custom_notifications_active(self):
+        """Checks to multiple notifications can be returned"""
+        user = create_test_regular_user('anon')
+        notification = CustomNotification.objects.create(message="Test notification 1",
+                                                         publish_date=timezone.now() - timedelta(days=30),
+                                                         expiration_date=timezone.now() + timedelta(days=30))
+        notification.save()
+
+        notification = CustomNotification.objects.create(message="Test notification 2",
+                                                         publish_date=timezone.now() - timedelta(days=20),
+                                                         expiration_date=timezone.now() + timedelta(days=40))
+        notification.save()
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:notifications-current'))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Error when retrieving custom notifications")
+
+        self.assertTrue(response.data['available'], "Multiple custom notifications not available")
+        self.assertEquals(len(response.data), 2, "Incorrect number of notifications returned")
 
 
 class TestBadgeUrls(APITestCase):
