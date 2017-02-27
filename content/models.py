@@ -10,6 +10,7 @@ from django.apps import apps
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Count
+import datetime
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.html import format_html
@@ -1043,6 +1044,7 @@ class Goal(models.Model):
         (ACTIVE, _('Active')),
     ), default=ACTIVE)
     target = models.DecimalField(max_digits=18, decimal_places=2)
+    weekly_target = models.DecimalField(max_digits=18, decimal_places=2)
     image = models.ImageField(upload_to=get_goal_image_filename, storage=GoalImgStorage(), null=True, blank=True)
     user = models.ForeignKey(User, related_name='+')
     prototype = models.ForeignKey('GoalPrototype', related_name='goals', on_delete=models.SET_NULL,
@@ -1056,6 +1058,12 @@ class Goal(models.Model):
 
         # Translators: Plural collection name on CMS
         verbose_name_plural = _('goals')
+
+    def save(self, *args, **kwargs):
+        # Ensure Weekly Target
+        if self.weekly_target is None:
+            self.weekly_target = self.get_calculated_weekly_target()
+        return super(Goal, self).save(*args, **kwargs)
 
     def add_new_badge(self, badge):
         if not hasattr(self, '_new_badges'):
@@ -1129,9 +1137,13 @@ class Goal(models.Model):
         weeks_to_now = self.weeks_to_now
         return self.value if weeks_to_now == 0 else ceil(self.value / self.weeks_to_now)
 
-    @property
-    def weekly_target(self):
-        """The weekly target for the entire Goal."""
+    # @property
+    # def weekly_target(self):
+    #     """The weekly target for the entire Goal."""
+    #     weeks = self.weeks
+    #     return self.target if weeks == 0 else ceil(self.target / weeks)
+
+    def get_calculated_weekly_target(self):
         weeks = self.weeks
         return self.target if weeks == 0 else ceil(self.target / weeks)
 
@@ -1164,6 +1176,11 @@ class Goal(models.Model):
             agg[week_id] += trans.value
 
         return agg
+
+    @classmethod
+    def calculate_weekly_target(cls, start_date, end_date, target):
+        weeks = WeekCalc.week_diff(start_date, end_date, WeekCalc.Rounding.UP) or 1
+        return target if weeks == 0 else ceil(target / weeks)
 
     @classmethod
     def get_current_streak(cls, user, now=None, weeks_back=6):
@@ -1262,6 +1279,11 @@ class Goal(models.Model):
 
         return streak
 
+    def is_goal_deadline_missed(self):
+        if timezone.now().date() > self.end_date and self.is_active:
+            return True
+        else:
+            return False
 
     def __str__(self):
         return self.name

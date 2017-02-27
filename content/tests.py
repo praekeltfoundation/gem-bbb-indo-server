@@ -842,7 +842,8 @@ class TestGoalAPI(APITestCase):
             "start_date": datetime.utcnow().strftime('%Y-%m-%d'),
             "end_date": datetime.utcnow().strftime('%Y-%m-%d'),
             "target": 1000,
-            "image": None
+            "image": None,
+            "weekly_target": 100
         }
 
         self.client.force_authenticate(user=user)
@@ -863,7 +864,8 @@ class TestGoalAPI(APITestCase):
             "start_date": '2015-11-01',
             "end_date": '2015-11-30',
             "target": 9000,
-            "image": None
+            "image": None,
+            "weekly_target": 1000
         }
 
         self.client.force_authenticate(user=user)
@@ -890,7 +892,8 @@ class TestGoalAPI(APITestCase):
             "start_date": '2015-11-01',
             "end_date": '2015-11-30',
             "target": 9000,
-            "image": None
+            "image": None,
+            "weekly_target": 2500
         }
 
         self.assertEquals(goal.end_date_modified, None, "Unmodified goal end date should be null")
@@ -922,6 +925,7 @@ class TestGoalAPI(APITestCase):
             "start_date": datetime.utcnow().strftime('%Y-%m-%d'),
             "end_date": datetime.utcnow().strftime('%Y-%m-%d'),
             "target": 1000,
+            "weekly_target": 250,
             "image": None,
             "user": user_2.id  # Different user
         }
@@ -1014,6 +1018,7 @@ class TestGoalTransactionAPI(APITestCase):
             "start_date": datetime.utcnow().strftime('%Y-%m-%d'),
             "end_date": datetime.utcnow().strftime('%Y-%m-%d'),
             "target": 9000,
+            "weekly_target": 1000,
             "transactions": [{
                 # Duplicate
                 "date": trans.date.isoformat(),
@@ -1063,7 +1068,8 @@ class TestGoalPrototypesAPI(APITestCase):
             'target': 12000,
             'start_date': datetime(2016, 11, 1, tzinfo=timezone.utc).strftime('%Y-%m-%d'),
             'end_date': datetime(2016, 11, 30, tzinfo=timezone.utc).strftime('%Y-%m-%d'),
-            'prototype': proto.id
+            'prototype': proto.id,
+            "weekly_target": 1000
         }
 
         self.client.force_authenticate(user=user)
@@ -1497,7 +1503,8 @@ class TestBadgeAwarding(APITestCase):
             'name': 'Goal 1',
             'target': 10000,
             'start_date': '2016-11-01',
-            'end_date': '2016-11-30'
+            'end_date': '2016-11-30',
+            'weekly_target': 2500
         }
 
         self.client.force_authenticate(user=user)
@@ -1513,7 +1520,8 @@ class TestBadgeAwarding(APITestCase):
             user=user,
             target=100000,
             start_date=now - timedelta(days=30),
-            end_date=now
+            end_date=now,
+            weekly_target=5000
         )
         UserBadge.objects.create(user=user, badge=self.goal_first_created)
 
@@ -1521,7 +1529,8 @@ class TestBadgeAwarding(APITestCase):
             'name': 'Goal 1',
             'target': 10000,
             'start_date': '2016-11-01',
-            'end_date': '2016-11-30'
+            'end_date': '2016-11-30',
+            'weekly_target': 2500
         }
 
         self.client.force_authenticate(user=user)
@@ -1541,7 +1550,8 @@ class TestBadgeAwarding(APITestCase):
             user=user,
             target=10000,
             start_date=now - timedelta(days=30),
-            end_date=now + timedelta(days=30)
+            end_date=now + timedelta(days=30),
+            weekly_target=500
         )
 
         data = [{
