@@ -158,11 +158,10 @@ class ChallengeViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def participation(self, request, *args, **kwargs):
-        """Returns true if a user has started a challenge within 2 days of it being created, otherwise false"""
+        """Returns true if notification should be shown, and false otherwise"""
 
         try:
-            challenge = Challenge.objects.get(state=Challenge.CST_PUBLISHED,
-                                              activation_date__lt=(timezone.now() - timedelta(days=2)))
+            challenge = Challenge.objects.get(state=Challenge.CST_PUBLISHED)
         except:
             return Response({"available": False})
 
@@ -170,14 +169,14 @@ class ChallengeViewSet(viewsets.ModelViewSet):
         if challenge is None:
             return Response({"available": False})
 
-        participant = Participant.objects.filter(user_id=request.user.id,
-                                                 # date_created__gt=(timezone.now() - timedelta(days=2)),
-                                                 challenge=challenge)
+        has_participated = Participant.objects.filter(user_id=request.user.id, challenge=challenge).exists()
 
-        # If participant is None, there is no challenge available reminder notification
-        if not participant:
-            return Response({"available": False})
-        return Response({"available": True})
+        """User hasn't participated and challenge available for more than two days"""
+        date_two_days_ago = timezone.now() - timedelta(days=2)
+        if has_participated is False and challenge.activation_date < date_two_days_ago:
+            return Response({"available": True})
+
+        return Response({"available": False})
 
     @list_route(methods=['get'])
     def challenge_incomplete(self, request, *args, **kwargs):

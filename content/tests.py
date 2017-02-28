@@ -2340,6 +2340,91 @@ class TestNotification(APITestCase):
         response = self.client.get(reverse('api:challenges-challenge-incomplete'), format='json')
         self.assertFalse(response.data['available'], "Challenge completion notification incorrectly available")
 
+    def test_challenge_participation_notification_premature(self):
+        """
+        Create regular user
+        Create challenge (Only active one day ago)
+        Don't participate within two days of it being available
+        Receive notification to participate
+        """
+
+        user = create_test_regular_user('anon')
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:challenges-participation'), format='json')
+
+        self.assertFalse(response.data['available'],
+                         "Challenge participation notification available when no challenge is available")
+
+        challenge = Challenge.objects.create(name="challenge 1",
+                                             type=Challenge.CTP_FREEFORM,
+                                             activation_date=timezone.now() - timedelta(days=1),
+                                             deactivation_date=timezone.now() + timedelta(days=30),
+                                             state=Challenge.CST_PUBLISHED)
+        challenge.save()
+
+        response = self.client.get(reverse('api:challenges-participation'), format='json')
+
+        self.assertFalse(response.data['available'],
+                         "User receive notification for challenge only active for one day")
+
+    def test_challenge_participation_notification_active(self):
+        """
+        Create regular user
+        Create challenge
+        Don't participate within two days of it being available
+        Receive notification to participate
+        """
+
+        user = create_test_regular_user('anon')
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:challenges-participation'), format='json')
+
+        self.assertFalse(response.data['available'],
+                         "Challenge participation notification available when no challenge is available")
+
+        challenge = Challenge.objects.create(name="challenge 1",
+                                             type=Challenge.CTP_FREEFORM,
+                                             activation_date=timezone.now() - timedelta(days=30),
+                                             deactivation_date=timezone.now() + timedelta(days=30),
+                                             state=Challenge.CST_PUBLISHED)
+        challenge.save()
+
+        response = self.client.get(reverse('api:challenges-participation'), format='json')
+
+        self.assertTrue(response.data['available'],
+                        "User has not participated and did not receive notification to do so")
+
+    def test_challenge_participation_notification_inactive(self):
+        """
+        Create regular user
+        Create challenge
+        Participate within two days of it being available
+        Don't receive notification to participate
+        """
+        user = create_test_regular_user('anon')
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:challenges-participation'), format='json')
+
+        self.assertFalse(response.data['available'],
+                         "Challenge participation notification available when no challenge is available")
+
+        challenge = Challenge.objects.create(name="challenge 1",
+                                             type=Challenge.CTP_FREEFORM,
+                                             activation_date=timezone.now() - timedelta(days=30),
+                                             deactivation_date=timezone.now() + timedelta(days=30),
+                                             state=Challenge.CST_PUBLISHED)
+        challenge.save()
+
+        participant = Participant.objects.create(user=user, challenge=challenge)
+
+        response = self.client.get(reverse('api:challenges-participation'), format='json')
+
+        self.assertFalse(response.data['available'],
+                         "User has participated and did receive notification")
+
     def test_custom_notifications_active(self):
         """Checks to see a custom notification can be retrieved"""
         user = create_test_regular_user('anon')
