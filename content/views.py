@@ -181,13 +181,12 @@ class ChallengeViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def challenge_incomplete(self, request, *args, **kwargs):
-        """Returns true if the user has started a challenge but not submitted their entry"""
-
-        # TODO: Unclear how soon before the deadline this must trigger
+        """Returns true if the user has started a challenge but not submitted their entry, and the challenge
+        is ending in the next two days"""
 
         try:
             challenge = Challenge.objects.get(state=Challenge.CST_PUBLISHED,
-                                              deactivation_date__lt=(timezone.now() + timedelta(days=1)))
+                                              deactivation_date__lt=(timezone.now() + timedelta(days=2)))
         except:
             return Response({"available": False})
 
@@ -204,7 +203,8 @@ class ChallengeViewSet(viewsets.ModelViewSet):
 
         try:
             if challenge.type == Challenge.CTP_QUIZ:
-                entry = ParticipantAnswer.objects.get(participant=participant)
+                entry = Entry.objects.get(participant=participant)
+                # entry = ParticipantAnswer.objects.get(participant=participant)
             if challenge.type == Challenge.CTP_PICTURE:
                 entry = ParticipantPicture.objects.get(participant=participant)
             if challenge.type == Challenge.CTP_FREEFORM:
