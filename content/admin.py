@@ -4,7 +4,8 @@ from django.utils.translation import ugettext as _
 from django import forms
 import wagtail.contrib.modeladmin.options as wagadmin
 
-from content.admin_views import GoalAdminIndex
+from content.admin_views import GoalAdminIndex, UserAdminIndex
+from users.models import Profile
 from .models import Challenge, FreeTextQuestion, Participant, PictureQuestion, QuestionOption, QuizQuestion
 from .models import Goal, GoalTransaction
 from .models import Tip, TipFavourite
@@ -174,8 +175,6 @@ class FrontendGoalAdmin(wagadmin.ModelAdmin):
     # search_fields('name', 'user__username')
     index_view_class = GoalAdminIndex
 
-    # TODO: date_achieved, date_deleted
-
     list_display = ('get_username', 'goal_category', 'name',
                     'target', 'value', 'progress',
                     'weekly_average', 'weeks', 'weeks_left',
@@ -277,3 +276,16 @@ class FrontendGoalAdmin(wagadmin.ModelAdmin):
         return 0
     date_deleted.short_description = 'Date goal was deleted'
 
+
+class FrontendUserAdmin(wagadmin.ModelAdmin):
+    model = Profile
+
+    menu_label = _('Users Export')
+    menu_order = 100
+
+    add_to_settings_menu = False
+    # search_fields('name', 'user__username')
+    index_view_class = UserAdminIndex
+
+    list_display = ('gender', 'age')
+    list_filter = ('user',)

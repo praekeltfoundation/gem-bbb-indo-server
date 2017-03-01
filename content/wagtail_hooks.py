@@ -5,7 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 from wagtail.contrib.modeladmin.options import ModelAdmin, ModelAdminGroup, modeladmin_register
 from wagtail.wagtailcore import hooks
 
-from content.admin import FrontendGoalAdmin
+from content.admin import FrontendGoalAdmin, FrontendUserAdmin
 from .models import Challenge, Participant, CustomNotification
 from .models import FreeTextQuestion, PictureQuestion, QuizQuestion
 from .models import GoalPrototype
@@ -157,6 +157,6 @@ class DataExportAdmin(ModelAdminGroup):
     menu_label = _('Data Exports')
     menu_icon = 'user'
     menu_order = 200
-    items = (FrontendGoalAdmin, GoalPrototypeAdmin)
+    items = (FrontendGoalAdmin, FrontendUserAdmin)
 
 modeladmin_register(DataExportAdmin)
