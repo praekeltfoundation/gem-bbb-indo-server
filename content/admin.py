@@ -3,6 +3,8 @@ from django.contrib import admin
 from django.utils.translation import ugettext as _
 from django import forms
 import wagtail.contrib.modeladmin.options as wagadmin
+
+from content.admin_views import GoalAdminIndex
 from .models import Challenge, FreeTextQuestion, Participant, PictureQuestion, QuestionOption, QuizQuestion
 from .models import Goal, GoalTransaction
 from .models import Tip, TipFavourite
@@ -160,3 +162,121 @@ class GoalAdmin(admin.ModelAdmin):
     list_display = ('name', 'user', 'target', 'value')
     list_filter = ('user',)
     inlines = (GoalTransactionInline,)
+
+
+class FrontendGoalAdmin(wagadmin.ModelAdmin):
+    model = Goal
+
+    menu_label = _('User Goal Export')
+    menu_order = 100
+
+    add_to_settings_menu = False
+    # search_fields('name', 'user__username')
+    index_view_class = GoalAdminIndex
+
+    # TODO: date_achieved, date_deleted
+
+    list_display = ('get_username', 'goal_category', 'name', 'target', 'value', 'progress', 'weekly_average',
+                    'weeks', 'weeks_left', 'num_weeks_saved', 'num_weeks_saved_below', 'num_weeks_saved_above',
+                    'num_weeks_not_saved', 'num_withdrawals', 'num_weekly_target_edited', 'num_weekly_target_increased',
+                    'num_weekly_target_decreased', 'weekly_target_original', 'weekly_target', 'num_goal_target_edited',
+                    'num_goal_target_increased', 'num_goal_target_decreased', 'goal_weeks_initial',
+                    'goal_weeks_current', 'start_date', 'is_goal_reached', 'date_achieved', 'is_active', 'date_deleted')
+    list_filter = ('user',)
+
+    def get_username(self, obj):
+        return obj.user.username
+    get_username.short_description = 'Username'
+    get_username.admin_order_field = 'get_username'
+
+    def goal_category(self, obj):
+        return obj.prototype
+    goal_category.short_description = 'Goal Category'
+    goal_category.admin_order_field = 'goal_category'
+
+    def num_weeks_saved(self, obj):
+        # TODO: Return number of weeks that the user has saved
+        return 0
+    num_weeks_saved.short_description = 'Number of weeks saved'
+    num_weeks_saved.admin_order_field = 'num_weeks_saved'
+
+    def num_weeks_saved_below(self, obj):
+        # TODO: Return number of weeks saved below target
+        return 0
+    num_weeks_saved_below.short_description = 'Number of weeks saved below target'
+    num_weeks_saved_below.admin_order_field = 'num_weeks_saved_below'
+
+    def num_weeks_saved_above(self, obj):
+        # TODO: Return number of weeks saved above target
+        return 0
+    num_weeks_saved_above.short_description = 'Number of weeks saved above target'
+    num_weeks_saved_above.admin_order_field = 'num_weeks_saved_above'
+
+    def num_weeks_not_saved(self, obj):
+        # TODO: Return the number of weeks the user hasn't saved
+        return 0
+    num_weeks_not_saved.short_description = 'Number of weeks not saved'
+    num_weeks_not_saved.admin_order_field = 'num_weeks_not_saved'
+
+    def num_withdrawals(self, obj):
+        # TODO: Return the number of times the user has withdrawn
+        return 0
+    num_withdrawals.short_description = 'Number of withdrawals'
+    num_withdrawals.admin_order_field = 'num_withdrawals'
+
+    def num_weekly_target_edited(self, obj):
+        # TODO: Return the number of times the user has edited their weekly target
+        return 0
+    num_weekly_target_edited.short_description = 'Number of weekly target edits'
+    num_weekly_target_edited.admin_order_field = 'num_weekly_target_edited'
+
+    def num_weekly_target_increased(self, obj):
+        # TODO: Return the number of times weekly target increased
+        return 0
+    num_weekly_target_increased.short_description = 'Weekly target increased'
+    num_weekly_target_increased.admin_order_field = 'num_weekly_target_increased'
+
+    def num_weekly_target_decreased(self, obj):
+        # TODO: Return the number of times weekly target decreased
+        return 0
+    num_weekly_target_decreased.short_description = 'Weekly target decreased'
+    num_weekly_target_decreased.admin_order_field = 'num_weekly_target_decreased'
+
+    def weekly_target_original(self, obj):
+        # TODO: Return the original (first) weekly target
+        return 0
+    weekly_target_original.short_description = 'Original weekly target'
+    weekly_target_original.admin_order_field = 'weekly_target_original'
+
+    def num_goal_target_edited(self, obj):
+        # TODO: Return the number of times the goals target was edited
+        return 0
+    num_goal_target_edited.short_description = 'Times goal target edited'
+    num_goal_target_edited.admin_order_field = 'num_goal_target_edited'
+
+    def num_goal_target_increased(self, obj):
+        # TODO: Return the number of times goal target increased
+        return 0
+    num_goal_target_increased.short_description = 'Goal target increased'
+    num_goal_target_increased.admin_order_field = 'num_goal_target_increased'
+
+    def num_goal_target_decreased(self, obj):
+        # TODO: Return the number of times goal target decreased
+        return 0
+    num_goal_target_decreased.short_description = 'Goal target decreased'
+    num_goal_target_decreased.admin_order_field = 'num_goal_target_decreased'
+
+    def goal_weeks_initial(self, obj):
+        # TODO: Return the initial number of goal weeks (When goal was set)
+        return 0
+    goal_weeks_initial.short_description = 'Initial number of goal weeks'
+    goal_weeks_initial.admin_order_field = 'goal_weeks_initial'
+
+    def goal_weeks_current(self, obj):
+        # TODO: Return the current number of weeks for the goal
+        # Current weeks left or total weeks of goal
+        return 0
+    goal_weeks_current.short_description = 'Current number of goal weeks'
+    goal_weeks_current.admin_order_field = 'goal_weeks_current'
+
+
