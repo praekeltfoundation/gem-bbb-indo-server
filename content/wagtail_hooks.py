@@ -109,13 +109,6 @@ class GoalPrototypeAdmin(ModelAdmin):
 modeladmin_register(GoalPrototypeAdmin)
 
 
-class GoalGroup(ModelAdminGroup):
-    menu_label = _('Goals')
-    menu_icon = 'users'
-    menu_order = 200
-    items = (FrontendGoalAdmin, GoalPrototypeAdmin)
-
-modeladmin_register(GoalGroup)
 # ============ #
 # Achievements #
 # ============ #
@@ -154,3 +147,16 @@ class CustomNotificationAdmin(ModelAdmin):
     add_to_settings_menu = False
 
 modeladmin_register(CustomNotificationAdmin)
+
+################
+# Data Exports #
+################
+
+
+class DataExportAdmin(ModelAdminGroup):
+    menu_label = _('Data Exports')
+    menu_icon = 'user'
+    menu_order = 200
+    items = (FrontendGoalAdmin, GoalPrototypeAdmin)
+
+modeladmin_register(DataExportAdmin)
