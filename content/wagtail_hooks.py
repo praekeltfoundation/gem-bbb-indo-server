@@ -5,6 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 from wagtail.contrib.modeladmin.options import ModelAdmin, ModelAdminGroup, modeladmin_register
 from wagtail.wagtailcore import hooks
 
+from content.admin import FrontendGoalAdmin
 from .models import Challenge, Participant, CustomNotification
 from .models import FreeTextQuestion, PictureQuestion, QuizQuestion
 from .models import GoalPrototype
@@ -108,6 +109,13 @@ class GoalPrototypeAdmin(ModelAdmin):
 modeladmin_register(GoalPrototypeAdmin)
 
 
+class GoalGroup(ModelAdminGroup):
+    menu_label = _('Goals')
+    menu_icon = 'users'
+    menu_order = 200
+    items = (FrontendGoalAdmin, GoalPrototypeAdmin)
+
+modeladmin_register(GoalGroup)
 # ============ #
 # Achievements #
 # ============ #
