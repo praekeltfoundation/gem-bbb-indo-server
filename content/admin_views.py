@@ -1,4 +1,3 @@
-
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import permission_required
@@ -42,39 +41,59 @@ def participant_mark_winner(request, participant_pk):
     participant.save()
     return JsonResponse({})
 
+
 from .reports import GoalReport, UserReport, SavingsReport
 
 
-class GoalAdminIndex(IndexView):
+def report_list_view(request):
+    if request.POST.get('action') == 'EXPORT-ALL':
+        # TODO: Write all csv files, zip and send
+        return HttpResponse()
+    elif request.POST.get('action') == 'EXPORT-GOAL':
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment;filename=export.csv'
+        GoalReport.export_csv(response)
+        return response
+    elif request.POST.get('action') == 'EXPORT-USER':
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment;filename=export.csv'
+        UserReport.export_csv(response)
+        return response
+    elif request.POST.get('action') == 'EXPORT-SAVINGS':
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment;filename=export.csv'
+        SavingsReport.export_csv(response)
+        return response
+
+
+    context = {
+        # 'reports': Participant.objects.all()
+        'reports': ReportAdminIndex
+    }
+
+    return render(request, 'admin/reports/index.html', context)
+
+
+class ReportAdminIndex(IndexView):
     def post(self, request, *args, **kwargs):
-        if request.POST.get('action') == 'EXPORT':
+        if request.POST.get('action') == 'EXPORT-ALL':
+            # TODO: Write all csv files, zip and send
+            return HttpResponse()
+        elif request.POST.get('action') == 'EXPORT-GOAL':
             response = HttpResponse(content_type='text/csv; charset=utf-8')
             response['Content-Disposition'] = 'attachment;filename=export.csv'
             GoalReport.export_csv(response)
             return response
-
-    def get_template_names(self):
-        return 'admin/goal/index.html'
-
-
-class UserAdminIndex(IndexView):
-    def post(self, request, *args, **kawrgs):
-        if request.POST.get('action') == 'EXPORT':
+        elif request.POST.get('action') == 'EXPORT-USER':
             response = HttpResponse(content_type='text/csv; charset=utf-8')
             response['Content-Disposition'] = 'attachment;filename=export.csv'
             UserReport.export_csv(response)
             return response
-
-    def get_template_names(self):
-        return 'admin/user/index.html'
-
-class SavingsAdminIndex(IndexView):
-    def post(self, request, *args, **kawrgs):
-        if request.POST.get('action') == 'EXPORT':
+        elif request.POST.get('action') == 'EXPORT-SAVINGS':
             response = HttpResponse(content_type='text/csv; charset=utf-8')
             response['Content-Disposition'] = 'attachment;filename=export.csv'
             SavingsReport.export_csv(response)
             return response
 
     def get_template_names(self):
-        return 'admin/savings/index.html'
+        return 'admin/reports/index.html'
