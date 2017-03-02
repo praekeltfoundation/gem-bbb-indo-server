@@ -4,7 +4,7 @@ from django.utils.translation import ugettext as _
 from django import forms
 import wagtail.contrib.modeladmin.options as wagadmin
 
-from content.admin_views import GoalAdminIndex, UserAdminIndex, SavingsAdminIndex
+from content.admin_views import ReportAdminIndex
 from users.models import Profile
 from .models import Challenge, FreeTextQuestion, Participant, PictureQuestion, QuestionOption, QuizQuestion
 from .models import Goal, GoalTransaction
@@ -165,139 +165,46 @@ class GoalAdmin(admin.ModelAdmin):
     inlines = (GoalTransactionInline,)
 
 
-class FrontendGoalAdmin(wagadmin.ModelAdmin):
-    model = Goal
-
-    menu_label = _('User Goal Export')
-    menu_order = 100
-
+class FrontendReportAdmin(wagadmin.ModelAdmin):
+    menu_label = _('Reports')
     add_to_settings_menu = False
-    # search_fields('name', 'user__username')
-    index_view_class = GoalAdminIndex
+    index_view_class = ReportAdminIndex
 
-    list_display = ('get_username', 'goal_category', 'name',
-                    'target', 'value', 'progress',
-                    'weekly_average', 'weeks', 'weeks_left',
-                    'num_weeks_saved', 'num_weeks_saved_below', 'num_weeks_saved_above',
-                    'num_weeks_not_saved', 'num_withdrawals', 'num_weekly_target_edited',
-                    'num_weekly_target_increased', 'num_weekly_target_decreased', 'weekly_target_original',
-                    'weekly_target', 'num_goal_target_edited', 'num_goal_target_increased',
-                    'num_goal_target_decreased', 'goal_weeks_initial', 'goal_weeks_current',
-                    'start_date', 'is_goal_reached', 'date_achieved',
-                    'is_active', 'date_deleted')
-    list_filter = ('user',)
+# class FrontendGoalAdmin(wagadmin.ModelAdmin):
+#     model = Goal
+#
+#     menu_label = _('User Goal Export')
+#     menu_order = 100
+#
+#     add_to_settings_menu = False
+#     # search_fields('name', 'user__username')
+#     index_view_class = ReportAdminIndex
+#
+#     list_display = ('name',)
+#     list_filter = ('user',)
 
-    def get_username(self, obj):
-        return obj.user.username
-    get_username.short_description = 'Username'
-
-    def goal_category(self, obj):
-        return obj.prototype
-    goal_category.short_description = 'Goal Category'
-
-    def num_weeks_saved(self, obj):
-        # TODO: Return number of weeks that the user has saved
-        return 0
-    num_weeks_saved.short_description = 'Number of weeks saved'
-
-    def num_weeks_saved_below(self, obj):
-        # TODO: Return number of weeks saved below target
-        return 0
-    num_weeks_saved_below.short_description = 'Number of weeks saved below target'
-
-    def num_weeks_saved_above(self, obj):
-        # TODO: Return number of weeks saved above target
-        return 0
-    num_weeks_saved_above.short_description = 'Number of weeks saved above target'
-
-    def num_weeks_not_saved(self, obj):
-        # TODO: Return the number of weeks the user hasn't saved
-        return 0
-    num_weeks_not_saved.short_description = 'Number of weeks not saved'
-
-    def num_withdrawals(self, obj):
-        # TODO: Return the number of times the user has withdrawn
-        return 0
-    num_withdrawals.short_description = 'Number of withdrawals'
-
-    def num_weekly_target_edited(self, obj):
-        # TODO: Return the number of times the user has edited their weekly target
-        return 0
-    num_weekly_target_edited.short_description = 'Number of weekly target edits'
-
-    def num_weekly_target_increased(self, obj):
-        # TODO: Return the number of times weekly target increased
-        return 0
-    num_weekly_target_increased.short_description = 'Weekly target increased'
-
-    def num_weekly_target_decreased(self, obj):
-        # TODO: Return the number of times weekly target decreased
-        return 0
-    num_weekly_target_decreased.short_description = 'Weekly target decreased'
-
-    def weekly_target_original(self, obj):
-        # TODO: Return the original (first) weekly target
-        return 0
-    weekly_target_original.short_description = 'Original weekly target'
-
-    def num_goal_target_edited(self, obj):
-        # TODO: Return the number of times the goals target was edited
-        return 0
-    num_goal_target_edited.short_description = 'Times goal target edited'
-
-    def num_goal_target_increased(self, obj):
-        # TODO: Return the number of times goal target increased
-        return 0
-    num_goal_target_increased.short_description = 'Goal target increased'
-
-    def num_goal_target_decreased(self, obj):
-        # TODO: Return the number of times goal target decreased
-        return 0
-    num_goal_target_decreased.short_description = 'Goal target decreased'
-
-    def goal_weeks_initial(self, obj):
-        # TODO: Return the initial number of goal weeks (When goal was set)
-        return 0
-    goal_weeks_initial.short_description = 'Initial number of goal weeks'
-
-    def goal_weeks_current(self, obj):
-        # TODO: Return the current number of weeks for the goal
-        # Current weeks left or total weeks of goal??
-        return 0
-    goal_weeks_current.short_description = 'Current number of goal weeks'
-
-    def date_achieved(self, obj):
-        # TODO: Return the date the goal was achieved
-        return 0
-    date_achieved.short_description = 'Date goal was achieved'
-
-    def date_deleted(self, obj):
-        # TODO: Implement date deleted field on Goal model
-        return 0
-    date_deleted.short_description = 'Date goal was deleted'
-
-
-class FrontendUserAdmin(wagadmin.ModelAdmin):
-    model = Profile
-
-    menu_label = _('Users Export')
-    menu_order = 200
-
-    add_to_settings_menu = False
-    # search_fields('name', 'user__username')
-    index_view_class = UserAdminIndex
-
-    list_display = ('gender', 'age')
-    list_filter = ('user',)
-
-
-class FrontendSavingsAdmin(wagadmin.ModelAdmin):
-    model = Goal
-
-    menu_label = _('Savings Export')
-    menu_order = 300
-
-    add_to_settings_menu = False
-    index_view_class = SavingsAdminIndex
-
-    list_display = ('name', 'target')
+#
+# class FrontendUserAdmin(wagadmin.ModelAdmin):
+#     model = Profile
+#
+#     menu_label = _('Users Export')
+#     menu_order = 200
+#
+#     add_to_settings_menu = False
+#     # search_fields('name', 'user__username')
+#     index_view_class = UserAdminIndex
+#
+#     list_display = ('gender', 'age')
+#     list_filter = ('user',)
+#
+#
+# class FrontendSavingsAdmin(wagadmin.ModelAdmin):
+#     model = Goal
+#
+#     menu_label = _('Savings Export')
+#     menu_order = 300
+#
+#     add_to_settings_menu = False
+#     index_view_class = SavingsAdminIndex
+#
+#     list_display = ('name', 'target')
