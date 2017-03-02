@@ -1280,7 +1280,7 @@ class Goal(models.Model):
         return streak
 
     def is_goal_deadline_missed(self):
-        if timezone.now().date() > self.end_date and self.is_active:
+        if timezone.now().date() > self.end_date and self.is_active and self.value < self.target:
             return True
         else:
             return False
@@ -1680,7 +1680,7 @@ class CustomNotification(models.Model):
     @classmethod
     def get_all_current_notifications(cls):
         """Returns all currently available custom notifications"""
-        notifications = CustomNotification.objects.filter(publish_date__lt=timezone.now(),
+        notifications = CustomNotification.objects.filter(publish_date__lte=timezone.now(),
                                                           expiration_date__gt=timezone.now())
 
         return notifications

@@ -24,7 +24,7 @@ from users.models import User, RegUser, Profile
 
 # content function imports
 from .models import award_challenge_win, QuizQuestion, FreeTextQuestion, PictureQuestion, QuestionOption, \
-    award_first_goal, ParticipantPicture
+    award_first_goal, CustomNotification, ParticipantPicture, Entry, ParticipantAnswer, ParticipantFreeText
 
 # content model imports
 from .models import Badge, BadgeSettings, UserBadge
@@ -2025,6 +2025,458 @@ class TestNotification(APITestCase):
         self.assertFalse(winning_response.data['available'], "Winner still available")
         self.assertIsNone(winning_response.data['badge'], "Badge still available")
         self.assertIsNot(winning_response.data['challenge'], "Challenge still available")
+
+    def test_goal_deadline_missed_notification_active(self):
+        """Checks to see that a user gets a notification when they have missed challenge deadline"""
+        user = create_test_regular_user('anon')
+
+        goal = Goal.objects.create(name="goal 1",
+                                   user=user,
+                                   target=10000,
+                                   weekly_target=100,
+                                   start_date=timezone.now() - timedelta(days=30),
+                                   end_date=timezone.now() - timedelta(days=25))
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:goals-deadline'), format='json')
+
+        self.assertEqual(response.data['available'], True,
+                         "Could not retrieve goal deadline missed notifications")
+
+    def test_goal_deadline_missed_notification_inactive(self):
+        """Checks to see that a user gets a doesn't get a notification when no deadline is missed"""
+        user = create_test_regular_user('anon')
+
+        goal = Goal.objects.create(name="goal 1",
+                                   user=user,
+                                   target=10000,
+                                   weekly_target=100,
+                                   start_date=timezone.now() - timedelta(days=30),
+                                   end_date=timezone.now() + timedelta(days=30))
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:goals-deadline'), format='json')
+
+        self.assertEqual(response.data['available'], False,
+                         "Goal deadline notification was inadvertently sent")
+
+    def test_challenge_completion_notification_quiz_active(self):
+        """
+        Creates a regular user
+        Creates a quiz challenge
+        Creates a quiz question
+        Creates a quiz question option
+        Creates a challenge participant
+        Creates a quiz entry
+        Creates a quiz question answer
+        Checks to see if user should receive notification for not having completed challenge and it closes in two days
+        """
+
+        user = create_test_regular_user('anon')
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:challenges-challenge-incomplete'), format='json')
+
+        self.assertFalse(response.data['available'],
+                         "Challenge incomplete notification available when no challenge is available")
+
+        challenge = Challenge.objects.create(name="challenge 1",
+                                             type=Challenge.CTP_QUIZ,
+                                             activation_date=timezone.now() - timedelta(days=30),
+                                             deactivation_date=timezone.now() + timedelta(days=1),
+                                             state=Challenge.CST_PUBLISHED)
+        challenge.save()
+
+        quiz_question = QuizQuestion.objects.create(challenge=challenge,
+                                                    text="Quiz question text")
+
+        question_option = QuestionOption.objects.create(question=quiz_question,
+                                                        text="Quiz question option 1",
+                                                        correct=True)
+
+        response = self.client.get(reverse('api:challenges-challenge-incomplete'), format='json')
+
+        self.assertFalse(response.data['available'],
+                         "Quiz challenge incomplete notification available without having participated")
+
+        participant = Participant.objects.create(user=user,
+                                                 challenge=challenge)
+
+        quiz_entry = Entry.objects.create(participant=participant,
+                                          date_saved=timezone.now() - timedelta(days=20))
+
+        quiz_answer = ParticipantAnswer.objects.create(entry=quiz_entry,
+                                                       question=quiz_question,
+                                                       selected_option=question_option,
+                                                       date_answered=timezone.now() - timedelta(days=5))
+
+        response = self.client.get(reverse('api:challenges-challenge-incomplete'), format='json')
+        self.assertTrue(response.data['available'], "Quiz challenge completion notification not sent")
+
+    def test_challenge_completion_notification_quiz_inactive(self):
+        """
+        Creates a regular user
+        Creates a quiz challenge
+        Creates a quiz question
+        Creates a quiz question option
+        Creates a challenge participant
+        Creates a quiz entry
+        Creates a quiz question answer
+        Checks to see a user doesn't receive notification for not completing challenge not closing in two days
+        """
+
+        user = create_test_regular_user('anon')
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:challenges-challenge-incomplete'), format='json')
+
+        self.assertFalse(response.data['available'],
+                         "Challenge incomplete notification available when no challenge is available")
+
+        challenge = Challenge.objects.create(name="challenge 1",
+                                             type=Challenge.CTP_QUIZ,
+                                             activation_date=timezone.now() - timedelta(days=30),
+                                             deactivation_date=timezone.now() + timedelta(days=3),
+                                             state=Challenge.CST_PUBLISHED)
+        challenge.save()
+
+        quiz_question = QuizQuestion.objects.create(challenge=challenge,
+                                                    text="Quiz question text")
+
+        question_option = QuestionOption.objects.create(question=quiz_question,
+                                                        text="Quiz question option 1",
+                                                        correct=True)
+
+        response = self.client.get(reverse('api:challenges-challenge-incomplete'), format='json')
+
+        self.assertFalse(response.data['available'],
+                         "Quiz challenge incomplete notification available without having participated")
+
+        participant = Participant.objects.create(user=user,
+                                                 challenge=challenge)
+
+        quiz_entry = Entry.objects.create(participant=participant,
+                                          date_saved=timezone.now() - timedelta(days=20))
+
+        quiz_answer = ParticipantAnswer.objects.create(entry=quiz_entry,
+                                                       question=quiz_question,
+                                                       selected_option=question_option,
+                                                       date_answered=timezone.now() - timedelta(days=5))
+
+        response = self.client.get(reverse('api:challenges-challenge-incomplete'), format='json')
+        self.assertFalse(response.data['available'], "Quiz challenge completion notification incorrectly sent")
+
+    def test_challenge_completion_notification_picture_active(self):
+        """
+        Creates a regular user
+        Creates a picture challenge
+        Creates a picture question
+        Creates a challenge participant
+        Creates a picture entry
+        Checks to see if user should receive notification for not having completed challenge and it closes in two days
+        """
+
+        user = create_test_regular_user('anon')
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:challenges-challenge-incomplete'), format='json')
+
+        self.assertFalse(response.data['available'],
+                         "Challenge incomplete notification available when no challenge is available")
+
+        challenge = Challenge.objects.create(name="challenge 1",
+                                             type=Challenge.CTP_PICTURE,
+                                             activation_date=timezone.now() - timedelta(days=30),
+                                             deactivation_date=timezone.now() + timedelta(days=1),
+                                             state=Challenge.CST_PUBLISHED)
+        challenge.save()
+
+        picture_question = PictureQuestion.objects.create(challenge=challenge,
+                                                          text="Picture question text")
+
+        response = self.client.get(reverse('api:challenges-challenge-incomplete'), format='json')
+
+        self.assertFalse(response.data['available'],
+                         "Picture challenge incomplete notification available without having participated")
+
+        participant = Participant.objects.create(user=user,
+                                                 challenge=challenge)
+
+        picture_entry = ParticipantPicture.objects.create(participant=participant,
+                                                          question=picture_question,
+                                                          date_answered=timezone.now() - timedelta(days=20))
+
+        response = self.client.get(reverse('api:challenges-challenge-incomplete'), format='json')
+        self.assertTrue(response.data['available'], "Picture challenge completion notification not sent")
+
+    def test_challenge_completion_notification_picture_inactive(self):
+        """
+        Creates a regular user
+        Creates a picture challenge
+        Creates a picture question
+        Creates a challenge participant
+        Creates a picture entry
+        Checks to see if user should receive notification for not having completed challenge and it closes in two days
+        """
+
+        user = create_test_regular_user('anon')
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:challenges-challenge-incomplete'), format='json')
+
+        self.assertFalse(response.data['available'],
+                         "Challenge incomplete notification available when no challenge is available")
+
+        challenge = Challenge.objects.create(name="challenge 1",
+                                             type=Challenge.CTP_PICTURE,
+                                             activation_date=timezone.now() - timedelta(days=30),
+                                             deactivation_date=timezone.now() + timedelta(days=3),
+                                             state=Challenge.CST_PUBLISHED)
+        challenge.save()
+
+        picture_question = PictureQuestion.objects.create(challenge=challenge,
+                                                          text="Picture question text")
+
+        response = self.client.get(reverse('api:challenges-challenge-incomplete'), format='json')
+
+        self.assertFalse(response.data['available'],
+                         "Picture challenge incomplete notification available without having participated")
+
+        participant = Participant.objects.create(user=user,
+                                                 challenge=challenge)
+
+        picture_entry = ParticipantPicture.objects.create(participant=participant,
+                                                          question=picture_question,
+                                                          date_answered=timezone.now() - timedelta(days=20))
+
+        response = self.client.get(reverse('api:challenges-challenge-incomplete'), format='json')
+        self.assertFalse(response.data['available'], "Picture challenge completion notification incorrectly sent")
+
+    def test_challenge_completion_notification_freeform_active(self):
+        """
+        Creates a regular user
+        Creates a freeform challenge
+        Creates a freeform question
+        Creates a challenge participant
+        Creates a freeform entry
+        Checks to see if user should receive notification for not having completed challenge and it closes in two days
+        """
+
+        user = create_test_regular_user('anon')
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:challenges-challenge-incomplete'), format='json')
+
+        self.assertFalse(response.data['available'],
+                         "Challenge incomplete notification available when no challenge is available")
+
+        challenge = Challenge.objects.create(name="challenge 1",
+                                             type=Challenge.CTP_FREEFORM,
+                                             activation_date=timezone.now() - timedelta(days=30),
+                                             deactivation_date=timezone.now() + timedelta(days=1),
+                                             state=Challenge.CST_PUBLISHED)
+        challenge.save()
+
+        free_text_question = FreeTextQuestion.objects.create(challenge=challenge,
+                                                             text="Free Text question")
+
+        response = self.client.get(reverse('api:challenges-challenge-incomplete'), format='json')
+
+        self.assertFalse(response.data['available'],
+                         "Free text challenge incomplete notification available without having participated")
+
+        participant = Participant.objects.create(user=user,
+                                                 challenge=challenge)
+
+        free_text_entry = ParticipantFreeText.objects.create(participant=participant,
+                                                             question=free_text_question,
+                                                             text="Free Text Answer 1",
+                                                             date_answered=timezone.now() - timedelta(days=20))
+
+        response = self.client.get(reverse('api:challenges-challenge-incomplete'), format='json')
+        self.assertTrue(response.data['available'], "Challenge completion notification not available")
+
+    def test_challenge_completion_notification_freeform_inactive(self):
+        """
+        Creates a regular user
+        Creates a freeform challenge
+        Creates a freeform question
+        Creates a challenge participant
+        Creates a freeform entry
+        Checks to see if user should receive notification for not having completed challenge and it closes in two days
+        """
+
+        user = create_test_regular_user('anon')
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:challenges-challenge-incomplete'), format='json')
+
+        self.assertFalse(response.data['available'],
+                         "Challenge incomplete notification available when no challenge is available")
+
+        challenge = Challenge.objects.create(name="challenge 1",
+                                             type=Challenge.CTP_FREEFORM,
+                                             activation_date=timezone.now() - timedelta(days=30),
+                                             deactivation_date=timezone.now() + timedelta(days=3),
+                                             state=Challenge.CST_PUBLISHED)
+        challenge.save()
+
+        free_text_question = FreeTextQuestion.objects.create(challenge=challenge,
+                                                             text="Free Text question")
+
+        response = self.client.get(reverse('api:challenges-challenge-incomplete'), format='json')
+
+        self.assertFalse(response.data['available'],
+                         "Free text challenge incomplete notification available without having participated")
+
+        participant = Participant.objects.create(user=user,
+                                                 challenge=challenge)
+
+        free_text_entry = ParticipantFreeText.objects.create(participant=participant,
+                                                             question=free_text_question,
+                                                             text="Free Text Answer 1",
+                                                             date_answered=timezone.now() - timedelta(days=20))
+
+        response = self.client.get(reverse('api:challenges-challenge-incomplete'), format='json')
+        self.assertFalse(response.data['available'], "Challenge completion notification incorrectly available")
+
+    def test_challenge_participation_notification_premature(self):
+        """
+        Create regular user
+        Create challenge (Only active one day ago)
+        Don't participate within two days of it being available
+        Receive notification to participate
+        """
+
+        user = create_test_regular_user('anon')
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:challenges-participation'), format='json')
+
+        self.assertFalse(response.data['available'],
+                         "Challenge participation notification available when no challenge is available")
+
+        challenge = Challenge.objects.create(name="challenge 1",
+                                             type=Challenge.CTP_FREEFORM,
+                                             activation_date=timezone.now() - timedelta(days=1),
+                                             deactivation_date=timezone.now() + timedelta(days=30),
+                                             state=Challenge.CST_PUBLISHED)
+        challenge.save()
+
+        response = self.client.get(reverse('api:challenges-participation'), format='json')
+
+        self.assertFalse(response.data['available'],
+                         "User receive notification for challenge only active for one day")
+
+    def test_challenge_participation_notification_active(self):
+        """
+        Create regular user
+        Create challenge
+        Don't participate within two days of it being available
+        Receive notification to participate
+        """
+
+        user = create_test_regular_user('anon')
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:challenges-participation'), format='json')
+
+        self.assertFalse(response.data['available'],
+                         "Challenge participation notification available when no challenge is available")
+
+        challenge = Challenge.objects.create(name="challenge 1",
+                                             type=Challenge.CTP_FREEFORM,
+                                             activation_date=timezone.now() - timedelta(days=30),
+                                             deactivation_date=timezone.now() + timedelta(days=30),
+                                             state=Challenge.CST_PUBLISHED)
+        challenge.save()
+
+        response = self.client.get(reverse('api:challenges-participation'), format='json')
+
+        self.assertTrue(response.data['available'],
+                        "User has not participated and did not receive notification to do so")
+
+    def test_challenge_participation_notification_inactive(self):
+        """
+        Create regular user
+        Create challenge
+        Participate within two days of it being available
+        Don't receive notification to participate
+        """
+        user = create_test_regular_user('anon')
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:challenges-participation'), format='json')
+
+        self.assertFalse(response.data['available'],
+                         "Challenge participation notification available when no challenge is available")
+
+        challenge = Challenge.objects.create(name="challenge 1",
+                                             type=Challenge.CTP_FREEFORM,
+                                             activation_date=timezone.now() - timedelta(days=30),
+                                             deactivation_date=timezone.now() + timedelta(days=30),
+                                             state=Challenge.CST_PUBLISHED)
+        challenge.save()
+
+        participant = Participant.objects.create(user=user, challenge=challenge)
+
+        response = self.client.get(reverse('api:challenges-participation'), format='json')
+
+        self.assertFalse(response.data['available'],
+                         "User has participated and did receive notification")
+
+    def test_custom_notifications_active(self):
+        """Checks to see a custom notification can be retrieved"""
+        user = create_test_regular_user('anon')
+        notification = CustomNotification.objects.create(message="Test notification 1",
+                                                         publish_date=timezone.now(),
+                                                         expiration_date=timezone.now() + timedelta(days=30))
+        notification.save()
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:notifications-current'))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Error when retrieving custom notifications")
+
+        self.assertTrue(response.data['available'], "Custom notification not available")
+        self.assertIsNotNone(response.data['notifications'], "Empty notification response")
+
+    def test_custom_notifications_inactive(self):
+        """Checks to see a custom notification can't be read once it's expired"""
+        user = create_test_regular_user('anon')
+        notification = CustomNotification.objects.create(message="Test notification 1",
+                                                         publish_date=timezone.now() - timedelta(days=30),
+                                                         expiration_date=timezone.now() - timedelta(days=5))
+        notification.save()
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:notifications-current'))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Error when retrieving custom notifications")
+
+        self.assertFalse(response.data['available'], "Custom notification available after expiration")
+        self.assertEqual(len(response.data['notifications']), 0, "Custom notification has unexpected content")
+
+    def test_multiple_custom_notifications_active(self):
+        """Checks to multiple notifications can be returned"""
+        user = create_test_regular_user('anon')
+        notification = CustomNotification.objects.create(message="Test notification 1",
+                                                         publish_date=timezone.now() - timedelta(days=30),
+                                                         expiration_date=timezone.now() + timedelta(days=30))
+        notification.save()
+
+        notification = CustomNotification.objects.create(message="Test notification 2",
+                                                         publish_date=timezone.now() - timedelta(days=20),
+                                                         expiration_date=timezone.now() + timedelta(days=40))
+        notification.save()
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:notifications-current'))
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Error when retrieving custom notifications")
+
+        self.assertTrue(response.data['available'], "Multiple custom notifications not available")
+        self.assertEquals(len(response.data), 2, "Incorrect number of notifications returned")
 
 
 class TestBadgeUrls(APITestCase):
