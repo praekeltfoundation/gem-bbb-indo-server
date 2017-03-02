@@ -42,7 +42,7 @@ def participant_mark_winner(request, participant_pk):
     participant.save()
     return JsonResponse({})
 
-from .reports import GoalReport, UserReport
+from .reports import GoalReport, UserReport, SavingsReport
 
 
 class GoalAdminIndex(IndexView):
@@ -67,3 +67,14 @@ class UserAdminIndex(IndexView):
 
     def get_template_names(self):
         return 'admin/user/index.html'
+
+class SavingsAdminIndex(IndexView):
+    def post(self, request, *args, **kawrgs):
+        if request.POST.get('action') == 'EXPORT':
+            response = HttpResponse(content_type='text/csv; charset=utf-8')
+            response['Content-Disposition'] = 'attachment;filename=export.csv'
+            SavingsReport.export_csv(response)
+            return response
+
+    def get_template_names(self):
+        return 'admin/savings/index.html'

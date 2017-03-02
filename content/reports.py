@@ -1,7 +1,7 @@
 import csv
 
 from users.models import Profile
-from .models import Goal, Badge, BadgeSettings, UserBadge
+from .models import Goal, Badge, BadgeSettings, UserBadge, GoalTransaction
 
 
 class GoalReport:
@@ -279,3 +279,28 @@ class UserReport():
     def endline_survey_completed(obj):
         # TODO: Return true/False if a user has completed the endline survey (Not implemented)
         return False
+
+
+class SavingsReport:
+
+    fields = ()
+
+    @classmethod
+    def export_csv(cls, stream):
+        goals = Goal.objects.all()
+        writer = csv.writer(stream)
+        writer.writerow(cls.fields)
+
+        for goal in goals:
+            data = [
+                goal.user.username,
+                goal.name,
+                goal.target,
+                goal.weekly_target,
+                goal.weeks,
+                goal.start_date,
+                [t.value for t in GoalTransaction.objects.filter(goal=goal)],
+
+            ]
+
+            writer.writerow([getattr(goal, field) for field in cls.fields] + data)

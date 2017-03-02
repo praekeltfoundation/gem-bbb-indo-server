@@ -1124,7 +1124,7 @@ class Goal(models.Model):
     @property
     def weeks_left(self):
         """The number of weeks that the Goal has left."""
-        return WeekCalc.week_diff(timezone.now().date(), self.end_date, WeekCalc.Rounding.UP)
+        return max(WeekCalc.week_diff(timezone.now().date(), self.end_date, WeekCalc.Rounding.UP), 0)
 
     @property
     def days_left(self):

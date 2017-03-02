@@ -4,7 +4,7 @@ from django.utils.translation import ugettext as _
 from django import forms
 import wagtail.contrib.modeladmin.options as wagadmin
 
-from content.admin_views import GoalAdminIndex, UserAdminIndex
+from content.admin_views import GoalAdminIndex, UserAdminIndex, SavingsAdminIndex
 from users.models import Profile
 from .models import Challenge, FreeTextQuestion, Participant, PictureQuestion, QuestionOption, QuizQuestion
 from .models import Goal, GoalTransaction
@@ -281,7 +281,7 @@ class FrontendUserAdmin(wagadmin.ModelAdmin):
     model = Profile
 
     menu_label = _('Users Export')
-    menu_order = 100
+    menu_order = 200
 
     add_to_settings_menu = False
     # search_fields('name', 'user__username')
@@ -289,3 +289,15 @@ class FrontendUserAdmin(wagadmin.ModelAdmin):
 
     list_display = ('gender', 'age')
     list_filter = ('user',)
+
+
+class FrontendSavingsAdmin(wagadmin.ModelAdmin):
+    model = Goal
+
+    menu_label = _('Savings Export')
+    menu_order = 300
+
+    add_to_settings_menu = False
+    index_view_class = SavingsAdminIndex
+
+    list_display = ('name', 'target')
