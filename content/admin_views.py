@@ -2,7 +2,11 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import permission_required
 from django.http.response import JsonResponse, HttpResponse
+from rest_framework import status
 from wagtail.contrib.modeladmin.views import IndexView
+
+from .reports import GoalReport, UserReport, SavingsReport, SummaryDataPerChallenge, \
+    SummaryDataPerQuiz, ChallengeReportPhoto, ChallengeReportQuiz
 
 from .models import Participant
 
@@ -42,7 +46,24 @@ def participant_mark_winner(request, participant_pk):
     return JsonResponse({})
 
 
-from .reports import GoalReport, UserReport, SavingsReport
+def report_challenge_exports(request):
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment;filename=export.csv'
+
+    if request.POST.get('action') == 'EXPORT-CHALLENGE-SUMMARY':
+        SummaryDataPerChallenge.export_csv(response)
+    elif request.POST.get('action') == 'EXPORT-CHALLENGE-QUIZ-SUMMARY':
+        SummaryDataPerQuiz.export_csv(response)
+    elif request.POST.get('action') == 'EXPORT-CHALLENGE-PHOTO':
+        ChallengeReportPhoto.export_csv(response)
+    elif request.POST.get('action') == 'EXPORT-CHALLENGE-QUIZ':
+        ChallengeReportQuiz.export_csv(response)
+    elif request.POST.get('action') == 'EXPORT-CHALLENGE-FREETEXT':
+        ChallengeReportFreetext.export_csv(response)
+    else:
+        response = HttpResponse(status=status.HTTP_204_NO_CONTENT)
+
+    return response
 
 
 def report_list_view(request):
