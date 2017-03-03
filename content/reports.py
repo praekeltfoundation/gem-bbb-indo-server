@@ -2,7 +2,8 @@ import csv
 from datetime import timedelta, datetime
 
 from users.models import Profile
-from .models import Goal, Badge, BadgeSettings, UserBadge, GoalTransaction, WeekCalc
+from .models import Goal, Badge, BadgeSettings, UserBadge, GoalTransaction, WeekCalc, Challenge, Participant, \
+    QuizQuestion, QuestionOption, Entry
 
 
 class GoalReport:
@@ -186,6 +187,7 @@ class GoalReport:
 
 
 class UserReport:
+
     fields = ()
 
     @classmethod
@@ -353,6 +355,7 @@ class UserReport:
 
 
 class SavingsReport:
+
     fields = ()
 
     @classmethod
@@ -388,3 +391,137 @@ class SavingsReport:
 
     def weekly_target_at_transaction(obj):
         return obj.goal.weekly_target
+
+
+class SummaryDataPerChallenge:
+
+    fields = ()
+
+    @classmethod
+    def export_csv(cls, stream):
+        challenges = Challenge.objects.all()
+        writer = csv.writer(stream)
+        writer.writerow(cls.fields)
+
+        for challenge in challenges:
+            data = [
+                challenge.name,
+                challenge.type,
+                challenge.call_to_action,
+                challenge.activation_date,
+                challenge.deactivation_date,
+                cls.total_challenge_completions(challenge),
+                cls.total_users_in_progress(challenge),
+                cls.no_response_total(challenge)
+            ]
+
+            writer.writerow([getattr(challenge, field) for field in cls.fields] + data)
+
+    def total_challenge_completions(self, challenge):
+        return Participant.objects.filter(challenge=challenge).count()
+
+    def total_users_in_progress(self, challenge):
+        # TODO: Return total users in progress
+        return 0
+
+    def no_response_total(self, challenge):
+        # TODO: Return the number of no responses
+        return 0
+
+
+class SummaryDataPerQuiz:
+
+    fields = ()
+
+    @classmethod
+    def export_csv(cls, stream):
+        challenges = Challenge.objects.filter(type=Challenge.CTP_QUIZ)
+        writer = csv.writer(stream)
+        writer.writerow(cls.fields)
+
+        for challenge in challenges:
+            quiz_question = QuizQuestion.objects.filter(challenge=challenge)
+            question_options = QuestionOption.objects.filter(question=quiz_question)
+            data = [
+                challenge.name,
+                quiz_question.text,
+                question_options.count(),
+                cls.average_number_question_attempts(quiz_question, question_options)
+            ]
+
+            writer.writerow([getattr(challenge, field) for field in cls.fields] + data)
+
+    def average_number_question_attempts(self, question, options):
+        # TODO: Return the average number of attempts per question option
+        return 0
+
+
+class ChallengeReportPhoto:
+
+    fields = ()
+
+    @classmethod
+    def export_csv(cls, stream):
+        challenges = Challenge.objects.filter(type=Challenge.CTP_PICTURE)
+
+        writer = csv.writer(stream)
+        writer.writerow(cls.fields)
+
+        for challenge in challenges:
+            participant = Participant.objects.filter(challenge=challenge)
+            profile = Profile.objects.get(user=participant.user)
+
+            data = [
+                participant.user.username,
+                participant.user.first_name,
+                profile.mobile,
+                participant.user.email,
+                profile.gender,
+                profile.age,
+                # user type
+                participant.date_created,
+                # call to action something, waiting feedback
+            ]
+
+            writer.writerow([getattr(challenge, field) for field in cls.fields] + data)
+
+class ChallengeReportQuiz:
+
+    fields = ()
+
+    @classmethod
+    def export_csv(cls, stream):
+        challenges = Challenge.objects.filter(type=Challenge.CTP_QUIZ)
+
+        writer = csv.writer(stream)
+        writer.writerow(cls.fields)
+
+        for challenge in challenges:
+            participant = Participant.objects.filter(challenge=challenge)
+            profile = Profile.objects.get(user=participant.user)
+
+            quiz_question = QuizQuestion.objects.get(challenge=challenge)
+            question_option = QuestionOption.objects.filter(question=quiz_question)
+
+            data = [
+                participant.user.username,
+                participant.user.first_name,
+                profile.mobile,
+                participant.user.email,
+                profile.gender,
+                profile.age,
+                # user type
+                participant.date_created,
+                cls.quiz_question_data(participant, quiz_question, question_option)
+            ]
+
+            writer.writerow([getattr(challenge, field) for field in cls.fields] + data)
+
+    def quiz_question_data(self, question, option, participant):
+        data = [
+            question.text,
+            0, # Number of attempts
+
+        ]
+
+        return data
