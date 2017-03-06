@@ -7,7 +7,6 @@ from wagtail.contrib.modeladmin.options import ModelAdmin, ModelAdminGroup, mode
 from wagtail.wagtailadmin.menu import MenuItem
 from wagtail.wagtailcore import hooks
 
-from content.admin import FrontendReportAdmin
 from users.models import Profile
 from .models import Challenge, Participant, CustomNotification
 from .models import FreeTextQuestion, PictureQuestion, QuizQuestion
@@ -158,17 +157,3 @@ class CustomNotificationAdmin(ModelAdmin):
     add_to_settings_menu = False
 
 modeladmin_register(CustomNotificationAdmin)
-
-################
-# Data Exports #
-################
-
-
-# class DataExportAdmin(ModelAdminGroup):
-#     # model = Profile
-#     menu_label = _('Data Exports')
-#     menu_icon = 'user'
-#     menu_order = 200
-#     # items = (FrontendGoalAdmin, FrontendUserAdmin, FrontendSavingsAdmin)
-#     items = FrontendReportAdmin
-# modeladmin_register(DataExportAdmin)
