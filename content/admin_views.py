@@ -1,3 +1,4 @@
+from django.utils import timezone
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import permission_required
@@ -52,7 +53,7 @@ def participant_mark_winner(request, participant_pk):
 # Challenge reports
 def report_challenge_exports(request):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
-    response['Content-Disposition'] = 'attachment;filename=export.csv'
+    response['Content-Disposition'] = 'attachment;filename=export-' + str(timezone.now()) + '.csv'
 
     if request.method == 'POST':
         if request.POST.get('action') == 'EXPORT-CHALLENGE-SUMMARY':
@@ -91,7 +92,7 @@ def report_challenge_exports(request):
 # Goal reports
 def report_goal_exports(request):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
-    response['Content-Disposition'] = 'attachment;filename=export.csv'
+    response['Content-Disposition'] = 'attachment;filename=export-' + str(timezone.now()) + '.csv'
 
     if request.POST.get('action') == 'EXPORT-ALL':
         # TODO: Write all csv files, zip and send
