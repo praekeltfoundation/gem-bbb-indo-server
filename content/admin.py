@@ -4,8 +4,6 @@ from django.utils.translation import ugettext as _
 from django import forms
 import wagtail.contrib.modeladmin.options as wagadmin
 
-from content.admin_views import ReportAdminIndex
-from users.models import Profile
 from .models import Challenge, FreeTextQuestion, Participant, PictureQuestion, QuestionOption, QuizQuestion
 from .models import Goal, GoalTransaction
 from .models import Tip, TipFavourite
@@ -163,48 +161,3 @@ class GoalAdmin(admin.ModelAdmin):
     list_display = ('name', 'user', 'target', 'value')
     list_filter = ('user',)
     inlines = (GoalTransactionInline,)
-
-
-class FrontendReportAdmin(wagadmin.ModelAdmin):
-    menu_label = _('Reports')
-    add_to_settings_menu = False
-    index_view_class = ReportAdminIndex
-
-# class FrontendGoalAdmin(wagadmin.ModelAdmin):
-#     model = Goal
-#
-#     menu_label = _('User Goal Export')
-#     menu_order = 100
-#
-#     add_to_settings_menu = False
-#     # search_fields('name', 'user__username')
-#     index_view_class = ReportAdminIndex
-#
-#     list_display = ('name',)
-#     list_filter = ('user',)
-
-#
-# class FrontendUserAdmin(wagadmin.ModelAdmin):
-#     model = Profile
-#
-#     menu_label = _('Users Export')
-#     menu_order = 200
-#
-#     add_to_settings_menu = False
-#     # search_fields('name', 'user__username')
-#     index_view_class = UserAdminIndex
-#
-#     list_display = ('gender', 'age')
-#     list_filter = ('user',)
-#
-#
-# class FrontendSavingsAdmin(wagadmin.ModelAdmin):
-#     model = Goal
-#
-#     menu_label = _('Savings Export')
-#     menu_order = 300
-#
-#     add_to_settings_menu = False
-#     index_view_class = SavingsAdminIndex
-#
-#     list_display = ('name', 'target')

@@ -2,13 +2,11 @@ from django.views.decorators.csrf import ensure_csrf_cookie
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import permission_required
 from django.http.response import JsonResponse, HttpResponse
-from rest_framework import status
-from wagtail.contrib.modeladmin.views import IndexView
 
 from .reports import GoalReport, UserReport, SavingsReport, SummaryDataPerChallenge, \
-    SummaryDataPerQuiz, ChallengeReportPhoto, ChallengeReportQuiz
+    SummaryDataPerQuiz, ChallengeExportPicture, ChallengeExportQuiz, ChallengeExportFreetext
 
-from .models import Participant
+from .models import Challenge, Participant
 
 
 def participant_list_view(request):
@@ -46,75 +44,66 @@ def participant_mark_winner(request, participant_pk):
     return JsonResponse({})
 
 
+#############
+# Reporting #
+#############
+
+
+# Challenge reports
 def report_challenge_exports(request):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
     response['Content-Disposition'] = 'attachment;filename=export.csv'
 
-    if request.POST.get('action') == 'EXPORT-CHALLENGE-SUMMARY':
-        SummaryDataPerChallenge.export_csv(response)
-    elif request.POST.get('action') == 'EXPORT-CHALLENGE-QUIZ-SUMMARY':
-        SummaryDataPerQuiz.export_csv(response)
-    elif request.POST.get('action') == 'EXPORT-CHALLENGE-PHOTO':
-        ChallengeReportPhoto.export_csv(response)
-    elif request.POST.get('action') == 'EXPORT-CHALLENGE-QUIZ':
-        ChallengeReportQuiz.export_csv(response)
-    elif request.POST.get('action') == 'EXPORT-CHALLENGE-FREETEXT':
-        ChallengeReportFreetext.export_csv(response)
-    else:
-        response = HttpResponse(status=status.HTTP_204_NO_CONTENT)
+    if request.method == 'POST':
+        if request.POST.get('action') == 'EXPORT-CHALLENGE-SUMMARY':
+            if request.POST['date_from'] is '' or request.POST['date_to'] is '':
+                date_from = date_to = None
+            else:
+                date_from = request.POST['date_from']
+                date_to = request.POST['date_to']
+            SummaryDataPerChallenge.export_csv(response, date_from=date_from, date_to=date_to)
+            return response
+        elif request.POST.get('action') == 'EXPORT-CHALLENGE-QUIZ-SUMMARY':
+            SummaryDataPerQuiz.export_csv(response)
+            return response
+        elif request.POST.get('action') == 'EXPORT-CHALLENGE-PICTURE':
+            challenge_name = request.POST['picture-challenge-name']
+            ChallengeExportPicture.export_csv(response, challenge_name=challenge_name)
+            return response
+        elif request.POST.get('action') == 'EXPORT-CHALLENGE-QUIZ':
+            challenge_name = request.POST['quiz-challenge-name']
+            ChallengeExportQuiz.export_csv(response, challenge_name=challenge_name)
+            return response
+        elif request.POST.get('action') == 'EXPORT-CHALLENGE-FREETEXT':
+            challenge_name = request.POST['freetext-challenge-name']
+            ChallengeExportFreetext.export_csv(response, challenge_name=challenge_name)
+            return response
+    elif request.method == 'GET':
+        context = {
+            'quiz_challenges': list(Challenge.objects.filter(type=Challenge.CTP_QUIZ)),
+            'picture_challenges': list(Challenge.objects.filter(type=Challenge.CTP_PICTURE)),
+            'freetext_challenges': list(Challenge.objects.filter(type=Challenge.CTP_FREEFORM))
+        }
 
-    return response
+        return render(request, 'admin/reports/challenges.html', context=context)
 
 
-def report_list_view(request):
+# Goal reports
+def report_goal_exports(request):
+    response = HttpResponse(content_type='text/csv; charset=utf-8')
+    response['Content-Disposition'] = 'attachment;filename=export.csv'
+
     if request.POST.get('action') == 'EXPORT-ALL':
         # TODO: Write all csv files, zip and send
-        return HttpResponse()
+        return render(request, 'admin/reports/goals.html')
     elif request.POST.get('action') == 'EXPORT-GOAL':
-        response = HttpResponse(content_type='text/csv; charset=utf-8')
-        response['Content-Disposition'] = 'attachment;filename=export.csv'
         GoalReport.export_csv(response)
         return response
     elif request.POST.get('action') == 'EXPORT-USER':
-        response = HttpResponse(content_type='text/csv; charset=utf-8')
-        response['Content-Disposition'] = 'attachment;filename=export.csv'
         UserReport.export_csv(response)
         return response
     elif request.POST.get('action') == 'EXPORT-SAVINGS':
-        response = HttpResponse(content_type='text/csv; charset=utf-8')
-        response['Content-Disposition'] = 'attachment;filename=export.csv'
         SavingsReport.export_csv(response)
         return response
 
-
-    context = {
-        # 'reports': Participant.objects.all()
-        'reports': ReportAdminIndex
-    }
-
-    return render(request, 'admin/reports/index.html', context)
-
-
-class ReportAdminIndex(IndexView):
-    def post(self, request, *args, **kwargs):
-        if request.POST.get('action') == 'EXPORT-ALL':
-            # TODO: Write all csv files, zip and send
-            return HttpResponse()
-        elif request.POST.get('action') == 'EXPORT-GOAL':
-            response = HttpResponse(content_type='text/csv; charset=utf-8')
-            response['Content-Disposition'] = 'attachment;filename=export.csv'
-            GoalReport.export_csv(response)
-            return response
-        elif request.POST.get('action') == 'EXPORT-USER':
-            response = HttpResponse(content_type='text/csv; charset=utf-8')
-            response['Content-Disposition'] = 'attachment;filename=export.csv'
-            UserReport.export_csv(response)
-            return response
-        elif request.POST.get('action') == 'EXPORT-SAVINGS':
-            response = HttpResponse(content_type='text/csv; charset=utf-8')
-            response['Content-Disposition'] = 'attachment;filename=export.csv'
-            SavingsReport.export_csv(response)
-            return response
-
-    def get_template_names(self):
-        return 'admin/reports/index.html'
+    return render(request, 'admin/reports/goals.html')
