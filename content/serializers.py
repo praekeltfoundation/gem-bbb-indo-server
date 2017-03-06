@@ -12,6 +12,7 @@ from .models import Feedback
 from .models import Goal, GoalPrototype, GoalTransaction
 from .models import Badge, UserBadge
 from .models import Tip, TipFavourite
+from .models import ExpenseCategory
 
 
 # ============ #
@@ -707,5 +708,26 @@ class CustomNotificationSerializer(serializers.ModelSerializer):
         request = self.context['request']
         if obj.icon:
             return request.build_absolute_uri(obj.icon.file.url)
+        else:
+            return None
+
+
+##########
+# Budget #
+##########
+
+
+class ExpenseCategorySerializer(serializers.Serializer):
+    id = serializers.ReadOnlyField()
+    name = serializers.ReadOnlyField()
+    image_url = serializers.SerializerMethodField()
+
+    class Meta:
+        fields = ('id', 'name', 'image_url')
+
+    def get_image_url(self, obj):
+        request = self.context['request']
+        if obj.image:
+            return request.build_absolute_uri(obj.image.file.url)
         else:
             return None

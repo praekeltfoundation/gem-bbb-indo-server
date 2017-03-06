@@ -9,6 +9,7 @@ from .models import Challenge, Participant, CustomNotification
 from .models import FreeTextQuestion, PictureQuestion, QuizQuestion
 from .models import GoalPrototype
 from .models import Badge
+from .models import ExpenseCategory
 from content import admin_urls
 
 
@@ -138,6 +139,7 @@ modeladmin_register(Achievements)
 # Custom Notification #
 #######################
 
+
 class CustomNotificationAdmin(ModelAdmin):
     model = CustomNotification
     menu_label = _("Custom Notification")
@@ -146,3 +148,28 @@ class CustomNotificationAdmin(ModelAdmin):
     add_to_settings_menu = False
 
 modeladmin_register(CustomNotificationAdmin)
+
+
+##########
+# Budget #
+##########
+
+
+class ExpenseCategory(ModelAdmin):
+    model = ExpenseCategory
+    menu_label = _('Expense Category')
+    add_to_settings_menu = False
+    list_display = ('name', 'state')
+    list_filter = ('state',)
+    search_fields = ('name',)
+
+
+class BudgetGroup(ModelAdminGroup):
+    # Translators: CMS menu name
+    menu_label = _('Budget')
+    menu_icon = 'folder-open-inverse'
+    menu_order = 205
+    items = (ExpenseCategory,)
+
+
+modeladmin_register(BudgetGroup)

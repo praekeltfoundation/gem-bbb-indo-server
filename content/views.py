@@ -30,6 +30,8 @@ from .models import WEEK_STREAK_2, WEEK_STREAK_4, WEEK_STREAK_6
 from .models import award_first_goal, award_goal_done, award_goal_halfway, award_goal_week_left, \
     award_transaction_first, award_week_streak
 from .models import award_weekly_target_badge, WEEKLY_TARGET_2, WEEKLY_TARGET_4, WEEKLY_TARGET_6
+from .models import ExpenseCategory
+
 from .permissions import IsAdminOrOwner, IsUserSelf
 from .serializers import AchievementStatSerializer, UserBadgeSerializer, CustomNotificationSerializer
 from .serializers import ChallengeSerializer, EntrySerializer
@@ -38,7 +40,7 @@ from .serializers import GoalPrototypeSerializer, GoalSerializer, GoalTransactio
 from .serializers import ParticipantAnswerSerializer, ParticipantFreeTextSerializer, ParticipantPictureSerializer, \
     ParticipantRegisterSerializer
 from .serializers import TipSerializer
-import json
+from .serializers import ExpenseCategorySerializer
 
 
 # ========== #
@@ -757,3 +759,19 @@ class CustomNotificationViewSet(viewsets.ModelViewSet):
             "available": bool(ndata),
             "notifications": ndata
         })
+
+
+##########
+# Budget #
+##########
+
+
+class ExpenseCategoryView(viewsets.ModelViewSet):
+    queryset = ExpenseCategory.objects.all()
+    serializer_class = ExpenseCategorySerializer
+    permission_classes = (IsAuthenticated,)
+    http_method_names = ('get',)
+
+    def list(self, request, pk=None, *args, **kwargs):
+        serializer = self.get_serializer(self.get_queryset().filter(state=ExpenseCategory.ACTIVE), many=True)
+        return Response(serializer.data)

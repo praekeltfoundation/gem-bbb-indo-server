@@ -1695,3 +1695,36 @@ CustomNotification.panels = [
         # Translators: Admin field name
         heading=_('Custom Notifications')),
 ]
+
+
+##########
+# Budget #
+##########
+
+
+class ExpenseCategory(models.Model):
+    INACTIVE = 0
+    ACTIVE = 1
+
+    name = models.CharField(max_length=100)
+    image = models.ForeignKey(wagtail_image_models.Image, on_delete=models.SET_NULL, related_name='+', null=True)
+    state = models.IntegerField(choices=(
+        # Translators: Object state
+        (INACTIVE, _('Inactive')),
+        # Translators: Object state
+        (ACTIVE, _('Active')),
+    ), default=INACTIVE)
+
+    class Meta:
+        # Translators: Collection name on CMS
+        verbose_name = _('expense category')
+
+        # Translators: Plural collection name on CMS
+        verbose_name_plural = _('expense categories')
+
+
+ExpenseCategory.panels = [
+    wagtail_edit_handlers.FieldPanel('name'),
+    wagtail_edit_handlers.FieldPanel('state'),
+    wagtail_image_edit.ImageChooserPanel('image'),
+]
