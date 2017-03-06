@@ -10,6 +10,33 @@
 
 {% block extra_js %}
 {{ view.media.js }}
+{% include "wagtailadmin/shared/datetimepicker_translations.html" %}
+
+<script>
+        $(function() {
+            $('#id_date_from').datetimepicker({
+                timepicker: false,
+                format: 'Y-m-d',
+                i18n: {
+                    lang: window.dateTimePickerTranslations
+                },
+                lang: 'lang'
+            });
+            $('#id_date_to').datetimepicker({
+                timepicker: false,
+                format: 'Y-m-d',
+                i18n: {
+                    lang: window.dateTimePickerTranslations
+                },
+                lang: 'lang'
+            });
+        });
+
+
+
+
+</script>
+
 {% endblock %}
 
 {% block content %}
@@ -55,47 +82,106 @@
 <div>
     <div class="row nice-padding">
         <!-- Export -->
-        <h1>Challenge exports</h1>
-
+        <h1>summary data per challenge</h1>
         <form method="post">
             {% csrf_token %}
+            <p>Challenge run between the following two dates (Leave blank for all challenges): </p>
+            <div class="field date_time_field date_input field-small">
+                <label for="id_date_from">Start:</label>
+                <div class="field-content">
+                    <div class="input">
+                        <input id="id_date_from" name="date_from" placeholder="Date from" type="text">
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field date_time_field date_input field-small">
+                <label for="id_date_to">End:</label>
+                <div class="field-content">
+                    <div class="input">
+                        <input id="id_date_to" name="date_to" placeholder="Date to" type="text">
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+
             <div>
                 <button name="action" value="EXPORT-CHALLENGE-SUMMARY"
                         class="button icon-download bicolor icon right">
                     Export Challenge Summary
                 </button>
             </div>
+        </form>
+
+        <h1>summary data per quiz</h1>
+        <form method="post">
+            {% csrf_token %}
             <div>
                 <button name="action" value="EXPORT-CHALLENGE-QUIZ-SUMMARY"
                         class="button icon-download bicolor icon right">
-                    Export Challenge Quiz Summary
-                </button>
-            </div>
-            <div>
-                <button name="action" value="EXPORT-CHALLENGE-PHOTO"
-                        class="button icon-download bicolor icon right">
-                    Export Challenge Photo
-                </button>
-            </div>
-            <div>
-                <select>
-                    {% for c in challenges %}
-                    <option>{{ c.name }}</option>
-                    {% endfor %}
-                </select>
-
-                <button name="action" value="EXPORT-CHALLENGE-QUIZ" class="button icon-download bicolor icon right">
-                    Export Challenge Quiz
-                </button>
-            </div>
-            <div>
-                <button name="action" value="EXPORT-CHALLENGE-FREETEXT"
-                        class="button icon-download bicolor icon right">
-                    Export Challenge Freetext
+                    Export Quiz Challenge Summary
                 </button>
             </div>
         </form>
 
+        <h1>Challenge - Picture</h1>
+        <form method="post">
+            {% csrf_token %}
+            <div class="field field-small">
+                <label for="picture-challenge-name">Select challenge:</label>
+                <div class="field-content">
+                    <div class="input">
+                        <select id="picture-challenge-name" name="picture-challenge-name">
+                            {% for c in picture_challenges %}
+                            <option>{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <button name="action" value="EXPORT-CHALLENGE-PICTURE" class="button icon-download bicolor icon right">
+                            Export Challenge Picture
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </form>
+
+        <h1>Challenge - Quiz</h1>
+        <form method="post">
+            {% csrf_token %}
+            <div class="field field-small">
+                <label for="quiz-challenge-name">Select challenge:</label>
+                <div class="field-content">
+                    <select id="quiz-challenge-name" name="quiz-challenge-name">
+                        {% for c in quiz_challenges %}
+                        <option>{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <button name="action" value="EXPORT-CHALLENGE-QUIZ" class="button icon-download bicolor icon right">
+                        Export Challenge Quiz
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <h1>Challenge - Free Text</h1>
+        <form method="post">
+            {% csrf_token %}
+            <div class="field field-small">
+                <label for="freetext-challenge-name">Select challenge:</label>
+                <div class="field-content">
+                    <select id="freetext-challenge-name" name="freetext-challenge-name">
+                        {% for c in freetext_challenges %}
+                        <option>{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+
+                    <button name="action" value="EXPORT-CHALLENGE-FREETEXT" class="button icon-download bicolor icon right">
+                        Export Challenge Freetext
+                    </button>
+                </div>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock %}
