@@ -773,7 +773,7 @@ class Entry(models.Model):
 @python_2_unicode_compatible
 class ParticipantAnswer(models.Model):
     entry = models.ForeignKey(Entry, null=True, related_name='answers')
-    question = models.ForeignKey(QuizQuestion, blank=False, null=True, related_name='+')
+    question = models.ForeignKey(QuizQuestion, blank=False, null=True, related_name='answers')
     selected_option = models.ForeignKey(QuestionOption, blank=False, null=True, related_name='+')
 
     # Translators: CMS field name (refers to dates)
