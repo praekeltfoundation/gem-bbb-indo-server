@@ -1085,10 +1085,6 @@ class Goal(models.Model):
         return self.state == Goal.ACTIVE
 
     @property
-    def is_goal_reached(self):
-        return self.value >= self.target
-
-    @property
     def is_end_date_modified(self):
         return self.end_date_modified is not None
 
