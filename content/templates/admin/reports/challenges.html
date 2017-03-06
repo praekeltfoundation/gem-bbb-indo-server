@@ -35,6 +35,9 @@
 
 
 
+
+
+
 </script>
 
 {% endblock %}
@@ -106,12 +109,10 @@
                 </div>
             </div>
 
-            <div>
-                <button name="action" value="EXPORT-CHALLENGE-SUMMARY"
-                        class="button icon-download bicolor icon right">
-                    Export Challenge Summary
-                </button>
-            </div>
+            <button name="action" value="EXPORT-CHALLENGE-SUMMARY"
+                    class="button icon-download bicolor icon right">
+                Export Challenge Summary
+            </button>
         </form>
 
         <h1>summary data per quiz</h1>
@@ -137,12 +138,13 @@
                             <option>{{ c.name }}</option>
                             {% endfor %}
                         </select>
-                        <button name="action" value="EXPORT-CHALLENGE-PICTURE" class="button icon-download bicolor icon right">
-                            Export Challenge Picture
-                        </button>
+
                     </div>
                 </div>
             </div>
+            <button name="action" value="EXPORT-CHALLENGE-PICTURE" class="button icon-download bicolor icon right">
+                Export Challenge Picture
+            </button>
         </form>
 
         <h1>Challenge - Quiz</h1>
@@ -156,12 +158,11 @@
                         <option>{{ c.name }}</option>
                         {% endfor %}
                     </select>
-
-                    <button name="action" value="EXPORT-CHALLENGE-QUIZ" class="button icon-download bicolor icon right">
-                        Export Challenge Quiz
-                    </button>
                 </div>
             </div>
+            <button name="action" value="EXPORT-CHALLENGE-QUIZ" class="button icon-download bicolor icon right">
+                Export Challenge Quiz
+            </button>
         </form>
 
         <h1>Challenge - Free Text</h1>
@@ -175,12 +176,11 @@
                         <option>{{ c.name }}</option>
                         {% endfor %}
                     </select>
-
-                    <button name="action" value="EXPORT-CHALLENGE-FREETEXT" class="button icon-download bicolor icon right">
-                        Export Challenge Freetext
-                    </button>
                 </div>
             </div>
+            <button name="action" value="EXPORT-CHALLENGE-FREETEXT" class="button icon-download bicolor icon right">
+                Export Challenge Freetext
+            </button>
         </form>
     </div>
 </div>
