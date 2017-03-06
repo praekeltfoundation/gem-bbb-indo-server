@@ -81,48 +81,6 @@
                 </li>
             </ul>
         </form>
-
-        <h1>Challenge exports</h1>
-
-        <form method="post">
-            {% csrf_token %}
-            <div>
-                <button name="action" value="EXPORT-CHALLENGE-SUMMARY"
-                        class="button icon-download bicolor icon right">
-                    Export Challenge Summary
-                </button>
-            </div>
-            <div>
-                <button name="action" value="EXPORT-CHALLENGE-QUIZ-SUMMARY"
-                        class="button icon-download bicolor icon right">
-                    Export Challenge Quiz Summary
-                </button>
-            </div>
-            <div>
-                <button name="action" value="EXPORT-CHALLENGE-PHOTO"
-                        class="button icon-download bicolor icon right">
-                    Export Challenge Photo
-                </button>
-            </div>
-            <div>
-                <select>
-                    {% for c in challenges %}
-                    <option>{{ c.name }}</option>
-                    {% endfor %}
-                </select>
-
-                <button name="action" value="EXPORT-CHALLENGE-QUIZ" class="button icon-download bicolor icon right">
-                    Export Challenge Quiz
-                </button>
-            </div>
-            <div>
-                <button name="action" value="EXPORT-CHALLENGE-FREETEXT"
-                        class="button icon-download bicolor icon right">
-                    Export Challenge Freetext
-                </button>
-            </div>
-        </form>
-
     </div>
 </div>
 {% endblock %}
