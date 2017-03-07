@@ -158,11 +158,10 @@ class ChallengeViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def participation(self, request, *args, **kwargs):
-        """Returns true if a user has started a challenge within 2 days of it being created, otherwise false"""
+        """Returns true if notification should be shown, and false otherwise"""
 
         try:
-            challenge = Challenge.objects.get(state=Challenge.CST_PUBLISHED,
-                                              activation_date__lt=(timezone.now() - timedelta(days=2)))
+            challenge = Challenge.objects.get(state=Challenge.CST_PUBLISHED)
         except:
             return Response({"available": False})
 
@@ -170,24 +169,23 @@ class ChallengeViewSet(viewsets.ModelViewSet):
         if challenge is None:
             return Response({"available": False})
 
-        participant = Participant.objects.filter(user_id=request.user.id,
-                                                 # date_created__gt=(timezone.now() - timedelta(days=2)),
-                                                 challenge=challenge)
+        has_participated = Participant.objects.filter(user_id=request.user.id, challenge=challenge).exists()
 
-        # If participant is None, there is no challenge available reminder notification
-        if not participant:
-            return Response({"available": False})
-        return Response({"available": True})
+        """User hasn't participated and challenge available for more than two days"""
+        date_two_days_ago = timezone.now() - timedelta(days=2)
+        if has_participated is False and challenge.activation_date < date_two_days_ago:
+            return Response({"available": True})
+
+        return Response({"available": False})
 
     @list_route(methods=['get'])
     def challenge_incomplete(self, request, *args, **kwargs):
-        """Returns true if the user has started a challenge but not submitted their entry"""
-
-        # TODO: Unclear how soon before the deadline this must trigger
+        """Returns true if the user has started a challenge but not submitted their entry, and the challenge
+        is ending in the next two days"""
 
         try:
             challenge = Challenge.objects.get(state=Challenge.CST_PUBLISHED,
-                                              deactivation_date__lt=(timezone.now() + timedelta(days=1)))
+                                              deactivation_date__lt=(timezone.now() + timedelta(days=2)))
         except:
             return Response({"available": False})
 
@@ -204,7 +202,8 @@ class ChallengeViewSet(viewsets.ModelViewSet):
 
         try:
             if challenge.type == Challenge.CTP_QUIZ:
-                entry = ParticipantAnswer.objects.get(participant=participant)
+                entry = Entry.objects.get(participant=participant)
+                # entry = ParticipantAnswer.objects.get(participant=participant)
             if challenge.type == Challenge.CTP_PICTURE:
                 entry = ParticipantPicture.objects.get(participant=participant)
             if challenge.type == Challenge.CTP_FREEFORM:
@@ -608,29 +607,20 @@ class GoalViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def deadline(self, request, pk=None, *args, **kwargs):
-        goal = Goal.objects.filter(state=Goal.ACTIVE)
-        if not goal:
-            data = {'available': False, 'overdue_goal': None}
-            return Response(data, status=status.HTTP_200_OK)
-        serializer = GoalSerializer(data=request.data, many=True)
-        if serializer.is_valid(raise_exception=True):
-            missed_goal = self.get_deadline_missed_goal()
-            data = {
-                'available': missed_goal is not None,
-                'overdue_goal': GoalSerializer(missed_goal, context=self.get_serializer_context()).data
-            }
-            return Response(data, status=status.HTTP_200_OK)
+        missed_goal = self.get_deadline_missed_goal(request.user.id)
+        data = {
+            'available': missed_goal is not None,
+            'overdue_goal': GoalSerializer(missed_goal, context=self.get_serializer_context()).data
+        }
+        return Response(data, status=status.HTTP_200_OK)
 
     @staticmethod
-    def get_deadline_missed_goal():
-        all_goals = Goal.objects.filter(state=Goal.ACTIVE)
+    def get_deadline_missed_goal(user_id):
+        all_goals = Goal.objects.filter(user_id=user_id, state=Goal.ACTIVE)
 
         for goal in all_goals:
             if goal.is_goal_deadline_missed():
                 return goal
-
-        # Return all overdue goals
-        # return [g for g in all_goals if g.is_goal_deadline_missed() is True]
 
     @staticmethod
     def award_badges(request, goal):
