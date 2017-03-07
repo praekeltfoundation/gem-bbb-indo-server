@@ -649,7 +649,7 @@ class ChallengeExportFreetext:
                 writer.writerow(data)
 
 
-class SummaryDataPerExport:
+class SummaryDataPerSurvey:
 
     fields = ()
 

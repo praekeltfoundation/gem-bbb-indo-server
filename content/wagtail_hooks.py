@@ -105,6 +105,11 @@ def register_reports_menu_item():
 def register_reports_menu_item():
     return MenuItem('Reports: Challenges', reverse('content-admin:reports-challenges'), classnames='icon icon-user', order=10000)
 
+
+@hooks.register('register_admin_menu_item')
+def register_reports_menu_item():
+    return MenuItem('Reports: Surveys', reverse('content-admin:reports-surveys'), classnames='icon icon-user', order=10000)
+
 # ===== #
 # Goals #
 # ===== #

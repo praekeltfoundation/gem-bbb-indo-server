@@ -5,7 +5,8 @@ from django.contrib.auth.decorators import permission_required
 from django.http.response import JsonResponse, HttpResponse
 
 from .reports import GoalReport, UserReport, SavingsReport, SummaryDataPerChallenge, \
-    SummaryDataPerQuiz, ChallengeExportPicture, ChallengeExportQuiz, ChallengeExportFreetext
+    SummaryDataPerQuiz, ChallengeExportPicture, ChallengeExportQuiz, ChallengeExportFreetext, SummaryDataPerSurvey, \
+    BaselineSurveyExport, EATool1SurveyExport, EATool2SurveyExport, EndlineSurveyExport
 
 from .models import Challenge, Participant
 
@@ -91,20 +92,48 @@ def report_challenge_exports(request):
 
 # Goal reports
 def report_goal_exports(request):
-    response = HttpResponse(content_type='text/csv; charset=utf-8')
-    response['Content-Disposition'] = 'attachment;filename=export-' + str(timezone.now()) + '.csv'
 
-    if request.POST.get('action') == 'EXPORT-ALL':
-        # TODO: Write all csv files, zip and send
+    if request.method == 'POST':
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment;filename=export-' + str(timezone.now()) + '.csv'
+
+        if request.POST.get('action') == 'EXPORT-ALL':
+            # TODO: Write all csv files, zip and send
+            return render(request, 'admin/reports/goals.html')
+        elif request.POST.get('action') == 'EXPORT-GOAL':
+            GoalReport.export_csv(response)
+            return response
+        elif request.POST.get('action') == 'EXPORT-USER':
+            UserReport.export_csv(response)
+            return response
+        elif request.POST.get('action') == 'EXPORT-SAVINGS':
+            SavingsReport.export_csv(response)
+            return response
+    elif request.method == 'GET':
         return render(request, 'admin/reports/goals.html')
-    elif request.POST.get('action') == 'EXPORT-GOAL':
-        GoalReport.export_csv(response)
-        return response
-    elif request.POST.get('action') == 'EXPORT-USER':
-        UserReport.export_csv(response)
-        return response
-    elif request.POST.get('action') == 'EXPORT-SAVINGS':
-        SavingsReport.export_csv(response)
-        return response
 
-    return render(request, 'admin/reports/goals.html')
+
+# Survey exports
+def report_survey_exports(request):
+
+    if request.method == 'POST':
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment;filename=export-' + str(timezone.now()) + '.csv'
+
+        if request.POST.get('action') == 'EXPORT-SURVEY-SUMMARY':
+            SummaryDataPerSurvey.export_csv(response)
+            return response
+        elif request.POST.get('action') == 'EXPORT-SURVEY-BASELINE':
+            BaselineSurveyExport.export_csv(response)
+            return response
+        elif request.POST.get('action') == 'EXPORT-SURVEY-EATOOL1':
+            EATool1SurveyExport.export_csv(response)
+            return response
+        elif request.POST.get('action') == 'EXPORT-SURVEY-EATOOL2':
+            EATool2SurveyExport.export_csv(response)
+            return response
+        elif request.POST.get('action') == 'EXPORT-SURVEY-ENDLINE':
+            EndlineSurveyExport.export_csv(response)
+            return response
+    elif request.method == 'GET':
+        return render(request, 'admin/reports/surveys.html')
