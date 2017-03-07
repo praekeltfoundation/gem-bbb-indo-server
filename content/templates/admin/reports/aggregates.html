@@ -1,0 +1,155 @@
+{% extends "modeladmin/index.html" %}
+{% load i18n modeladmin_tags %}
+
+{% block titletag %}{{ view.get_meta_title }}{% endblock %}
+
+{% block css %}
+{{ block.super }}
+{{ view.media.css }}
+{% endblock %}
+
+{% block extra_js %}
+{{ view.media.js }}
+{% include "wagtailadmin/shared/datetimepicker_translations.html" %}
+
+<script>
+        $(function() {
+            $('#id_date_from').datetimepicker({
+                timepicker: false,
+                format: 'Y-m-d',
+                i18n: {
+                    lang: window.dateTimePickerTranslations
+                },
+                lang: 'lang'
+            });
+            $('#id_date_to').datetimepicker({
+                timepicker: false,
+                format: 'Y-m-d',
+                i18n: {
+                    lang: window.dateTimePickerTranslations
+                },
+                lang: 'lang'
+            });
+        });
+
+
+
+
+
+
+
+</script>
+
+{% endblock %}
+
+{% block content %}
+{% comment %}
+{% block header %}
+<header class="nice-padding hasform">
+    <div class="row">
+        <div class="left">
+            <div class="col">
+                {% block h1 %}<h1 {% if view.header_icon %}class="icon icon-{{ view.header_icon }}" {% endif %}>{{
+                view.get_page_title }}<span></span></h1>{% endblock %}
+            </div>
+            {% block search %}{% search_form %}{% endblock %}
+        </div>
+        {% block header_extra %}
+        {% if user_can_create %}
+        <div class="right">
+            <div class="addbutton">
+                {% include 'modeladmin/includes/button.html' with button=view.button_helper.add_button %}
+            </div>
+        </div>
+        {% endif %}
+        {% endblock %}
+    </div>
+</header>
+{% endblock %}
+{% endcomment %}
+
+<header class="{% if merged %}merged{% endif %} {% if tabbed %}tab-merged{% endif %} {% if search_form %}hasform{% endif %}">
+    <div class="row nice-padding">
+        <div class="left">
+            <div class="col header-title">
+                <h1 class="icon icon-{{ icon }}">
+                    <!--{{ title }}{% if subtitle %} <span>{{ subtitle }}</span>{% endif %}-->
+                    Reports
+                </h1>
+            </div>
+        </div>
+    </div>
+</header>
+
+{% block content_main %}
+<div>
+    <div class="row nice-padding">
+        <!-- Export -->
+        <h1>summary goal data</h1>
+        <form method="post">
+            {% csrf_token %}
+            <button name="action" value="EXPORT-AGGREGATE-SUMMARY"
+                    class="button icon-download bicolor icon right">
+                Total Goal Data
+            </button>
+        </form>
+
+        <h1>goal data per category</h1>
+        <form method="post">
+            {% csrf_token %}
+            <div>
+                <button name="action" value="EXPORT-AGGREGATE-GOAL-PER-CATEGORY"
+                        class="button icon-download bicolor icon right">
+                    Goal Data Per Category
+                </button>
+            </div>
+        </form>
+
+        <h1>rewards data</h1>
+        <form method="post">
+            {% csrf_token %}
+            <div>
+                <button name="action" value="EXPORT-AGGREGATE-REWARDS-DATA"
+                        class="button icon-download bicolor icon right">
+                    Rewards Data
+                </button>
+            </div>
+        </form>
+
+        <h1>rewards data per badge name</h1>
+        <form method="post">
+            {% csrf_token %}
+            <div>
+                <button name="action" value="EXPORT-AGGREGATE-DATA-PER-BADGE"
+                        class="button icon-download bicolor icon right">
+                    Rewards Data Per Badge Name
+                </button>
+            </div>
+        </form>
+
+        <h1>rewards data per streak type</h1>
+        <form method="post">
+            {% csrf_token %}
+            <div>
+                <button name="action" value="EXPORT-AGGREGATE-DATA-PER-STREAK"
+                        class="button icon-download bicolor icon right">
+                    Rewards Data Per Streak Type
+                </button>
+            </div>
+        </form>
+
+        <h1>user type data</h1>
+        <form method="post">
+            {% csrf_token %}
+            <div>
+                <button name="action" value="EXPORT-AGGREGATE-USER-TYPE"
+                        class="button icon-download bicolor icon right">
+                    User Type Data
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% endblock %}
