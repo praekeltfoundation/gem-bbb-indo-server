@@ -645,3 +645,63 @@ class ChallengeExportFreetext:
                 ]
 
                 writer.writerow(data)
+
+
+class SummaryGoalData:
+
+    fields = ()
+
+    @classmethod
+    def export_csv(cls, stream):
+        writer = csv.writer(stream)
+        writer.writerow(())
+
+
+class GoalDataPerCategory:
+
+    fields = ()
+
+    @classmethod
+    def export_csv(cls, stream):
+        writer = csv.writer(stream)
+        writer.writerow(())
+
+
+class RewardsData:
+
+    fields = ()
+
+    @classmethod
+    def export_csv(cls, stream):
+        writer = csv.writer(stream)
+        writer.writerow(())
+
+
+class RewardsDataPerBadge:
+
+    fields = ()
+
+    @classmethod
+    def export_csv(cls, stream):
+        writer = csv.writer(stream)
+        writer.writerow(())
+
+
+class RewardsDataPerStreak:
+
+    fields = ()
+
+    @classmethod
+    def export_csv(cls, stream):
+        writer = csv.writer(stream)
+        writer.writerow(())
+
+
+class UserTypeData:
+
+    fields = ()
+
+    @classmethod
+    def export_csv(cls, stream):
+        writer = csv.writer(stream)
+        writer.writerow(())
