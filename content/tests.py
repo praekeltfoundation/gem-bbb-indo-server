@@ -2572,6 +2572,24 @@ class TestFeedback(APITestCase):
 ##########
 
 
+class TestBudgetModel(TestCase):
+
+    def test_expense_sum(self):
+        """
+        Ensure that a Budget's expenses are correctly summed
+        """
+        user = create_test_regular_user()
+        budget = Budget.objects.create(
+            income=70000,
+            savings=7000,
+            user=user
+        )
+        budget.expenses.create(name='Snacks', value=1000)
+        budget.expenses.create(name='Clothes', value=2000)
+
+        self.assertEqual(budget.expense, 3000, "Unexpected Budget calculated expense total.")
+
+
 class TestBudgetAPI(APITestCase):
 
     def test_basic_create(self):

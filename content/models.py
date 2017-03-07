@@ -1759,6 +1759,12 @@ class Budget(modelcluster_fields.ClusterableModel):
         # Translators: Plural collection name on CMS
         verbose_name_plural = _('budget')
 
+    @property
+    def expense(self):
+        # Because expenses use a ParentalKey, we get a FakeQuerySet which doesn't have a values() method
+        return reduce(lambda acc, value: acc + value,
+                      [e.value for e in self.expenses.all().order_by('id')], 0)
+
     def __str__(self):
         return 'Budget {}'.format(self.user)
 
