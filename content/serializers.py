@@ -12,7 +12,7 @@ from .models import Feedback
 from .models import Goal, GoalPrototype, GoalTransaction
 from .models import Badge, UserBadge
 from .models import Tip, TipFavourite
-from .models import ExpenseCategory
+from .models import ExpenseCategory, Budget, Expense
 
 
 # ============ #
@@ -552,7 +552,7 @@ class GoalSerializer(serializers.ModelSerializer):
     week_count_to_now = serializers.SerializerMethodField()
     weekly_average = serializers.ReadOnlyField()
     weekly_target = serializers.DecimalField(18, 2, coerce_to_string=False)
-                                             # default=Goal.calculate_weekly_target(start_date, end_date, target))
+    # default=Goal.calculate_weekly_target(start_date, end_date, target))
 
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
     image_url = serializers.SerializerMethodField()
@@ -717,12 +717,13 @@ class CustomNotificationSerializer(serializers.ModelSerializer):
 ##########
 
 
-class ExpenseCategorySerializer(serializers.Serializer):
+class ExpenseCategorySerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField()
     name = serializers.ReadOnlyField()
     image_url = serializers.SerializerMethodField()
 
     class Meta:
+        model = ExpenseCategory
         fields = ('id', 'name', 'image_url')
 
     def get_image_url(self, obj):
@@ -731,3 +732,44 @@ class ExpenseCategorySerializer(serializers.Serializer):
             return request.build_absolute_uri(obj.image.file.url)
         else:
             return None
+
+
+class ExpenseSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField()
+    name = serializers.CharField()
+    value = serializers.DecimalField(18, 2, coerce_to_string=False)
+    category = serializers.PrimaryKeyRelatedField(queryset=ExpenseCategory.objects.all(), allow_null=True,
+                                                  required=False)
+
+    class Meta:
+        model = Expense
+        fields = ('id', 'name', 'value', 'category')
+
+
+class BudgetSerializer(serializers.ModelSerializer):
+    id = serializers.ReadOnlyField()
+    income = serializers.DecimalField(18, 2, coerce_to_string=False)
+    savings = serializers.DecimalField(18, 2, coerce_to_string=False)
+    user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
+    expenses = ExpenseSerializer(many=True)
+
+    class Meta:
+        model = Budget
+        fields = ('id', 'income', 'savings', 'user', 'expenses')
+
+    def create(self, validated_data):
+        user = validated_data.pop('user')
+
+        budget, created = self.Meta.model.objects.get_or_create(user=user)
+        budget.income = validated_data.pop('income')
+        budget.savings = validated_data.pop('savings')
+
+        budget.expenses.clear()
+        for expense in validated_data.pop('expenses'):
+            budget.expenses.create(**expense)
+
+        budget.save()
+
+        return budget
+
+
