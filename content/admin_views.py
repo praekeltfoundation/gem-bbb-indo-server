@@ -5,7 +5,8 @@ from django.contrib.auth.decorators import permission_required
 from django.http.response import JsonResponse, HttpResponse
 
 from .reports import GoalReport, UserReport, SavingsReport, SummaryDataPerChallenge, \
-    SummaryDataPerQuiz, ChallengeExportPicture, ChallengeExportQuiz, ChallengeExportFreetext
+    SummaryDataPerQuiz, ChallengeExportPicture, ChallengeExportQuiz, ChallengeExportFreetext, SummaryGoalData, \
+    GoalDataPerCategory, RewardsData, RewardsDataPerBadge, RewardsDataPerStreak, UserTypeData
 
 from .models import Challenge, Participant
 
@@ -108,3 +109,32 @@ def report_goal_exports(request):
         return response
 
     return render(request, 'admin/reports/goals.html')
+
+
+# Aggregate reports
+def report_aggregate_exports(request):
+
+    if request.method == 'POST':
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment;filename=export-' + str(timezone.now()) + '.csv'
+
+        if request.POST.get('action') == 'EXPORT-AGGREGATE-SUMMARY':
+            SummaryGoalData.export_csv(response)
+            return response
+        elif request.POST.get('action') == 'EXPORT-AGGREGATE-GOAL-PER-CATEGORY':
+            GoalDataPerCategory.export_csv(response)
+            return response
+        elif request.POST.get('action') == 'EXPORT-AGGREGATE-REWARDS-DATA':
+            RewardsData.export_csv(response)
+            return response
+        elif request.POST.get('action') == 'EXPORT-AGGREGATE-DATA-PER-BADGE':
+            RewardsDataPerBadge.export_csv(response)
+            return response
+        elif request.POST.get('action') == 'EXPORT-AGGREGATE-DATA-PER-STREAK':
+            RewardsDataPerStreak.export_csv(response)
+            return response
+        elif request.POST.get('action') == 'EXPORT-AGGREGATE-USER-TYPE':
+            UserTypeData.export_csv(response)
+            return response
+    elif request.method == 'GET':
+        return render(request, 'admin/reports/aggregates.html')
