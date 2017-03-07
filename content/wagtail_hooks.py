@@ -172,9 +172,12 @@ class BudgetAdmin(ModelAdmin):
     menu_label = _('User Budget')
     menu_order = 200
     add_to_settings_menu = False
-    list_display = ('user__name', 'income', 'savings')
+    list_display = ('user_username', 'income', 'savings')
     # list_filter = ('state',)
-    search_fields = ('user__name',)
+    search_fields = ('user_username',)
+
+    def user_username(self, obj):
+        return obj.user.username
 
 
 class BudgetGroup(ModelAdminGroup):
