@@ -6,6 +6,8 @@ from users.models import Profile
 from .models import Goal, Badge, BadgeSettings, UserBadge, GoalTransaction, WeekCalc, Challenge, Participant, \
     QuizQuestion, QuestionOption, Entry, ParticipantAnswer, ParticipantFreeText
 
+from survey.models import CoachSurvey
+
 
 class GoalReport:
 
@@ -645,3 +647,136 @@ class ChallengeExportFreetext:
                 ]
 
                 writer.writerow(data)
+
+
+class SummaryDataPerExport:
+
+    fields = ()
+
+    @classmethod
+    def export_csv(cls, stream):
+        surveys = CoachSurvey.objects.all()
+
+        writer = csv.writer(stream)
+
+        writer.writerow(('survey_name', 'date_published', 'date_unpublished', 'total_users_complete',
+                         'total_users_in_progress', 'total_users_no_consent', 'total_no_response'))
+
+        for survey in surveys:
+            data = [
+                cls.get_survey_type(survey),
+
+            ]
+
+            writer.writerow(data)
+
+    @classmethod
+    def get_survey_type(cls, survey):
+        if survey.bot_conversation is CoachSurvey.BASELINE:
+            return "Baseline"
+        elif survey.bot_conversation is CoachSurvey.EATOOL:
+            return "EA Tool"
+
+        return ""
+
+
+class BaselineSurveyExport:
+
+    fields = ()
+
+    @classmethod
+    def export_csv(cls, stream):
+        surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.BASELINE)
+
+        writer = csv.writer(stream)
+
+        writer.writerow(('uuid', 'username', 'name', 'mobile', 'email', 'gender', 'age',
+                         'user_type', 'date_joined', 'city', 'younger_than_17', 'consent_given',
+                         'submission_date',
+
+                         # Survey questions
+                         'q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8', 'q9', 'q10', 'q11',
+                         'q12', 'q13', 'q14', 'q15', 'q16', 'q17', 'q18', 'q19', 'q20', 'q21', 'q22', 'q23',
+                         'q24', 'q25', 'q26', 'q27.1', 'q27.2', 'q28', 'q29.1', 'q29.2', 'q29.3', 'q29.4'))
+
+        for survey in surveys:
+            data = [
+
+            ]
+
+            writer.writerow(data)
+
+
+class EATool1SurveyExport:
+
+    fields = ()
+
+    @classmethod
+    def export_csv(cls, stream):
+        surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.BASELINE)
+
+        writer = csv.writer(stream)
+
+        writer.writerow(('uuid', 'username', 'name', 'mobile', 'email', 'gender', 'age',
+                         'user_type', 'date_joined', 'city', 'younger_than_17', 'consent_given',
+                         'submission_date',
+
+                         # Survey questions
+                         ))
+
+        for survey in surveys:
+            data = [
+
+            ]
+
+            writer.writerow(data)
+
+
+class EATool2SurveyExport:
+
+    fields = ()
+
+    @classmethod
+    def export_csv(cls, stream):
+        surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.BASELINE)
+
+        writer = csv.writer(stream)
+
+        writer.writerow(('uuid', 'username', 'name', 'mobile', 'email', 'gender', 'age',
+                         'user_type', 'date_joined', 'city', 'younger_than_17', 'consent_given',
+                         'submission_date',
+
+                         # Survey questions
+                         ))
+
+        for survey in surveys:
+            data = [
+
+            ]
+
+            writer.writerow(data)
+
+
+class EndlineSurveyExport:
+
+    fields = ()
+
+    @classmethod
+    def export_csv(cls, stream):
+        surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.BASELINE)
+
+        writer = csv.writer(stream)
+
+        writer.writerow(('uuid', 'username', 'name', 'mobile', 'email', 'gender', 'age',
+                         'user_type', 'date_joined', 'city', 'younger_than_17', 'consent_given',
+                         'submission_date',
+
+                         # Survey questions
+                         ))
+
+        for survey in surveys:
+            data = [
+
+            ]
+
+            writer.writerow(data)
