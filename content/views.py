@@ -797,4 +797,7 @@ class BudgetView(viewsets.ModelViewSet):
         if serializer.is_valid(raise_exception=True):
             budget = serializer.save()
 
-            return Response(self.get_serializer(instance=budget).data, status=status.HTTP_201_CREATED)
+            return Response({
+                'budget': self.get_serializer(instance=budget).data,
+                'badges': []
+            }, status=status.HTTP_201_CREATED)
