@@ -654,7 +654,31 @@ class SummaryGoalData:
     @classmethod
     def export_csv(cls, stream):
         writer = csv.writer(stream)
-        writer.writerow(())
+        writer.writerow(('total_users_set_at_least_one_goal', 'total_users_achieved_at_least_one_goal',
+                         'total_achieved_goals', 'percentage_of_weeks_saved_out_of_total_weeks'))
+
+        num_users_at_least_one_goal = Goal.objects.all().values('user_id').distinct().count()
+
+        goals = Goal.objects.all()
+        num_achieved_goals = 0
+        for goal in goals:
+            if goal.progress >= 100:
+                num_achieved_goals += 1
+
+        # TODO: Return number of users who achieved at least one goal
+        num_users_achieved_one_goal = 0
+
+        # TODO: Return percentage of weeks saved, out of total weeks
+        percentage_weeks_saved = 0
+
+        data = [
+            num_users_at_least_one_goal,
+            num_users_achieved_one_goal,
+            num_achieved_goals,
+            percentage_weeks_saved
+        ]
+
+        writer.writerow(data)
 
 
 class GoalDataPerCategory:
@@ -664,7 +688,94 @@ class GoalDataPerCategory:
     @classmethod
     def export_csv(cls, stream):
         writer = csv.writer(stream)
-        writer.writerow(())
+        writer.writerow(('category', 'total_users_one_at_least_one_goal', 'total_goals_set',
+                         'total_users_achieved_one_goal', 'average_goal_amount', 'average_percentage_goal_reached',
+                         'total_users_50_percent_achieved', 'total_users_100_percent_achieved',
+                         'percentage_of_weeks_saved_out_of_total_weeks'))
+
+        goals = Goal.objects.all()
+
+        for goal in goals:
+            data = [
+                goal.prototype,
+                Goal.objects.all().values('user_id').distinct().count(),
+                goals.count(),
+                cls.total_users_achieved_at_least_one_goal(),
+                cls.average_total_goal_amount(goals),
+                cls.average_percentage_of_goal_reached(goals),
+                cls.total_users_50_percent_achieved(),
+                cls.total_users_100_percent_achieved(goals),
+                cls.percentage_of_weeks_saved_out_of_total_weeks(goals)
+            ]
+
+            writer.writerow(data)
+
+    @classmethod
+    def total_users_achieved_at_least_one_goal(cls):
+        users_with_goals = Goal.objects.all().values('user_id').distinct()
+
+        num_achieved_one_goal = 0
+
+        for user in users_with_goals:
+            users_goals = Goal.objects.filter(user=user)
+
+            for goal in users_goals:
+                if goal.progress >= 100:
+                    num_achieved_one_goal += 1
+                    break
+
+        return num_achieved_one_goal
+
+    @classmethod
+    def average_total_goal_amount(cls, goals):
+        total_amount_of_goals_count = goals.count()
+
+        total_goals_value = 0
+        for goal in goals:
+            total_goals_value += goal.value
+
+        if total_goals_value is not 0 and total_amount_of_goals_count is not 0:
+            return total_goals_value / total_amount_of_goals_count
+        else:
+            return 0
+
+    @classmethod
+    def average_percentage_of_goal_reached(cls, goals):
+        num_achieved_goals = 0
+        for goal in goals:
+            if goal.progress >= 100:
+                num_achieved_goals += 1
+
+        total_amount_of_goals = goals.count()
+
+        return (num_achieved_goals / total_amount_of_goals) * 100
+
+    @classmethod
+    def total_users_50_percent_achieved(cls):
+        goals = Goal.objects.all().values('user_id').distinct()
+        num_50_percent_achieved = 0
+
+        for goal in goals:
+            if goal.progress >= 50:
+                num_50_percent_achieved += 1
+
+        return num_50_percent_achieved
+
+    @classmethod
+    def total_users_100_percent_achieved(cls, goals):
+        goals = Goal.objects.all().values('user_id').distinct()
+        num_50_percent_achieved = 0
+
+        for goal in goals:
+            if goal.progress >= 100:
+                num_50_percent_achieved += 1
+
+        return num_50_percent_achieved
+
+    @classmethod
+    def percentage_of_weeks_saved_out_of_total_weeks(cls, goals):
+        # TODO: % of week saved out of total weeks
+        return 0
 
 
 class RewardsData:
@@ -674,7 +785,29 @@ class RewardsData:
     @classmethod
     def export_csv(cls, stream):
         writer = csv.writer(stream)
-        writer.writerow(())
+        writer.writerow(('total_badges_earned_by_all_users', 'total_users_at_least_one_streak',
+                         'average_percentage_weeks_saved_weekly_target_met', 'average_percentage_weeks_saved'))
+
+        data = [
+            UserBadge.objects.all().count(),
+            cls.total_users_at_least_one_streak(),
+            cls.average_percentage_weeks_saved_weekly_target_met(),
+            cls.average_percentage_weeks_saved()
+        ]
+
+        writer.writerow(data)
+
+    @classmethod
+    def total_users_at_least_one_streak(cls):
+        return 0
+
+    @classmethod
+    def average_percentage_weeks_saved_weekly_target_met(cls):
+        return 0
+
+    @classmethod
+    def average_percentage_weeks_saved(cls):
+        return 0
 
 
 class RewardsDataPerBadge:
@@ -684,7 +817,7 @@ class RewardsDataPerBadge:
     @classmethod
     def export_csv(cls, stream):
         writer = csv.writer(stream)
-        writer.writerow(())
+        writer.writerow(('badge_name', 'total_earned_by_all_users', 'total_users_who_have_earned_a_badge'))
 
 
 class RewardsDataPerStreak:
@@ -694,7 +827,8 @@ class RewardsDataPerStreak:
     @classmethod
     def export_csv(cls, stream):
         writer = csv.writer(stream)
-        writer.writerow(())
+        writer.writerow(('streak_type', 'total_streaks_by_all_users', 'total_users_at_least_one_streak',
+                         'total_users_reached_weekly_savings_amount', 'total_users_not_reached_weekly_savings_amount'))
 
 
 class UserTypeData:
@@ -704,4 +838,7 @@ class UserTypeData:
     @classmethod
     def export_csv(cls, stream):
         writer = csv.writer(stream)
-        writer.writerow(())
+        writer.writerow(('total_classroom_users', 'total_marketing_users'))
+
+
+
