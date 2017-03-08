@@ -490,7 +490,7 @@ class SummaryDataPerChallenge:
         for challenge in challenges:
             data = [
                 challenge.name,
-                cls.get_challenge_type(challenge),
+                challenge.get_type_display(),
                 challenge.call_to_action,
                 challenge.activation_date,
                 challenge.deactivation_date,
@@ -500,11 +500,6 @@ class SummaryDataPerChallenge:
             ]
 
             writer.writerow(data)
-
-    @classmethod
-    def get_challenge_type(cls, challenge):
-        # TODO: Return string of challenge type
-        return challenge.type
 
     @classmethod
     def total_challenge_completions(cls, challenge):
@@ -702,15 +697,29 @@ class SummaryGoalData:
         # TODO: Total amount of users who have achieved at least one goal
         num_users_achieved_one_goal = 0
 
-        # Number of achieved goals
         goals = Goal.objects.all()
+
+        # Number of achieved goals
         num_achieved_goals = 0
         for goal in goals:
             if goal.progress >= 100:
                 num_achieved_goals += 1
 
-        # TODO: Return percentage of weeks saved, out of total weeks
+        # Percentage weeks saved out of total weeks
         percentage_weeks_saved = 0
+        goals = Goal.objects.filter()
+        total_weeks = 0
+        total_weeks_saved = 0
+
+        for goal in goals:
+            weekly_savings = goal.get_weekly_aggregates()
+            total_weeks += goal.weeks
+            for amount_saved_in_week in weekly_savings:
+                if amount_saved_in_week != 0:
+                    total_weeks_saved += 1
+
+        if total_weeks is not 0 and total_weeks_saved is not 0:
+            percentage_weeks_saved = (total_weeks_saved / total_weeks) * 100
 
         data = [
             num_users_at_least_one_goal,
