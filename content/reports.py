@@ -694,7 +694,7 @@ class SummaryGoalData:
         # Number of users with at least one goal set
         num_users_at_least_one_goal = Goal.objects.all().values('user_id').distinct().count()
 
-        # TODO: Total amount of users who have achieved at least one goal
+        # Total amount of users who have achieved at least one goal
         num_users_achieved_one_goal = 0
         array_of_users = Goal.objects.all().values('user_id').distinct()
 
@@ -703,7 +703,7 @@ class SummaryGoalData:
             for goal in goals:
                 if goal.progress >= 100:
                     num_users_achieved_one_goal += 1
-                break
+                    break
 
         goals = Goal.objects.all()
 
