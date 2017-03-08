@@ -833,8 +833,18 @@ class GoalDataPerCategory:
 
     @classmethod
     def percentage_of_weeks_saved_out_of_total_weeks(cls, goal_prototype):
-        # TODO: % of week saved out of total weeks
-        return 0
+        goals = Goal.objects.filter(prototype=goal_prototype)
+        total_weeks = 0
+        total_weeks_saved = 0
+
+        for goal in goals:
+            agg = goal.get_weekly_aggregates()
+            total_weeks += goal.weeks
+            for aggCount in agg:
+                if aggCount != 0:
+                    total_weeks_saved += 1
+
+        return (total_weeks_saved/total_weeks)*100
 
 
 class RewardsData:
