@@ -265,6 +265,7 @@ class UserReport:
                 cls.num_budget_created_badges(profile),
                 cls.num_budget_revision_badges(profile),
                 cls.highest_streak_earned(profile),
+                cls.total_streaks_earned(profile),
                 cls.total_streak_and_ontrack_badges(profile),
                 cls.baseline_survey_complete(profile),
                 cls.ea_tool1_completed(profile),
@@ -359,8 +360,20 @@ class UserReport:
 
     @classmethod
     def highest_streak_earned(cls, profile):
-        # TODO: Return the users highest streak
-        return 0
+        goals = Goal.objects.filter(user=profile.user)
+        highest_streak = 0
+        current_count = 0
+
+        for goal in goals:
+            transactions = goal.get_weekly_aggregates()
+            for trans in transactions:
+                if trans != 0:
+                    current_count += 1
+                    if current_count > highest_streak:
+                        highest_streak = current_count
+                else:
+                    current_count = 0
+        return highest_streak
 
     @classmethod
     def total_streak_and_ontrack_badges(cls, profile):
@@ -369,8 +382,21 @@ class UserReport:
 
     @classmethod
     def total_streaks_earned(cls, profile):
-        # TODO: Return the number of streaks earned
-        return 0
+        goals = Goal.objects.filter(user=profile.user)
+        total_streaks = 0
+        current_count = 0
+
+        for goal in goals:
+            transactions = goal.get_weekly_aggregates()
+            for trans in transactions:
+                if trans != 0:
+                    current_count += 1
+                    if current_count > 1:
+                        total_streaks += 1
+                else:
+                    current_count = 0
+
+        return total_streaks
 
     @classmethod
     def num_quiz_complete_badges(cls, profile):
