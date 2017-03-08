@@ -542,15 +542,18 @@ class SummaryDataPerChallenge:
         """Checks to see which users don't have a participant for the given challenge"""
         # TODO: Not returning correct values
         total_amount_of_users = User.objects.all().count()
+        total_amount_of_participants = Participant.objects.filter(challenge=challenge).count()
+
+        the_difference = total_amount_of_users - total_amount_of_participants
 
         # total_users_responded = User.objects.filter(participants__challenge=challenge).count()
         #
         # temp = User.objects.all().annotate(no_responses=Count('participants'))
 
-        total_users_responded = User.objects.filter(
-            participants__challenge=challenge).annotate(no_responses=Count('participants')).count()
+        # total_users_responded = User.objects.filter(
+        #     participants__challenge=challenge).annotate(no_responses=Count('participants')).count()
 
-        return total_amount_of_users - total_users_responded
+        return the_difference
 
 
 class SummaryDataPerQuiz:
