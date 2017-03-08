@@ -659,7 +659,7 @@ FreeTextQuestion.panels = [
 
 @python_2_unicode_compatible
 class Participant(models.Model):
-    user = models.ForeignKey(User, related_name='users', blank=False, null=True)
+    user = models.ForeignKey(User, related_name='participants', blank=False, null=True)
     challenge = models.ForeignKey(Challenge, related_name='participants', blank=False, null=True)
 
     # Translators: CMS field name (refers to dates)
