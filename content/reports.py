@@ -1,7 +1,10 @@
 import csv
 from datetime import timedelta, datetime
+
+from django.contrib.auth.models import User
 from django.db.models import Count, Avg
 
+from survey.models import CoachSurveySubmission, CoachSurvey
 from users.models import Profile
 from .models import Goal, Badge, BadgeSettings, UserBadge, GoalTransaction, WeekCalc, Challenge, Participant, \
     QuizQuestion, QuestionOption, Entry, ParticipantAnswer, ParticipantFreeText, GoalPrototype
@@ -191,6 +194,8 @@ class GoalReport:
         # TODO: Return the date the goal was edited
         return 0
 
+    # Goal dates
+
     @classmethod
     def date_achieved(cls, goal):
         """Returns the date of the transaction that caused the user to achieve their goal"""
@@ -275,13 +280,17 @@ class UserReport:
 
     @classmethod
     def number_of_goals(cls, profile):
+        """Returns the number of goals the user has"""
         user = profile.user
         return Goal.objects.filter(user=user).count()
 
     @classmethod
     def total_badges_earned(cls, profile):
+        """Returns the total number of badges earned by the user"""
         user = profile.user
         return Badge.objects.filter(user=user).count()
+
+    # Badge totals
 
     @classmethod
     def num_first_goal_created_badges(cls, profile):
@@ -393,15 +402,24 @@ class UserReport:
         # TODO: Return the number of Budget Revision badges (Not implemented)
         return 0
 
+    # Survey data
+
     @classmethod
     def baseline_survey_complete(cls, profile):
-        # TODO: Return True/False if a user has completed the baseline survey
-        return False
+        """Return True/False if a user has completed the baseline survey"""
+        try:
+            CoachSurveySubmission.objects.get(user=profile.user, survey__bot_conversation=CoachSurvey.BASELINE)
+            return True
+        except:
+            return False
 
     @classmethod
     def ea_tool1_completed(cls, profile):
-        # TODO: Return true/False if a user has completed the EA Tool 1 survey
-        return False
+        try:
+            CoachSurveySubmission.objects.get(user=profile.user, survey__bot_conversation=CoachSurvey.EATOOL)
+            return True
+        except:
+            return False
 
     @classmethod
     def ea_tool2_completed(cls, profile):
@@ -436,7 +454,7 @@ class SavingsReport:
 
                     # Savings plan details
                     goal.name,
-                    cls.weekly_target_at_transaction(transaction),
+                    goal.weekly_target,
 
                     # Deposit/Withdrawal details
                     transaction.is_deposit,
@@ -446,10 +464,6 @@ class SavingsReport:
                 ]
 
                 writer.writerow(data)
-
-    @classmethod
-    def weekly_target_at_transaction(cls, obj):
-        return obj.goal.weekly_target
 
 
 ##########################
@@ -470,10 +484,13 @@ class SummaryDataPerChallenge:
 
         writer = csv.writer(stream)
 
+        writer.writerow(('challenge_name', 'challenge_type', 'call_to_action', 'activation_date', 'deactivation_date',
+                        'total_challenge_completions', 'total_users_in_progress', 'total_no_responses'))
+
         for challenge in challenges:
             data = [
                 challenge.name,
-                challenge.type,
+                cls.get_challenge_type(challenge),
                 challenge.call_to_action,
                 challenge.activation_date,
                 challenge.deactivation_date,
@@ -485,18 +502,34 @@ class SummaryDataPerChallenge:
             writer.writerow(data)
 
     @classmethod
+    def get_challenge_type(cls, challenge):
+        # TODO: Return string of challenge type
+        return challenge.type
+
+    @classmethod
     def total_challenge_completions(cls, challenge):
-        return Participant.objects.filter(challenge=challenge).count()
+        """Returns the number of participants who have completed a challenge"""
+        return Participant.objects.filter(challenge=challenge, date_completed__isnull=False).count()
 
     @classmethod
     def total_users_in_progress(cls, challenge):
-        # TODO: Return total users in progress
-        return 0
+        """Returns the total number of participants who have started the challenge but not completed it"""
+        return Participant.objects.filter(challenge=challenge, date_completed__isnull=True).count()
 
     @classmethod
     def no_response_total(cls, challenge):
-        # TODO: Return the number of no responses
-        return 0
+        """Checks to see which users don't have a participant for the given challenge"""
+        # TODO: Not returning correct values
+        total_amount_of_users = User.objects.all().count()
+
+        # total_users_responded = User.objects.filter(participants__challenge=challenge).count()
+        #
+        # temp = User.objects.all().annotate(no_responses=Count('participants'))
+
+        total_users_responded = User.objects.filter(
+            participants__challenge=challenge).annotate(no_responses=Count('participants')).count()
+
+        return total_amount_of_users - total_users_responded
 
 
 class SummaryDataPerQuiz:
@@ -507,6 +540,8 @@ class SummaryDataPerQuiz:
     def export_csv(cls, stream):
         challenges = Challenge.objects.filter(type=Challenge.CTP_QUIZ)
         writer = csv.writer(stream)
+
+        writer.writerow(('quiz_name', 'quiz_question', 'number_of_options', 'average_attempts'))
 
         for challenge in challenges:
             quiz_questions = QuizQuestion.objects.filter(challenge=challenge)
@@ -530,7 +565,8 @@ class SummaryDataPerQuiz:
     @classmethod
     def average_number_question_attempts(cls, question, options):
         # TODO: Return the average number of user attempts per question option
-        return 0
+        average_attempts = 0
+        return average_attempts
 
 
 class ChallengeExportPicture:
@@ -624,7 +660,6 @@ class ChallengeExportFreetext:
 
         for challenge in challenges:
             participants = Participant.objects.filter(challenge=challenge)
-            quiz_questions = QuizQuestion.objects.filter(challenge=challenge)
 
             for participant in participants:
                 participant_free_text = ParticipantFreeText.objects.get(participant=participant)
@@ -644,6 +679,7 @@ class ChallengeExportFreetext:
                 ]
 
                 writer.writerow(data)
+
 
 ##########################
 # Aggregate Data Reports #
