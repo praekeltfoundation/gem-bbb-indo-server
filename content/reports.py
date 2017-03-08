@@ -696,6 +696,14 @@ class SummaryGoalData:
 
         # TODO: Total amount of users who have achieved at least one goal
         num_users_achieved_one_goal = 0
+        array_of_users = Goal.objects.all().values('user_id').distinct()
+
+        for user in array_of_users:
+            goals = Goal.objects.filter(user_id=user['user_id'])
+            for goal in goals:
+                if goal.progress >= 100:
+                    num_users_achieved_one_goal += 1
+                break
 
         goals = Goal.objects.all()
 
