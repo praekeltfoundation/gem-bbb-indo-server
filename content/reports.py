@@ -1019,7 +1019,7 @@ class RewardsDataPerStreak:
     def total_streak_badges_at_least_one_user(cls, badge):
         """"Returns the number given streak badges by earned by at least one user"""
 
-        total_streak_badges = User.objects.filter(badge=badge).values('user').distinct().count()
+        total_streak_badges = UserBadge.objects.filter(badge=badge).values('user').distinct().count()
 
         return total_streak_badges
 
