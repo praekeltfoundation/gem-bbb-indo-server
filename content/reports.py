@@ -713,10 +713,23 @@ class SummaryGoalData:
         writer.writerow(('total_users_set_at_least_one_goal', 'total_users_achieved_at_least_one_goal',
                          'total_achieved_goals', 'percentage_of_weeks_saved_out_of_total_weeks'))
 
-        # Number of users with at least one goal set
-        num_users_at_least_one_goal = Goal.objects.all().values('user_id').distinct().count()
+        data = [
+            cls.num_users_set_at_least_one_goal(),
+            cls.num_users_achieved_one_goal(),
+            cls.num_achieved_goals(),
+            cls.percentage_weeks_saved()
+        ]
 
-        # Total amount of users who have achieved at least one goal
+        writer.writerow(data)
+
+    @classmethod
+    def num_users_set_at_least_one_goal(cls):
+        """Number of users with at least one goal set"""
+        return Goal.objects.all().values('user_id').distinct().count()
+
+    @classmethod
+    def num_users_achieved_one_goal(cls):
+        """Total amount of users who have achieved at least one goal"""
         num_users_achieved_one_goal = 0
         array_of_users = Goal.objects.all().values('user_id').distinct()
 
@@ -727,15 +740,22 @@ class SummaryGoalData:
                     num_users_achieved_one_goal += 1
                     break
 
-        goals = Goal.objects.all()
+        return num_users_achieved_one_goal
 
-        # Number of achieved goals
+    @classmethod
+    def num_achieved_goals(cls):
+        """Number of achieved goals"""
+        goals = Goal.objects.filter()
         num_achieved_goals = 0
         for goal in goals:
             if goal.progress >= 100:
                 num_achieved_goals += 1
 
-        # Percentage weeks saved out of total weeks
+        return num_achieved_goals
+
+    @classmethod
+    def percentage_weeks_saved(cls):
+        """Percentage weeks saved out of total weeks"""
         percentage_weeks_saved = 0
         goals = Goal.objects.filter()
         total_weeks = 0
@@ -751,14 +771,7 @@ class SummaryGoalData:
         if total_weeks is not 0 and total_weeks_saved is not 0:
             percentage_weeks_saved = (total_weeks_saved / total_weeks) * 100
 
-        data = [
-            num_users_at_least_one_goal,
-            num_users_achieved_one_goal,
-            num_achieved_goals,
-            percentage_weeks_saved
-        ]
-
-        writer.writerow(data)
+        return percentage_weeks_saved
 
 
 class GoalDataPerCategory:
@@ -792,12 +805,15 @@ class GoalDataPerCategory:
 
     @classmethod
     def total_users_achieved_at_least_one_goal(cls, goal_prototype):
+        """
+        Returns the number of users that have achieved the goal prototype
+        unique users
+        """
         users_with_goals = Goal.objects.filter(prototype=goal_prototype).values('user_id').distinct()
 
         num_achieved_one_goal = 0
-
         for user in users_with_goals:
-            users_goals = Goal.objects.filter(user_id=user['user_id'])
+            users_goals = Goal.objects.filter(prototype=goal_prototype, user_id=user['user_id'])
 
             for goal in users_goals:
                 if goal.progress >= 100:
@@ -808,7 +824,7 @@ class GoalDataPerCategory:
 
     @classmethod
     def average_total_goal_amount(cls, goal_prototype):
-
+        """Returns the average goal amount for the given goal prototype"""
         goals = Goal.objects.filter(prototype=goal_prototype)
 
         total_amount_of_goals_count = goals.count()
@@ -824,7 +840,7 @@ class GoalDataPerCategory:
 
     @classmethod
     def average_percentage_of_goal_reached(cls, goal_prototype):
-        # return Goal.objects.all().aggregate(Avg('progress'))
+        """Returns the average percentage of completions for the given goal prototype"""
 
         goals = Goal.objects.filter(prototype=goal_prototype)
 
@@ -842,6 +858,7 @@ class GoalDataPerCategory:
 
     @classmethod
     def total_users_50_percent_achieved(cls, goal_prototype):
+        """Returns the total amount of users who have achieved 50% of the given goal prototype"""
         users_with_goals = Goal.objects.filter(prototype=goal_prototype).values('user_id').distinct()
 
         num_50_percent_achieved = 0
@@ -857,7 +874,11 @@ class GoalDataPerCategory:
 
     @classmethod
     def total_users_100_percent_achieved(cls, goal_prototype):
-        users_with_goals = Goal.objects.filter(prototype=goal_prototype).values('user_id').distinct()
+        """
+        Returns the total amount of users who have achieved 100% of the given goal prototype
+        not unique users
+        """
+        users_with_goals = Goal.objects.filter(prototype=goal_prototype)
 
         num_100_percent_achieved = 0
         for user in users_with_goals:
@@ -872,6 +893,7 @@ class GoalDataPerCategory:
 
     @classmethod
     def percentage_of_weeks_saved_out_of_total_weeks(cls, goal_prototype):
+        """Percentage of weeks saved for given goal prototype"""
         goals = Goal.objects.filter(prototype=goal_prototype)
         total_weeks = 0
         total_weeks_saved = 0
@@ -908,13 +930,11 @@ class RewardsData:
     @classmethod
     def total_users_at_least_one_streak(cls):
         """Returns the total number of users that have at least one streak"""
-
         users_with_streaks = 0
         users = User.objects.all()
 
         for user in users:
             goals = Goal.objects.filter(user=user)
-            total_streaks = 0
             current_count = 0
 
             user_has_streak = False
@@ -939,13 +959,53 @@ class RewardsData:
 
     @classmethod
     def average_percentage_weeks_saved_weekly_target_met(cls):
-        # TODO: Average % of weeks saved where users have reached their weekly target savings amount
-        return 0
+        """Average % of weeks saved where users reached their weekly target savings amount"""
+        total_weeks_saved = 0
+        total_weeks = 0
+
+        users = User.objects.all()
+
+        for user in users:
+            goals = Goal.objects.filter(user=user)
+
+            for goal in goals:
+                weekly_aggregates = goal.get_weekly_aggregates()
+
+                for week in weekly_aggregates:
+                    if week >= goal.weekly_target:
+                        total_weeks_saved += 1
+
+                    total_weeks += 1
+
+        if total_weeks_saved is not 0 and total_weeks is not 0:
+            return (total_weeks_saved / total_weeks) * 100
+        else:
+            return 0
 
     @classmethod
     def average_percentage_weeks_saved(cls):
-        # TODO: Average % of weeks saved - regardless of savings amount
-        return 0
+        """Average % of weeks saved - regardless of savings amount"""
+        total_weeks_saved = 0
+        total_weeks = 0
+
+        users = User.objects.all()
+
+        for user in users:
+            goals = Goal.objects.filter(user=user)
+
+            for goal in goals:
+                weekly_aggregates = goal.get_weekly_aggregates()
+
+                for week in weekly_aggregates:
+                    if week > 0:
+                        total_weeks_saved += 1
+
+                    total_weeks += 1
+
+        if total_weeks_saved is not 0 and total_weeks is not 0:
+            return (total_weeks_saved / total_weeks) * 100
+        else:
+            return 0
 
 
 class RewardsDataPerBadge:
@@ -971,13 +1031,11 @@ class RewardsDataPerBadge:
     @classmethod
     def total_earned_by_all_users(cls, badge):
         """Returns the total number of badges won for the given badge for all users"""
-
         return Badge.objects.filter(badge_type=badge.badge_type).count()
 
     @classmethod
     def total_earned_at_least_once(cls, badge):
         """Return the total number of users that have earned the given badge at least once"""
-
         return Badge.objects.filter(badge_type=badge.badge_type).values('user').distinct().count()
 
 
@@ -1072,5 +1130,3 @@ class UserTypeData:
         ]
 
         writer.writerow(data)
-
-
