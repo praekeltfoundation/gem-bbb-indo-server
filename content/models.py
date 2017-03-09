@@ -1333,7 +1333,41 @@ class Badge(models.Model):
     INACTIVE = 0
     ACTIVE = 1
 
+    NONE = 0
+    GOAL_FIRST_CREATED = 1
+    GOAL_HALFWAY = 2
+    GOAL_WEEK_LEFT = 3
+    GOAL_FIRST_DONE = 4
+    TRANSACTION_FIRST = 5
+    STREAK_2 = 6
+    STREAK_4 = 7
+    STREAK_6 = 8
+    WEEKLY_TARGET_2 = 9
+    WEEKLY_TARGET_4 = 10
+    WEEKLY_TARGET_6 = 11
+    CHALLENGE_ENTRY = 12
+    CHALLENGE_WIN = 13
+
+    BADGE_TYPES = (
+        (NONE, _('None')),
+        (GOAL_FIRST_CREATED, _('First Goal Created')),
+        (GOAL_HALFWAY, _('First Goal Half Way')),
+        (GOAL_WEEK_LEFT, _('One Week Left')),
+        (GOAL_FIRST_DONE, _('First Goal Done')),
+        (TRANSACTION_FIRST, _('First Saving')),
+        (STREAK_2, _('2 Week Streak')),
+        (STREAK_4, _('4 Week Streak')),
+        (STREAK_6, _('6 Week Streak')),
+        (WEEKLY_TARGET_2, _('2 Week On Target')),
+        (WEEKLY_TARGET_4, _('4 Week On Target')),
+        (WEEKLY_TARGET_6, _('6 Week On Target')),
+        (CHALLENGE_ENTRY, _('Challenge Participation')),
+        (CHALLENGE_WIN, _('Challenge Winner'))
+    )
+
     name = models.CharField(max_length=255)
+
+    badge_type = models.IntegerField(choices=BADGE_TYPES, default=NONE)
 
     slug = models.SlugField(
         # Translators: CMS field name
@@ -1377,6 +1411,7 @@ class Badge(models.Model):
 Badge.panels = [
     wagtail_edit_handlers.MultiFieldPanel([
         wagtail_edit_handlers.FieldPanel('name'),
+        wagtail_edit_handlers.FieldPanel('badge_type'),
         wagtail_edit_handlers.FieldPanel('slug'),
         wagtail_edit_handlers.FieldPanel('state'),
         wagtail_image_edit.ImageChooserPanel('image'),
