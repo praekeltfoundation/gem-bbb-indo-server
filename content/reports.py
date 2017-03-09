@@ -996,32 +996,63 @@ class RewardsDataPerStreak:
         badge_generator = (badge for badge in badges
                            if (badge.badge_type is Badge.STREAK_2
                                or badge.badge_type is Badge.STREAK_4
-                               or badge.badge_type is Badge.STREAK_6))
+                               or badge.badge_type is Badge.STREAK_6
+                               or badge.badge_type is Badge.WEEKLY_TARGET_2
+                               or badge.badge_type is Badge.WEEKLY_TARGET_4
+                               or badge.badge_type is Badge.WEEKLY_TARGET_6))
 
         for badge in badge_generator:
             data = [
                 badge.name,
                 cls.total_streak_badges(badge),
-                cls.total_streak_badges_at_least_one_user(badge)
+                cls.total_streak_badges_at_least_one_user(badge),
+                cls.total_on_track_badges(badge),
+                cls.total_on_track_badges_at_least_one_user(badge)
             ]
 
             writer.writerow(data)
 
     @classmethod
     def total_streak_badges(cls, badge):
-        """Returns the number of given streak badges given by all users"""
-
-        total_streak_badges = UserBadge.objects.filter(badge=badge).count()
-
-        return total_streak_badges
+        """Returns the number of given streak badges awarded to all users"""
+        badge_type = badge.badge_type
+        if badge_type is Badge.STREAK_2 or badge_type is Badge.STREAK_4 or badge_type is Badge.STREAK_6:
+            return UserBadge.objects.filter(badge=badge).count()
+        else:
+            return 0
 
     @classmethod
     def total_streak_badges_at_least_one_user(cls, badge):
         """"Returns the number given streak badges by earned by at least one user"""
+        badge_type = badge.badge_type
+        if badge_type is Badge.STREAK_2 \
+                or badge_type is Badge.STREAK_4 \
+                or badge_type is Badge.STREAK_6:
+            return UserBadge.objects.filter(badge=badge).values('user').distinct().count()
+        else:
+            return 0
 
-        total_streak_badges = UserBadge.objects.filter(badge=badge).values('user').distinct().count()
+    @classmethod
+    def total_on_track_badges(cls, badge):
+        """Return the number of given 'on track' badges for given badge, else 0, awarded to all users"""
+        badge_type = badge.badge_type
+        if badge_type is Badge.WEEKLY_TARGET_2 \
+            or badge_type is Badge.WEEKLY_TARGET_4 \
+            or badge_type is Badge.WEEKLY_TARGET_6:
+            return UserBadge.objects.filter(badge=badge).count()
+        else:
+            return 0
 
-        return total_streak_badges
+    @classmethod
+    def total_on_track_badges_at_least_one_user(cls, badge):
+        """Return the number of given 'on track' badges for given badge, else 0, earned by at least one user"""
+        badge_type = badge.badge_type
+        if badge_type is Badge.WEEKLY_TARGET_2 \
+                or badge_type is Badge.WEEKLY_TARGET_4 \
+                or badge_type is Badge.WEEKLY_TARGET_6:
+            return UserBadge.objects.filter(badge=badge).values('user').distinct().count()
+        else:
+            return 0
 
 
 class UserTypeData:
