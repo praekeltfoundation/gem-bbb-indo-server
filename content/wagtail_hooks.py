@@ -98,17 +98,22 @@ def register_admin_urls():
 
 @hooks.register('register_admin_menu_item')
 def register_reports_menu_item():
-    return MenuItem('Reports: Goals', reverse('content-admin:reports-goals'), classnames='icon icon-user', order=10000)
+    return MenuItem('Reports', reverse('content-admin:reports-index'), classnames='icon icon-user', order=10000)
 
 
-@hooks.register('register_admin_menu_item')
-def register_reports_menu_item():
-    return MenuItem('Reports: Challenges', reverse('content-admin:reports-challenges'), classnames='icon icon-user', order=10000)
-
-
-@hooks.register('register_admin_menu_item')
-def register_reports_menu_item():
-    return MenuItem('Reports: Aggregates', reverse('content-admin:reports-aggregates'), classnames='icon icon-user', order=10000)
+# @hooks.register('register_admin_menu_item')
+# def register_reports_menu_item():
+#     return MenuItem('Reports: Goals', reverse('content-admin:reports-goals'), classnames='icon icon-user', order=10000)
+#
+#
+# @hooks.register('register_admin_menu_item')
+# def register_reports_menu_item():
+#     return MenuItem('Reports: Challenges', reverse('content-admin:reports-challenges'), classnames='icon icon-user', order=10000)
+#
+#
+# @hooks.register('register_admin_menu_item')
+# def register_reports_menu_item():
+#     return MenuItem('Reports: Aggregates', reverse('content-admin:reports-aggregates'), classnames='icon icon-user', order=10000)
 
 # ===== #
 # Goals #

@@ -51,6 +51,10 @@ def participant_mark_winner(request, participant_pk):
 #############
 
 
+def report_index_page(request):
+    return render(request, 'admin/reports/index.html')
+
+
 # Challenge reports
 def report_challenge_exports(request):
     response = HttpResponse(content_type='text/csv; charset=utf-8')
