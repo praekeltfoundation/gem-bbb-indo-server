@@ -161,37 +161,37 @@ class GoalReport:
 
     @classmethod
     def original_goal_date(cls, goal):
-        # TODO: Return the original goal date
+        # TODO: Return the original goal date (Not implemented)
         return 0
 
     @classmethod
     def new_goal_date(cls, goal):
-        # TODO: Return the new date of the goal
+        # TODO: Return the new date of the goal (Not implemented)
         return 0
 
     @classmethod
     def original_weekly_target(cls, goal):
-        # TODO: Return the original weekly target of the goal
+        # TODO: Return the original weekly target of the goal (Not implemented)
         return 0
 
     @classmethod
     def new_weekly_target(cls, goal):
-        # TODO: Return the weekly target set during goal edit
+        # TODO: Return the weekly target set during goal edit (Not implemented)
         return 0
 
     @classmethod
     def original_goal_target(cls, goal):
-        # TODO: Return the original goal target
+        # TODO: Return the original goal target (Not implemented)
         return 0
 
     @classmethod
     def new_goal_target(cls, goal):
-        # TODO: Return the new goal target set during the goal edit
+        # TODO: Return the new goal target set during the goal edit (Not implemented)
         return 0
 
     @classmethod
     def date_goal_edited(cls, goal):
-        # TODO: Return the date the goal was edited
+        # TODO: Return the date the goal was edited (Not implemented)
         return 0
 
     # Goal dates
@@ -217,7 +217,7 @@ class GoalReport:
 
     @classmethod
     def date_deleted(cls, goal):
-        # TODO: Implement date deleted field on Goal model
+        # TODO: Implement date deleted field on Goal model (Not implemented)
         return 0
 
 
@@ -511,7 +511,7 @@ class SummaryDataPerChallenge:
         writer = csv.writer(stream)
 
         writer.writerow(('challenge_name', 'challenge_type', 'call_to_action', 'activation_date', 'deactivation_date',
-                        'total_challenge_completions', 'total_users_in_progress', 'total_no_responses'))
+                        'total_challenge_completions', 'total_users_in_progress', 'total_no_response'))
 
         for challenge in challenges:
             data = [
@@ -522,7 +522,7 @@ class SummaryDataPerChallenge:
                 challenge.deactivation_date,
                 cls.total_challenge_completions(challenge),
                 cls.total_users_in_progress(challenge),
-                cls.no_response_total(challenge)
+                cls.total_no_response(challenge)
             ]
 
             writer.writerow(data)
@@ -538,22 +538,15 @@ class SummaryDataPerChallenge:
         return Participant.objects.filter(challenge=challenge, date_completed__isnull=True).count()
 
     @classmethod
-    def no_response_total(cls, challenge):
+    def total_no_response(cls, challenge):
         """Checks to see which users don't have a participant for the given challenge"""
-        # TODO: Not returning correct values
+
         total_amount_of_users = User.objects.all().count()
         total_amount_of_participants = Participant.objects.filter(challenge=challenge).count()
 
-        the_difference = total_amount_of_users - total_amount_of_participants
+        num_no_responses = total_amount_of_users - total_amount_of_participants
 
-        # total_users_responded = User.objects.filter(participants__challenge=challenge).count()
-        #
-        # temp = User.objects.all().annotate(no_responses=Count('participants'))
-
-        # total_users_responded = User.objects.filter(
-        #     participants__challenge=challenge).annotate(no_responses=Count('participants')).count()
-
-        return the_difference
+        return num_no_responses
 
 
 class SummaryDataPerQuiz:
@@ -914,14 +907,44 @@ class RewardsData:
 
     @classmethod
     def total_users_at_least_one_streak(cls):
-        return 0
+        """Returns the total number of users that have at least one streak"""
+
+        users_with_streaks = 0
+        users = User.objects.all()
+
+        for user in users:
+            goals = Goal.objects.filter(user=user)
+            total_streaks = 0
+            current_count = 0
+
+            user_has_streak = False
+
+            goal_generator = (goal for goal in goals if user_has_streak is False)
+
+            for goal in goal_generator:
+                transactions = goal.get_weekly_aggregates()
+
+                transaction_generator = (transaction for transaction in transactions if user_has_streak is False)
+
+                for trans in transaction_generator:
+                    if trans != 0:
+                        current_count += 1
+                        if current_count > 1:
+                            users_with_streaks += 1
+                            user_has_streak = True
+                    else:
+                        current_count = 0
+
+        return users_with_streaks
 
     @classmethod
     def average_percentage_weeks_saved_weekly_target_met(cls):
+        # TODO: Average % of weeks saved where users have reached their weekly target savings amount
         return 0
 
     @classmethod
     def average_percentage_weeks_saved(cls):
+        # TODO: Average % of weeks saved - regardless of savings amount
         return 0
 
 
@@ -932,7 +955,29 @@ class RewardsDataPerBadge:
     @classmethod
     def export_csv(cls, stream):
         writer = csv.writer(stream)
-        writer.writerow(('badge_name', 'total_earned_by_all_users', 'total_users_who_have_earned_a_badge'))
+        writer.writerow(('badge_name', 'total_earned_by_all_users', 'total_earned_at_least_once'))
+
+        badges = Badge.objects.all()
+
+        for badge in badges:
+            data = [
+                badge.name,
+                UserBadge.objects.filter(badge=badge).count(),
+                cls.total_earned_by_all_users(badge),
+                cls.total_earned_at_least_once(badge)
+            ]
+
+            writer.writerow(data)
+
+    @classmethod
+    def total_earned_by_all_users(cls, badge):
+        # TODO: Return the total number of badges won for the given badge for all users
+        return 0
+
+    @classmethod
+    def total_earned_at_least_once(cls, badge):
+        # TODO: Return the total number of users that have earned the given badge at least once
+        return 0
 
 
 class RewardsDataPerStreak:
