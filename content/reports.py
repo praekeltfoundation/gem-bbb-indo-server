@@ -962,7 +962,6 @@ class RewardsDataPerBadge:
         for badge in badges:
             data = [
                 badge.name,
-                UserBadge.objects.filter(badge=badge).count(),
                 cls.total_earned_by_all_users(badge),
                 cls.total_earned_at_least_once(badge)
             ]
@@ -971,13 +970,15 @@ class RewardsDataPerBadge:
 
     @classmethod
     def total_earned_by_all_users(cls, badge):
-        # TODO: Return the total number of badges won for the given badge for all users
-        return 0
+        """Returns the total number of badges won for the given badge for all users"""
+
+        return Badge.objects.filter(badge_type=badge.badge_type).count()
 
     @classmethod
     def total_earned_at_least_once(cls, badge):
-        # TODO: Return the total number of users that have earned the given badge at least once
-        return 0
+        """Return the total number of users that have earned the given badge at least once"""
+
+        return Badge.objects.filter(badge_type=badge.badge_type).values('user').distinct().count()
 
 
 class RewardsDataPerStreak:
@@ -990,6 +991,38 @@ class RewardsDataPerStreak:
         writer.writerow(('streak_type', 'total_streaks_by_all_users', 'total_users_at_least_one_streak',
                          'total_users_reached_weekly_savings_amount', 'total_users_not_reached_weekly_savings_amount'))
 
+        badges = Badge.objects.all()
+
+        badge_generator = (badge for badge in badges
+                           if (badge.badge_type is Badge.STREAK_2
+                               or badge.badge_type is Badge.STREAK_4
+                               or badge.badge_type is Badge.STREAK_6))
+
+        for badge in badge_generator:
+            data = [
+                badge.name,
+                cls.total_streak_badges(badge),
+                cls.total_streak_badges_at_least_one_user(badge)
+            ]
+
+            writer.writerow(data)
+
+    @classmethod
+    def total_streak_badges(cls, badge):
+        """Returns the number of given streak badges given by all users"""
+
+        total_streak_badges = UserBadge.objects.filter(badge=badge).count()
+
+        return total_streak_badges
+
+    @classmethod
+    def total_streak_badges_at_least_one_user(cls, badge):
+        """"Returns the number given streak badges by earned by at least one user"""
+
+        total_streak_badges = User.objects.filter(badge=badge).values('user').distinct().count()
+
+        return total_streak_badges
+
 
 class UserTypeData:
 
@@ -1000,5 +1033,13 @@ class UserTypeData:
         writer = csv.writer(stream)
         writer.writerow(('total_classroom_users', 'total_marketing_users'))
 
+        # TODO: Return the total number of each type of user
+
+        data = [
+            0,
+            0
+        ]
+
+        writer.writerow(data)
 
 
