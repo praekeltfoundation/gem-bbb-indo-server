@@ -30,8 +30,8 @@ class GoalReport:
                          'weeks_not_saved', 'withdrawals',
 
                          # Goal edit history
-                         'original_goal_date', 'new_goal_date', 'original_weekly_target', 'new_weekly_target',
-                         'original_goal_target', 'new_goal_target', 'date_edited',
+                         'original_goal_date', 'current_goal_date', 'original_weekly_target', 'current_weekly_target',
+                         'original_goal_target', 'current_goal_target', 'date_edited',
 
                          'date_created', 'goal_achieved', 'goal_deleted', 'date_deleted'))
 
@@ -56,19 +56,19 @@ class GoalReport:
                 cls.num_withdrawals(goal),
 
                 # Goal edits
-                cls.original_goal_date(goal),
-                cls.new_goal_date(goal),
-                cls.original_weekly_target(goal),
-                cls.new_weekly_target(goal),
-                cls.original_goal_target(goal),
-                cls.new_goal_target(goal),
-                cls.date_goal_edited(goal),
+                goal.original_end_date,
+                goal.end_date,
+                goal.original_weekly_target,
+                goal.weekly_target,
+                goal.original_target,
+                goal.target,
+                goal.last_edit_date,
 
                 # Goal dates
                 goal.start_date,
                 cls.date_achieved(goal),
                 not goal.is_active,
-                cls.date_deleted(goal)
+                goal.date_deleted
             ]
             writer.writerow(data)
 
@@ -105,13 +105,13 @@ class GoalReport:
 
     @classmethod
     def num_weeks_saved_below(cls, goal):
-        """Returns the number of weeks the user saved below their weekly target"""
+        """Returns the number of weeks, that when the user saved, they saved below their weekly target"""
 
         weekly_aggregates = goal.get_weekly_aggregates()
 
         weeks_saved_below_target = 0
         for weekly_savings in weekly_aggregates:
-            if weekly_savings < goal.weekly_target:
+            if 0 < weekly_savings < goal.weekly_target:
                 weeks_saved_below_target += 1
 
         return weeks_saved_below_target
