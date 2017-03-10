@@ -1037,6 +1037,7 @@ class Goal(models.Model):
     name = models.CharField(max_length=100)
     start_date = models.DateField()
     end_date = models.DateField()
+    original_end_date = models.DateField(blank=True, null=True)
     state = models.IntegerField(choices=(
         # Translators: Object state
         (INACTIVE, _('Inactive')),
@@ -1044,13 +1045,17 @@ class Goal(models.Model):
         (ACTIVE, _('Active')),
     ), default=ACTIVE)
     target = models.DecimalField(max_digits=18, decimal_places=2)
+    original_target = models.DecimalField(max_digits=18, decimal_places=2, blank=True, null=True)
     weekly_target = models.DecimalField(max_digits=18, decimal_places=2)
+    original_weekly_target = models.DecimalField(max_digits=18, decimal_places=2, blank=True, null=True)
     image = models.ImageField(upload_to=get_goal_image_filename, storage=GoalImgStorage(), null=True, blank=True)
     user = models.ForeignKey(User, related_name='+')
     prototype = models.ForeignKey('GoalPrototype', related_name='goals', on_delete=models.SET_NULL,
                                   default=None, blank=True, null=True)
     end_date_modified = models.DateTimeField(blank=True, null=True)
     target_modified = models.DateTimeField(blank=True, null=True)
+    last_edit_date = models.DateTimeField(blank=True, null=True)
+    date_deleted = models.DateField(blank=True, null=True)
 
     class Meta:
         # Translators: Collection name on CMS
@@ -1078,6 +1083,7 @@ class Goal(models.Model):
         return self._new_badges
 
     def deactivate(self):
+        self.date_deleted = timezone.now()
         self.state = Goal.INACTIVE
 
     @property

@@ -611,6 +611,13 @@ class GoalSerializer(serializers.ModelSerializer):
         transactions = validated_data.pop('transactions', [])
         goal = Goal.objects.create(**validated_data)
 
+        # Store original goal data
+        goal.original_target = validated_data['target']
+        goal.original_end_date = validated_data['end_date']
+        goal.original_weekly_target = validated_data['weekly_target']
+
+        goal.save()
+
         for trans_data in transactions:
             GoalTransaction.objects.create(goal=goal, **trans_data)
 
@@ -642,6 +649,8 @@ class GoalSerializer(serializers.ModelSerializer):
 
         for t in transactions_data:
             t['goal'] = instance
+
+        instance.last_edit_date = timezone.now().date()
 
         instance.save()
 

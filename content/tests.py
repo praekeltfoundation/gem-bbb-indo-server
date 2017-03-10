@@ -913,6 +913,61 @@ class TestGoalAPI(APITestCase):
                                msg="Modified date not close enough to when was actually modified",
                                delta=timedelta(seconds=2))
 
+    def test_goal_edit_record_fields(self):
+        user = self.create_regular_user('User 1')
+        # goal = self.create_goal('Goal 1', user, 1000)
+
+        data = {
+            "name": "Goal 1",
+            "transactions": [],
+            "start_date": datetime.utcnow().strftime('%Y-%m-%d'),
+            "end_date": datetime.utcnow().strftime('%Y-%m-%d'),
+            "target": 1000,
+            "image": None,
+            "weekly_target": 100
+        }
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:goals-list'), data, format='json')
+
+        goal = Goal.objects.get(name='Goal 1')
+
+        # Check that edit history is empty for an unedited song
+        self.assertIsNotNone(goal.original_end_date, 'Original end date not recorded on goal creation')
+        self.assertIsNotNone(goal.original_target, 'Original target not recorded on goal creation')
+        self.assertIsNotNone(goal.original_weekly_target, 'Original weekly target not recorded on goal creation')
+
+        self.assertIsNone(goal.last_edit_date, 'Last edit date should be empty for an unedited goal')
+        self.assertIsNone(goal.date_deleted, 'Date deleted should be empty for a non-deleted goal')
+
+        # Perform updates
+        data = {
+            "name": "Goal 2",
+            "start_date": '2015-11-01',
+            "end_date": '2015-11-30',
+            "target": 9000,
+            "image": None,
+            "weekly_target": 1000
+        }
+
+        self.client.force_authenticate(user=user)
+        response = self.client.put(reverse('api:goals-detail', kwargs={'pk': goal.pk}), data, format='json')
+
+        updated_goal = Goal.objects.get(pk=goal.pk)
+
+        # Edited goal data stored
+        self.assertEquals(updated_goal.original_weekly_target, 100, 'Original goal weekly target changed on edit')
+        self.assertEquals(updated_goal.original_target, 1000, 'Original goal target changed on edit')
+        self.assertIsNotNone(updated_goal.last_edit_date, 'Last edit date should not be empty for an edited goal')
+        self.assertIsNone(updated_goal.date_deleted, 'Date deleted should be empty for a non-deleted goal')
+
+        response = self.client.delete(reverse('api:goals-detail', kwargs={'pk': updated_goal.pk}), data, format='json')
+
+        deleted_goal = Goal.objects.get(pk=goal.pk)
+
+        # Deleted goal date stored
+        self.assertIsNotNone(deleted_goal.date_deleted, 'Date deleted should be populated for a deleted goal')
+
     def test_user_goal_create_for_other_restricted(self):
         """A User must not be able to create a Goal for another user."""
 
