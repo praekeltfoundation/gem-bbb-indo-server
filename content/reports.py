@@ -1130,3 +1130,136 @@ class UserTypeData:
         ]
 
         writer.writerow(data)
+
+
+##################
+# Survey Reports #
+##################
+
+
+class SummarySurveyData:
+
+    fields = ()
+
+    @classmethod
+    def export_csv(cls, stream):
+        writer = csv.writer(stream)
+        writer.writerow(('survey_name', 'total_users_completed', 'total_users_in_progress', 'total_users_no_consent',
+                         'total_users_claim_over_17', 'total_no_engagement', 'total_no_first_conversation'))
+
+        data = [
+
+        ]
+
+
+class BaselineSurveyData:
+    fields = ()
+
+    @classmethod
+    def export_csv(cls, stream):
+        surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.BASELINE)
+
+        writer = csv.writer(stream)
+
+        writer.writerow(('uuid', 'username', 'name', 'mobile', 'email', 'gender', 'age',
+                         'user_type', 'date_joined', 'city', 'younger_than_17', 'consent_given',
+                         'submission_date',
+
+                         # Survey questions
+                         'q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8', 'q9', 'q10', 'q11',
+                         'q12', 'q13', 'q14', 'q15', 'q16', 'q17', 'q18', 'q19', 'q20', 'q21', 'q22', 'q23',
+                         'q24', 'q25', 'q26', 'q27.1', 'q27.2', 'q28', 'q29.1', 'q29.2', 'q29.3', 'q29.4'))
+
+        for survey in surveys:
+            submissions = CoachSurveySubmission.objects.filter(survey=survey)
+
+            for submission in submissions:
+                # form_data = submission.get_data()
+
+                data = [
+                    submission.user.username,
+                    submission.user.first_name + ' ' + submissions.usser.last_name,
+                    submission.mobile,
+                    submission.user.email,
+                    submission.gender,
+                    submission.age,
+                    '',  # submissions.user_type
+                    submission.user.date_joined,
+                    '',  # city
+                    submission.consent,
+
+                ]
+
+                writer.writerow(data)
+
+
+class EaTool1SurveyData:
+    fields = ()
+
+    @classmethod
+    def export_csv(cls, stream):
+        surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.BASELINE)
+
+        writer = csv.writer(stream)
+
+        writer.writerow(('uuid', 'username', 'name', 'mobile', 'email', 'gender', 'age',
+                         'user_type', 'date_joined', 'city', 'younger_than_17', 'consent_given',
+                         'submission_date',
+
+                         # Survey questions
+                         ))
+
+        for survey in surveys:
+            data = [
+
+            ]
+
+            writer.writerow(data)
+
+
+class EaTool2SurveyData:
+    fields = ()
+
+    @classmethod
+    def export_csv(cls, stream):
+        surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.BASELINE)
+
+        writer = csv.writer(stream)
+
+        writer.writerow(('uuid', 'username', 'name', 'mobile', 'email', 'gender', 'age',
+                         'user_type', 'date_joined', 'city', 'younger_than_17', 'consent_given',
+                         'submission_date',
+
+                         # Survey questions
+                         ))
+
+        for survey in surveys:
+            data = [
+
+            ]
+
+            writer.writerow(data)
+
+
+class EndlineSurveyData:
+    fields = ()
+
+    @classmethod
+    def export_csv(cls, stream):
+        surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.BASELINE)
+
+        writer = csv.writer(stream)
+
+        writer.writerow(('uuid', 'username', 'name', 'mobile', 'email', 'gender', 'age',
+                         'user_type', 'date_joined', 'city', 'younger_than_17', 'consent_given',
+                         'submission_date',
+
+                         # Survey questions
+                         ))
+
+        for survey in surveys:
+            data = [
+
+            ]
+
+            writer.writerow(data)
