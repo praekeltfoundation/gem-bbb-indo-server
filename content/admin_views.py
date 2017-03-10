@@ -6,7 +6,8 @@ from django.http.response import JsonResponse, HttpResponse
 
 from .reports import GoalReport, UserReport, SavingsReport, SummaryDataPerChallenge, \
     SummaryDataPerQuiz, ChallengeExportPicture, ChallengeExportQuiz, ChallengeExportFreetext, SummaryGoalData, \
-    GoalDataPerCategory, RewardsData, RewardsDataPerBadge, RewardsDataPerStreak, UserTypeData
+    GoalDataPerCategory, RewardsData, RewardsDataPerBadge, RewardsDataPerStreak, UserTypeData, SummarySurveyData, \
+    EaTool1SurveyData, BaselineSurveyData, EaTool2SurveyData, EndlineSurveyData
 
 from .models import Challenge, Participant
 
@@ -142,3 +143,28 @@ def report_aggregate_exports(request):
             return response
     elif request.method == 'GET':
         return render(request, 'admin/reports/aggregates.html')
+
+
+# Survey exports
+def report_survey_exports(request):
+    if request.method == 'POST':
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment;filename=export-' + str(timezone.now()) + '.csv'
+
+        if request.POST.get('action') == 'EXPORT-SURVEY-SUMMARY':
+            SummarySurveyData.export_csv(response)
+            return response
+        elif request.POST.get('action') == 'EXPORT-BASELINE-SURVEY':
+            BaselineSurveyData.export_csv(response)
+            return response
+        elif request.POST.get('action') == 'EXPORT-EATOOL1-SURVEY':
+            EaTool1SurveyData.export_csv(response)
+            return response
+        elif request.POST.get('action') == 'EXPORT-EATOOL2-SURVEY':
+            EaTool2SurveyData.export_csv(response)
+            return response
+        elif request.POST.get('action') == 'EXPORT-ENDLINE-SURVEY':
+            EndlineSurveyData.export_csv(response)
+            return response
+    elif request.method == 'GET':
+        return render(request, 'admin/reports/surveys.html')
