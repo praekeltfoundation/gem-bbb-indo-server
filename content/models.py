@@ -365,6 +365,10 @@ class Challenge(modelcluster_fields.ClusterableModel):
 
     terms = models.ForeignKey(Agreement, related_name='+', blank=False, null=True, on_delete=models.DO_NOTHING)
 
+    prize = models.TextField(_('prize'), blank=True,
+                                      # Translators: Help text on CMS
+                                      help_text=_('Prize for winning a challenge.'))
+
     class Meta:
         # Translators: Collection name on CMS
         verbose_name = _('challenge')
@@ -438,7 +442,8 @@ Challenge.panels = [
             wagtail_edit_handlers.FieldPanel('type'),
             wagtail_edit_handlers.FieldPanel('state'),
             wagtail_edit_handlers.FieldPanel('picture'),
-            wagtail_edit_handlers.PageChooserPanel('terms')
+            wagtail_edit_handlers.PageChooserPanel('terms'),
+            wagtail_edit_handlers.FieldPanel('prize')
         ],
         # Translators: Admin field name
         heading=_('Challenge')
