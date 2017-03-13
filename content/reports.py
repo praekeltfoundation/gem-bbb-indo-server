@@ -1,4 +1,5 @@
 import csv
+import json
 from datetime import timedelta, datetime
 
 from django.contrib.auth.models import User
@@ -1138,7 +1139,7 @@ class UserTypeData:
 
 
 class SummarySurveyData:
-
+    # TODO: Refactor this report to remove code repetition
     fields = ()
 
     @classmethod
@@ -1149,18 +1150,35 @@ class SummarySurveyData:
 
         # Baseline Survey
 
-        num_completed_users = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.BASELINE,
-                                                                        complete=True).count()
-        num_in_progress_users = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.BASELINE,
-                                                                          complete=False).count()
-        num_no_consent = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.BASELINE,
-                                                                   consent=False).count()
+        num_completed_users = CoachSurveySubmissionDraft.objects.filter(
+            survey__bot_conversation=CoachSurvey.BASELINE,
+            complete=True).count()
+
+        num_in_progress_users = 0
+        num_first_convo_no = 0
+        num_no_consent = 0
+        num_claim_over_17_users = 0
+
         submitted_surveys = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.BASELINE,
                                                                       consent=False)
-        num_claim_over_17_users = 0
+
+        # Counts number of first conversation no responses, others checks to see if they have no consent
         for survey in submitted_surveys:
-            if survey.get_data['survey_baseline_q1_consent'] == 1:
-                num_claim_over_17_users += 1
+            submission_data = json.loads(survey.submission_data)
+            if submission_data['survey_baseline_intro'] == '0':
+                num_first_convo_no += 1
+            elif survey.consent is False:
+                num_no_consent += 1
+            elif survey.complete is False:
+                num_in_progress_users += 1
+
+        submitted_surveys = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.BASELINE)
+
+        for survey in submitted_surveys:
+            if survey.submission is not None:
+                survey_data = survey.submission.get_data()
+                if survey_data['survey_baseline_q1_consent'] == 1:
+                    num_claim_over_17_users += 1
 
         num_total_users = User.objects.all().count()
         num_participated_survey = CoachSurveySubmissionDraft.objects\
@@ -1177,31 +1195,42 @@ class SummarySurveyData:
             num_in_progress_users,
             num_no_consent,
             num_claim_over_17_users,
-            num_no_engagement
+            num_no_engagement,
+            num_first_convo_no
         ]
         writer.writerow(data)
 
-        # Reset variables to values don't carry over
-        num_completed_users =0
-        num_in_progress_users = 0
-        num_no_consent = 0
-        num_claim_over_17_users = 0
-        num_no_engagement = 0
-
         # Ea Tool 1 Survey
 
-        num_completed_users = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.EATOOL,
-                                                                        complete=True).count()
-        num_in_progress_users = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.EATOOL,
-                                                                          complete=False).count()
-        num_no_consent = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.EATOOL,
-                                                                   consent=False).count()
+        num_completed_users = CoachSurveySubmissionDraft.objects.filter(
+            survey__bot_conversation=CoachSurvey.EATOOL,
+            complete=True).count()
+
+        num_in_progress_users = 0
+        num_first_convo_no = 0
+        num_no_consent = 0
+        num_claim_over_17_users = 0
+
         submitted_surveys = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.EATOOL,
                                                                       consent=False)
-        num_claim_over_17_users = 0
+
+        # Counts number of first conversation no responses, others checks to see if they have no consent
         for survey in submitted_surveys:
-            if survey.get_data['survey_eatool_q1_consent'] == 1:
-                num_claim_over_17_users += 1
+            submission_data = json.loads(survey.submission_data)
+            if submission_data['survey_eatool_intro'] == '0':
+                num_first_convo_no += 1
+            elif survey.consent is False:
+                num_no_consent += 1
+            elif survey.complete is False:
+                num_in_progress_users += 1
+
+        submitted_surveys = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.EATOOL)
+
+        for survey in submitted_surveys:
+            if survey.submission is not None:
+                survey_data = survey.submission.get_data()
+                if survey_data['survey_eatool_q1_consent'] == 1:
+                    num_claim_over_17_users += 1
 
         num_total_users = User.objects.all().count()
         num_participated_survey = CoachSurveySubmissionDraft.objects \
@@ -1218,17 +1247,10 @@ class SummarySurveyData:
             num_in_progress_users,
             num_no_consent,
             num_claim_over_17_users,
-            num_no_engagement
-
+            num_no_engagement,
+            num_first_convo_no
         ]
         writer.writerow(data)
-
-        # Reset variables to values don't carry over
-        num_completed_users = 0
-        num_in_progress_users = 0
-        num_no_consent = 0
-        num_claim_over_17_users = 0
-        num_no_engagement = 0
 
         # EA Tool 2 Survey
 
@@ -1237,13 +1259,6 @@ class SummarySurveyData:
 
         ]
         writer.writerow(data)
-
-        # Reset variables to values don't carry over
-        num_completed_users = 0
-        num_in_progress_users = 0
-        num_no_consent = 0
-        num_claim_over_17_users = 0
-        num_no_engagement = 0
 
         # Endline Survey
 
