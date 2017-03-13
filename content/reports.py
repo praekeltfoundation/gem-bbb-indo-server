@@ -1147,9 +1147,111 @@ class SummarySurveyData:
         writer.writerow(('survey_name', 'total_users_completed', 'total_users_in_progress', 'total_users_no_consent',
                          'total_users_claim_over_17', 'total_no_engagement', 'total_no_first_conversation'))
 
+        # Baseline Survey
+
+        num_completed_users = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.BASELINE,
+                                                                        complete=True).count()
+        num_in_progress_users = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.BASELINE,
+                                                                          complete=False).count()
+        num_no_consent = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.BASELINE,
+                                                                   consent=False).count()
+        submitted_surveys = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.BASELINE,
+                                                                      consent=False)
+        num_claim_over_17_users = 0
+        for survey in submitted_surveys:
+            if survey.get_data['survey_baseline_q1_consent'] == 1:
+                num_claim_over_17_users += 1
+
+        num_total_users = User.objects.all().count()
+        num_participated_survey = CoachSurveySubmissionDraft.objects\
+            .filter(survey__bot_conversation=CoachSurvey.BASELINE)\
+            .values('user')\
+            .distinct()\
+            .count()
+
+        num_no_engagement = num_total_users - num_participated_survey
+
         data = [
+            'Baseline Survey',
+            num_completed_users,
+            num_in_progress_users,
+            num_no_consent,
+            num_claim_over_17_users,
+            num_no_engagement
+        ]
+        writer.writerow(data)
+
+        # Reset variables to values don't carry over
+        num_completed_users =0
+        num_in_progress_users = 0
+        num_no_consent = 0
+        num_claim_over_17_users = 0
+        num_no_engagement = 0
+
+        # Ea Tool 1 Survey
+
+        num_completed_users = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.EATOOL,
+                                                                        complete=True).count()
+        num_in_progress_users = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.EATOOL,
+                                                                          complete=False).count()
+        num_no_consent = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.EATOOL,
+                                                                   consent=False).count()
+        submitted_surveys = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.EATOOL,
+                                                                      consent=False)
+        num_claim_over_17_users = 0
+        for survey in submitted_surveys:
+            if survey.get_data['survey_eatool_q1_consent'] == 1:
+                num_claim_over_17_users += 1
+
+        num_total_users = User.objects.all().count()
+        num_participated_survey = CoachSurveySubmissionDraft.objects \
+            .filter(survey__bot_conversation=CoachSurvey.EATOOL) \
+            .values('user') \
+            .distinct() \
+            .count()
+
+        num_no_engagement = num_total_users - num_participated_survey
+
+        data = [
+            'EA Tool 1 Survey',
+            num_completed_users,
+            num_in_progress_users,
+            num_no_consent,
+            num_claim_over_17_users,
+            num_no_engagement
 
         ]
+        writer.writerow(data)
+
+        # Reset variables to values don't carry over
+        num_completed_users = 0
+        num_in_progress_users = 0
+        num_no_consent = 0
+        num_claim_over_17_users = 0
+        num_no_engagement = 0
+
+        # EA Tool 2 Survey
+
+        data = [
+            'EA Tool 2 Survey',
+
+        ]
+        writer.writerow(data)
+
+        # Reset variables to values don't carry over
+        num_completed_users = 0
+        num_in_progress_users = 0
+        num_no_consent = 0
+        num_claim_over_17_users = 0
+        num_no_engagement = 0
+
+        # Endline Survey
+
+        data = [
+            'Endline Survey',
+
+        ]
+        writer.writerow(data)
 
 
 class BaselineSurveyData:
@@ -1237,7 +1339,7 @@ class EaTool1SurveyData:
 
     @classmethod
     def export_csv(cls, stream):
-        surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.BASELINE)
+        surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.EATOOL)
 
         writer = csv.writer(stream)
 
@@ -1246,14 +1348,58 @@ class EaTool1SurveyData:
                          'submission_date',
 
                          # Survey questions
+                         'q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8', 'q9', 'q10', 'q11', 'q12',
+                         'q13', 'q14', 'q15', 'q16', 'q17', 'q18', 'q19', 'q20', 'q21', 'q22', 'q23', 'q24'
                          ))
 
         for survey in surveys:
-            data = [
+            submissions = CoachSurveySubmissionDraft.objects.filter(survey=survey, complete=True)
 
-            ]
+            for submission in submissions:
+                survey_data = submission.submission.get_data()
 
-            writer.writerow(data)
+                data = [
+                    submission.submission.user_unique_id,
+                    submission.submission.username,
+                    submission.submission.name,
+                    submission.submission.mobile,
+                    submission.submission.email,
+                    submission.submission.gender,
+                    submission.submission.age,
+                    '',  # user type
+                    submission.user.date_joined,
+                    '',  # City
+                    survey_data['survey_eatool_q1_consent'],
+                    submission.consent,  # survey_data['survey_eatool_q2_consent']
+                    submission.modified_at,
+
+                    survey_data['survey_eatool_q01_appreciate'],
+                    survey_data['survey_eatool_q02_optimistic'],
+                    survey_data['survey_eatool_q03_career'],
+                    survey_data['survey_eatool_q04_adapt'],
+                    survey_data['survey_eatool_q05_duties'],
+                    survey_data['survey_eatool_q06_lazy'],
+                    survey_data['survey_eatool_q07_proud'],
+                    survey_data['survey_eatool_q08_dress'],
+                    survey_data['survey_eatool_q09_along'],
+                    survey_data['survey_eatool_q10_anyone'],
+                    survey_data['survey_eatool_q11_input'],
+                    survey_data['survey_eatool_q12_responsible'],
+                    survey_data['survey_eatool_q13_express'],
+                    survey_data['survey_eatool_q14_understand'],
+                    survey_data['survey_eatool_q15_read'],
+                    survey_data['survey_eatool_q16_learn'],
+                    survey_data['survey_eatool_q17_organise'],
+                    survey_data['survey_eatool_q18_sources'],
+                    survey_data['survey_eatool_q19_experience'],
+                    survey_data['survey_eatool_q20_adapting'],
+                    survey_data['survey_eatool_q21_interview'],
+                    survey_data['survey_eatool_q22_cv'],
+                    survey_data['survey_eatool_q23_cover'],
+                    survey_data['survey_eatool_q24_company']
+                ]
+
+                writer.writerow(data)
 
 
 class EaTool2SurveyData:
@@ -1261,7 +1407,7 @@ class EaTool2SurveyData:
 
     @classmethod
     def export_csv(cls, stream):
-        surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.BASELINE)
+        # surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.EATOOL2)
 
         writer = csv.writer(stream)
 
@@ -1271,13 +1417,6 @@ class EaTool2SurveyData:
 
                          # Survey questions
                          ))
-
-        for survey in surveys:
-            data = [
-
-            ]
-
-            writer.writerow(data)
 
 
 class EndlineSurveyData:
@@ -1285,7 +1424,7 @@ class EndlineSurveyData:
 
     @classmethod
     def export_csv(cls, stream):
-        surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.BASELINE)
+        # surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.ENDLINE)
 
         writer = csv.writer(stream)
 
@@ -1295,10 +1434,3 @@ class EndlineSurveyData:
 
                          # Survey questions
                          ))
-
-        for survey in surveys:
-            data = [
-
-            ]
-
-            writer.writerow(data)
