@@ -1,4 +1,3 @@
-
 from collections import OrderedDict
 from datetime import timedelta
 from functools import reduce
@@ -231,6 +230,7 @@ class SocialMediaSettings(BaseSetting):
     class Meta:
         verbose_name = 'social media accounts'
 
+
 SocialMediaSettings.panels = [
     wagtail_edit_handlers.MultiFieldPanel([
         wagtail_edit_handlers.FieldPanel('facebook_app_id'),
@@ -365,6 +365,10 @@ class Challenge(modelcluster_fields.ClusterableModel):
 
     terms = models.ForeignKey(Agreement, related_name='+', blank=False, null=True, on_delete=models.DO_NOTHING)
 
+    prize = models.TextField(_('prize'), blank=True,
+                                      # Translators: Help text on CMS
+                                      help_text=_('Prize for winning a challenge.'))
+
     class Meta:
         # Translators: Collection name on CMS
         verbose_name = _('challenge')
@@ -438,7 +442,8 @@ Challenge.panels = [
             wagtail_edit_handlers.FieldPanel('type'),
             wagtail_edit_handlers.FieldPanel('state'),
             wagtail_edit_handlers.FieldPanel('picture'),
-            wagtail_edit_handlers.PageChooserPanel('terms')
+            wagtail_edit_handlers.PageChooserPanel('terms'),
+            wagtail_edit_handlers.FieldPanel('prize')
         ],
         # Translators: Admin field name
         heading=_('Challenge')
@@ -693,8 +698,9 @@ class Participant(models.Model):
 
     def mark_is_shortlisted(self):
         if self.is_shortlisted:
-            return format_html("<input type='checkbox' id='{}' class='mark-is-shortlisted' value='{}' checked='checked' />",
-                               'participant-is-shortlisted-%d' % self.id, self.id)
+            return format_html(
+                "<input type='checkbox' id='{}' class='mark-is-shortlisted' value='{}' checked='checked' />",
+                'participant-is-shortlisted-%d' % self.id, self.id)
         else:
             return format_html("<input type='checkbox' id='{}' class='mark-is-shortlisted' value='{}' />",
                                'participant-is-shortlisted-%d' % self.id, self.id)
@@ -950,7 +956,6 @@ def get_goal_image_filename(instance, filename):
 
 
 class WeekCalc:
-
     @classmethod
     def week_diff(cls, from_date, to_date, rounding):
         if rounding == cls.Rounding.UP:
@@ -1050,6 +1055,8 @@ class Goal(models.Model):
     original_weekly_target = models.DecimalField(max_digits=18, decimal_places=2, blank=True, null=True)
     image = models.ImageField(upload_to=get_goal_image_filename, storage=GoalImgStorage(), null=True, blank=True)
     user = models.ForeignKey(User, related_name='+')
+
+    # A null prototype means the Goal is custom
     prototype = models.ForeignKey('GoalPrototype', related_name='goals', on_delete=models.SET_NULL,
                                   default=None, blank=True, null=True)
     end_date_modified = models.DateTimeField(blank=True, null=True)
@@ -1233,10 +1240,10 @@ class Goal(models.Model):
         if now is None:
             now_date = timezone.now()
 
-        #How far back you check
+        # How far back you check
         since_date = now_date - timedelta(weeks=weeks_back)
 
-        #get all transactions for the specific goal
+        # get all transactions for the specific goal
         transactions = trans_model.objects \
             .filter(goal=goal, date__gt=since_date) \
             .order_by('-date')
@@ -1253,13 +1260,14 @@ class Goal(models.Model):
             monday = Goal._monday(t.date.date())
 
             if last_monday != monday:
-                #t is now in a different week
+                # t is now in a different week
                 if week_savings_total >= goal.weekly_target:
                     # Streak maintained
                     streak += 1
-                    if monday == (last_monday + timedelta(days=-7)): #This is to check that the user did not stop saving for an entire week
-                        last_monday = monday #move one week back
-                        week_savings_total = t.value #start with the first transaction of this week
+                    if monday == (last_monday + timedelta(
+                            days=-7)):  # This is to check that the user did not stop saving for an entire week
+                        last_monday = monday  # move one week back
+                        week_savings_total = t.value  # start with the first transaction of this week
                     else:
                         # The user did not save for an entire week and the streak is broken
                         broke_out_of_loop = True
@@ -1271,9 +1279,8 @@ class Goal(models.Model):
             else:
                 week_savings_total += t.value
 
-
-        if  not broke_out_of_loop:
-            #If you did not break out of the loop the transactions ended and there could be another week in the streak
+        if not broke_out_of_loop:
+            # If you did not break out of the loop the transactions ended and there could be another week in the streak
             # left so we have to check
             if week_savings_total >= goal.weekly_target:
                 # Streak maintained
@@ -1679,13 +1686,13 @@ class Feedback(models.Model):
         blank=False,
         choices=(
             # Translators: Feedback type
-            (FT_ASK,        _('Ask a question')),
+            (FT_ASK, _('Ask a question')),
             # Translators: Feedback type
-            (FT_REPORT,     _('Report a problem')),
+            (FT_REPORT, _('Report a problem')),
             # Translators: Feedback type
-            (FT_GENERAL,    _('General feedback')),
+            (FT_GENERAL, _('General feedback')),
             # Translators: Feedback type
-            (FT_PARTNER,    _('Sponsorship and partnership requests')),
+            (FT_PARTNER, _('Sponsorship and partnership requests')),
         ),
         null=False
     )
@@ -1699,6 +1706,7 @@ class Feedback(models.Model):
 
         # Translators: Collection name on CMS
         verbose_name_plural = _('feedback entries')
+
 
 ########################
 # Ad Hoc Notification #
@@ -1722,6 +1730,7 @@ class CustomNotification(models.Model):
 
         return notifications
 
+
 CustomNotification.panels = [
     wagtail_edit_handlers.MultiFieldPanel([
         wagtail_edit_handlers.FieldPanel('message'),
@@ -1732,3 +1741,128 @@ CustomNotification.panels = [
         # Translators: Admin field name
         heading=_('Custom Notifications')),
 ]
+
+
+##########
+# Budget #
+##########
+
+
+@python_2_unicode_compatible
+class ExpenseCategory(models.Model):
+    INACTIVE = 0
+    ACTIVE = 1
+
+    name = models.CharField(max_length=100)
+    image = models.ForeignKey(wagtail_image_models.Image, on_delete=models.SET_NULL, related_name='+', null=True)
+    state = models.IntegerField(choices=(
+        # Translators: Object state
+        (INACTIVE, _('Inactive')),
+        # Translators: Object state
+        (ACTIVE, _('Active')),
+    ), default=INACTIVE)
+
+    class Meta:
+        # Translators: Collection name on CMS
+        verbose_name = _('expense category')
+
+        # Translators: Plural collection name on CMS
+        verbose_name_plural = _('expense categories')
+
+    def __str__(self):
+        return self.name
+
+
+ExpenseCategory.panels = [
+    wagtail_edit_handlers.FieldPanel('name'),
+    wagtail_edit_handlers.FieldPanel('state'),
+    wagtail_image_edit.ImageChooserPanel('image'),
+]
+
+
+@python_2_unicode_compatible
+class Budget(modelcluster_fields.ClusterableModel):
+    # The user's monthly income
+    income = models.DecimalField(_('income'), max_digits=18, decimal_places=2, default=0)
+
+    # The user's monthly savings
+    savings = models.DecimalField(_('savings'), max_digits=18, decimal_places=2, default=0)
+
+    user = models.OneToOneField(User, related_name='budget', on_delete=models.CASCADE)
+
+    # Audit
+
+    created_on = models.DateTimeField(default=timezone.now, editable=False)
+
+    class Meta:
+        # Translators: Collection name on CMS
+        verbose_name = _('budget')
+
+        # Translators: Plural collection name on CMS
+        verbose_name_plural = _('budget')
+
+    @property
+    def expense(self):
+        # Because expenses use a ParentalKey, we get a FakeQuerySet which doesn't have a values() method
+        return reduce(lambda acc, value: acc + value,
+                      [e.value for e in self.expenses.all().order_by('id')], 0)
+
+    def __str__(self):
+        return 'Budget {}'.format(self.user)
+
+
+Budget.panels = [
+    wagtail_edit_handlers.MultiFieldPanel([
+        wagtail_edit_handlers.FieldPanel('user'),
+        wagtail_edit_handlers.FieldPanel('income'),
+        wagtail_edit_handlers.FieldPanel('savings'),
+    ],
+        # Translators: Admin field name
+        heading=_('Budget')),
+    wagtail_edit_handlers.InlinePanel(
+        'expenses', panels=[
+            wagtail_edit_handlers.FieldPanel('name'),
+            wagtail_edit_handlers.FieldPanel('value'),
+            wagtail_edit_handlers.FieldPanel('category'),
+        ],
+        # Translators: Admin field name
+        label=_('Expenses')),
+]
+
+
+@python_2_unicode_compatible
+class Expense(models.Model):
+    name = models.CharField(max_length=100)
+
+    value = models.DecimalField(_('value'), max_digits=18, decimal_places=2, default=0)
+
+    # A null category means the expense is custom
+    category = models.ForeignKey(ExpenseCategory, related_name='+', on_delete=models.SET_NULL,
+                                 default=None, blank=True, null=True)
+
+    budget = modelcluster_fields.ParentalKey(Budget, related_name='expenses', on_delete=models.CASCADE,
+                                             null=False)
+
+    # Audit
+
+    created_on = models.DateTimeField(default=timezone.now, editable=False)
+
+    class Meta:
+        # Translators: Collection name on CMS
+        verbose_name = _('expense')
+
+        # Translators: Plural collection name on CMS
+        verbose_name_plural = _('expenses')
+
+    @property
+    def preferred_name(self):
+        if self.name:
+            return self.name
+        elif self.category:
+            return self.category.name
+        else:
+            # Translators: Default Expense name
+            return _('Expense')
+
+    def __str__(self):
+        return 'Expense {} {}'.format(self.preferred_name, self.value)

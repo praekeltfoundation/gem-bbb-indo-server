@@ -33,6 +33,7 @@ from .models import Feedback
 from .models import WeekCalc
 from .models import GoalPrototype, Goal, GoalTransaction
 from .models import Tip, TipFavourite
+from .models import Budget
 
 # content serializer imports
 from .serializers import FeedbackSerializer
@@ -2619,3 +2620,50 @@ class TestFeedback(APITestCase):
         response = self.client.post(reverse('api:feedback-list'), data, format='json')
 
         self.assertEquals(response.data['text'], data['text'])
+
+
+##########
+# Budget #
+##########
+
+
+class TestBudgetModel(TestCase):
+
+    def test_expense_sum(self):
+        """
+        Ensure that a Budget's expenses are correctly summed
+        """
+        user = create_test_regular_user()
+        budget = Budget.objects.create(
+            income=70000,
+            savings=7000,
+            user=user
+        )
+        budget.expenses.create(name='Snacks', value=1000)
+        budget.expenses.create(name='Clothes', value=2000)
+
+        self.assertEqual(budget.expense, 3000, "Unexpected Budget calculated expense total.")
+
+
+class TestBudgetAPI(APITestCase):
+
+    def test_basic_create(self):
+        user = create_test_regular_user()
+
+        data = {
+            'income': 70000,
+            'savings': 3000,
+            'expenses': [
+                {'name': 'Food', 'value': 2000},
+                {'name': 'Shoes', 'value': 1000},
+                {'name': 'Snacks', 'value': 1000, 'category': None}
+            ]
+        }
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:budgets-list'), data=data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, "Budget create request failed")
+
+        created_budget = Budget.objects.get(user=user)
+        self.assertEqual(created_budget.income, 70000, "Unexpected Budget income set")

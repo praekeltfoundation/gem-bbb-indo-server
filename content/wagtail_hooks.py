@@ -1,4 +1,3 @@
-
 from django.conf.urls import url, include
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
@@ -12,6 +11,7 @@ from .models import Challenge, Participant, CustomNotification
 from .models import FreeTextQuestion, PictureQuestion, QuizQuestion
 from .models import GoalPrototype
 from .models import Badge
+from .models import ExpenseCategory, Budget, Expense
 from content import admin_urls
 
 
@@ -53,6 +53,7 @@ class QuizQuestionAdmin(ModelAdmin):
     list_display = ('challenge', 'text_truncated', 'option_count',)
     list_filter = ('challenge',)
     search_fields = ('challenge',)
+
 
 # ============ #
 # Participants #
@@ -164,6 +165,7 @@ modeladmin_register(Achievements)
 # Custom Notification #
 #######################
 
+
 class CustomNotificationAdmin(ModelAdmin):
     model = CustomNotification
     menu_label = _("Custom Notification")
@@ -171,4 +173,45 @@ class CustomNotificationAdmin(ModelAdmin):
     list_display = ('message', 'publish_date', 'expiration_date')
     add_to_settings_menu = False
 
+
 modeladmin_register(CustomNotificationAdmin)
+
+
+##########
+# Budget #
+##########
+
+
+class ExpenseCategoryAdmin(ModelAdmin):
+    model = ExpenseCategory
+    menu_label = _('Expense Category')
+    menu_order = 100
+    add_to_settings_menu = False
+    list_display = ('name', 'state')
+    list_filter = ('state',)
+    search_fields = ('name',)
+
+
+class BudgetAdmin(ModelAdmin):
+    model = Budget
+    menu_icon = 'user'
+    menu_label = _('User Budget')
+    menu_order = 200
+    add_to_settings_menu = False
+    list_display = ('user_username', 'income', 'savings')
+    # list_filter = ('state',)
+    search_fields = ('user_username',)
+
+    def user_username(self, obj):
+        return obj.user.username
+
+
+class BudgetGroup(ModelAdminGroup):
+    # Translators: CMS menu name
+    menu_label = _('Budget')
+    menu_icon = 'folder-open-inverse'
+    menu_order = 205
+    items = (ExpenseCategoryAdmin, BudgetAdmin,)
+
+
+modeladmin_register(BudgetGroup)
