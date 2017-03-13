@@ -4,7 +4,7 @@ from datetime import timedelta, datetime
 from django.contrib.auth.models import User
 from django.db.models import Count, Avg
 
-from survey.models import CoachSurveySubmission, CoachSurvey
+from survey.models import CoachSurveySubmission, CoachSurvey, CoachSurveySubmissionDraft
 from users.models import Profile
 from .models import Goal, Badge, BadgeSettings, UserBadge, GoalTransaction, WeekCalc, Challenge, Participant, \
     QuizQuestion, QuestionOption, Entry, ParticipantAnswer, ParticipantFreeText, GoalPrototype
@@ -1168,26 +1168,65 @@ class BaselineSurveyData:
                          # Survey questions
                          'q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8', 'q9', 'q10', 'q11',
                          'q12', 'q13', 'q14', 'q15', 'q16', 'q17', 'q18', 'q19', 'q20', 'q21', 'q22', 'q23',
-                         'q24', 'q25', 'q26', 'q27.1', 'q27.2', 'q28', 'q29.1', 'q29.2', 'q29.3', 'q29.4'))
+                         'q24', 'q25', 'q26', 'q27_1', 'q27_2', '27_3', 'q28', 'q29_1', 'q29_2', 'q29_3', 'q29_4'))
 
         for survey in surveys:
-            submissions = CoachSurveySubmission.objects.filter(survey=survey)
+            # All baseline survey submissions that are complete
+            submissions = CoachSurveySubmissionDraft.objects.filter(survey=survey, complete=True)
 
             for submission in submissions:
-                # form_data = submission.get_data()
+                survey_data = submission.submission.get_data()
 
                 data = [
-                    submission.user.username,
-                    submission.user.first_name + ' ' + submissions.usser.last_name,
-                    submission.mobile,
-                    submission.user.email,
-                    submission.gender,
-                    submission.age,
-                    '',  # submissions.user_type
+                    submission.submission.user_unique_id,
+                    submission.submission.username,
+                    submission.submission.name,
+                    submission.submission.mobile,
+                    submission.submission.email,
+                    submission.submission.gender,
+                    submission.submission.age,
+                    '',  # user type
                     submission.user.date_joined,
-                    '',  # city
-                    submission.consent,
+                    survey_data['survey_baseline_q04_city'],
+                    survey_data['survey_baseline_q1_consent'],
+                    submission.consent,  # survey_data['survey_baseline_q2_consent']
+                    submission.modified_at,
 
+                    # survey questions
+                    survey_data['survey_baseline_q01_occupation'],
+                    survey_data['survey_baseline_q02_grade'],
+                    survey_data['survey_baseline_q03_school_name'],
+                    survey_data['survey_baseline_q04_city'],
+                    survey_data['survey_baseline_q05_job_month'],
+                    survey_data['survey_baseline_q06_job_earning_range'],
+                    survey_data['survey_baseline_q07_job_status'],
+                    survey_data['survey_baseline_q08_shared_ownership'],
+                    survey_data['survey_baseline_q09_business_earning_range'],
+                    survey_data['survey_baseline_q10_save'],
+                    survey_data['survey_baseline_q11_savings_frequency'],
+                    survey_data['survey_baseline_q12_savings_where'],
+                    survey_data['survey_baseline_q13_savings_3_months'],
+                    survey_data['survey_baseline_q14_saving_education'],
+                    survey_data['survey_baseline_q15_job_hunt'],
+                    survey_data['survey_baseline_q16_emergencies'],
+                    survey_data['survey_baseline_q17_invest'],
+                    survey_data['survey_baseline_q18_family'],
+                    survey_data['survey_baseline_q19_clothes_food'],
+                    '',  # Missing q20
+                    survey_data['survey_baseline_q21_gadgets'],
+                    survey_data['survey_baseline_q22_friends'],
+                    survey_data['survey_baseline_q23_mobile_frequency'],
+                    survey_data['survey_baseline_q24_mobile_most_use'],
+                    survey_data['survey_baseline_q25_mobile_least_use'],
+                    survey_data['survey_baseline_q26_mobile_own'],
+                    survey_data['survey_baseline_q27_1_friends'],
+                    survey_data['survey_baseline_q27_2_family'],
+                    survey_data['survey_baseline_q27_3_community'],
+                    survey_data['survey_baseline_q28_mobile_credit'],
+                    survey_data['survey_baseline_q29_1_desktop'],
+                    survey_data['survey_baseline_q29_2_laptop'],
+                    survey_data['survey_baseline_q29_3_mobile_no_data'],
+                    survey_data['survey_baseline_q29_4_mobile_data']
                 ]
 
                 writer.writerow(data)
