@@ -6,6 +6,7 @@ Changelog
 -----
 
 - Added Challenge Prize field
+- Added Budget and Expenses models
 
 1.0.0
 -----

@@ -30,6 +30,8 @@ from .models import WEEK_STREAK_2, WEEK_STREAK_4, WEEK_STREAK_6
 from .models import award_first_goal, award_goal_done, award_goal_halfway, award_goal_week_left, \
     award_transaction_first, award_week_streak
 from .models import award_weekly_target_badge, WEEKLY_TARGET_2, WEEKLY_TARGET_4, WEEKLY_TARGET_6
+from .models import ExpenseCategory, Budget, Expense
+
 from .permissions import IsAdminOrOwner, IsUserSelf
 from .serializers import AchievementStatSerializer, UserBadgeSerializer, CustomNotificationSerializer
 from .serializers import ChallengeSerializer, EntrySerializer
@@ -38,7 +40,7 @@ from .serializers import GoalPrototypeSerializer, GoalSerializer, GoalTransactio
 from .serializers import ParticipantAnswerSerializer, ParticipantFreeTextSerializer, ParticipantPictureSerializer, \
     ParticipantRegisterSerializer
 from .serializers import TipSerializer
-import json
+from .serializers import ExpenseCategorySerializer, BudgetSerializer
 
 
 # ========== #
@@ -349,9 +351,9 @@ class ParticipantPictureViewSet(viewsets.ModelViewSet):
         self.check_object_permissions(request, participant)
         print(participant)
         participant_picture = get_object_or_404(ParticipantPicture, participant=participant)
-        #if the participantpicture does not exist then you cant add a caption to it, ie the calls were sent in the
-        #incorrect order on the front end
-        #The get_object_or_404 will then trow the 404 error
+        # if the participantpicture does not exist then you cant add a caption to it, ie the calls were sent in the
+        # incorrect order on the front end
+        # The get_object_or_404 will then trow the 404 error
         participant_picture.caption = request.data['caption']
         participant_picture.save()
 
@@ -487,7 +489,8 @@ class TipViewSet(viewsets.ModelViewSet):
         return self.get_serializer_class().setup_prefetch_related(queryset)
 
     def list(self, request, *args, **kwargs):
-        serializer = self.get_serializer(self.get_queryset().order_by('-first_published_at').filter(live=True), many=True)
+        serializer = self.get_serializer(self.get_queryset().order_by('-first_published_at').filter(live=True),
+                                         many=True)
         return Response(serializer.data)
 
     def retrieve(self, request, pk=None, *args, **kwargs):
@@ -677,9 +680,11 @@ class GoalPrototypeView(viewsets.ModelViewSet):
 
         return Response(serializer.data)
 
+
 # ====== #
 # Badges #
 # ====== #
+
 
 class BadgesView(GenericAPIView):
     def get(self, request, *args, **kwargs):
@@ -690,12 +695,14 @@ class BadgesView(GenericAPIView):
                 urls.append(request.build_absolute_uri(badge.image.file.url))
 
         return Response({
-            'urls' :  urls
+            'urls': urls
         })
+
 
 # ============ #
 # Achievements #
 # ============ #
+
 
 class AchievementsView(GenericAPIView):
     permission_classes = (IsAuthenticated,)
@@ -757,3 +764,40 @@ class CustomNotificationViewSet(viewsets.ModelViewSet):
             "available": bool(ndata),
             "notifications": ndata
         })
+
+
+##########
+# Budget #
+##########
+
+
+class ExpenseCategoryView(viewsets.ModelViewSet):
+    queryset = ExpenseCategory.objects.all()
+    serializer_class = ExpenseCategorySerializer
+    permission_classes = (IsAuthenticated,)
+    http_method_names = ('get',)
+
+    def list(self, request, pk=None, *args, **kwargs):
+        serializer = self.get_serializer(self.get_queryset().filter(state=ExpenseCategory.ACTIVE), many=True)
+        return Response(serializer.data)
+
+
+class BudgetView(viewsets.ModelViewSet):
+    """
+    Each user only has one Budget. Budgets are created by upserting using `POST`. When a
+    """
+    queryset = Budget.objects.all()
+    serializer_class = BudgetSerializer
+    permission_classes = (IsAuthenticated, IsAdminOrOwner)
+    http_method_names = ('get', 'post',)
+
+    def create(self, request, *args, **kwargs):
+        serializer = self.get_serializer(data=request.data)
+
+        if serializer.is_valid(raise_exception=True):
+            budget = serializer.save()
+
+            return Response({
+                'budget': self.get_serializer(instance=budget).data,
+                'badges': []
+            }, status=status.HTTP_201_CREATED)
