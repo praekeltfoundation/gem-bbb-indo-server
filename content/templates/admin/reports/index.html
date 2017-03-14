@@ -1,0 +1,70 @@
+{% extends "modeladmin/index.html" %}
+{% load i18n modeladmin_tags %}
+
+{% block titletag %}{{ view.get_meta_title }}{% endblock %}
+
+{% block css %}
+{{ block.super }}
+{{ view.media.css }}
+{% endblock %}
+
+{% block extra_js %}
+{{ view.media.js }}
+{% endblock %}
+
+{% block content %}
+{% comment %}
+{% block header %}
+<header class="nice-padding hasform">
+    <div class="row">
+        <div class="left">
+            <div class="col">
+                {% block h1 %}<h1 {% if view.header_icon %}class="icon icon-{{ view.header_icon }}" {% endif %}>{{
+                view.get_page_title }}<span></span></h1>{% endblock %}
+            </div>
+            {% block search %}{% search_form %}{% endblock %}
+        </div>
+        {% block header_extra %}
+        {% if user_can_create %}
+        <div class="right">
+            <div class="addbutton">
+                {% include 'modeladmin/includes/button.html' with button=view.button_helper.add_button %}
+            </div>
+        </div>
+        {% endif %}
+        {% endblock %}
+    </div>
+</header>
+{% endblock %}
+{% endcomment %}
+
+<header class="{% if merged %}merged{% endif %} {% if tabbed %}tab-merged{% endif %} {% if search_form %}hasform{% endif %}">
+    <div class="row nice-padding">
+        <div class="left">
+            <div class="col header-title">
+                <h1 class="icon icon-{{ icon }}">
+                    <!--{{ title }}{% if subtitle %} <span>{{ subtitle }}</span>{% endif %}-->
+                    Reports
+                </h1>
+            </div>
+        </div>
+    </div>
+</header>
+
+{% block content_main %}
+<div>
+    <div class="row nice-padding">
+        <!-- Export -->
+        <h1>data exports</h1>
+
+        <div>
+            <h3><a href="{% url 'content-admin:reports-goals' %}" class="button">Goal exports</a></h3>
+            <h3><a href="{% url 'content-admin:reports-challenges' %}" class="button">Challenge exports</a></h3>
+            <h3><a href="{% url 'content-admin:reports-surveys' %}" class="button">Survey exports</a></h3>
+            <h3><a href="{% url 'content-admin:reports-aggregates' %}" class="button">Aggregate exports</a></h3>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% endblock %}

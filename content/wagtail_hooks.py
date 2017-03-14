@@ -1,9 +1,12 @@
 from django.conf.urls import url, include
+from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 
 from wagtail.contrib.modeladmin.options import ModelAdmin, ModelAdminGroup, modeladmin_register
+from wagtail.wagtailadmin.menu import MenuItem
 from wagtail.wagtailcore import hooks
 
+from users.models import Profile
 from .models import Challenge, Participant, CustomNotification
 from .models import FreeTextQuestion, PictureQuestion, QuizQuestion
 from .models import GoalPrototype
@@ -86,8 +89,13 @@ modeladmin_register(CompetitionsAdminGroup)
 @hooks.register('register_admin_urls')
 def register_admin_urls():
     return [
-        url(r'^participants/', include(admin_urls, app_name='content', namespace='participants')),
+        url(r'^content/', include(admin_urls, app_name='content', namespace='content-admin')),
     ]
+
+
+@hooks.register('register_admin_menu_item')
+def register_reports_menu_item():
+    return MenuItem('Reports', reverse('content-admin:reports-index'), classnames='icon icon-user', order=10000)
 
 
 # ===== #

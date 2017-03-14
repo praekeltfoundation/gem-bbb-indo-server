@@ -1,0 +1,109 @@
+{% extends "modeladmin/index.html" %}
+{% load i18n modeladmin_tags %}
+
+{% block titletag %}{{ view.get_meta_title }}{% endblock %}
+
+{% block css %}
+{{ block.super }}
+{{ view.media.css }}
+{% endblock %}
+
+{% block extra_js %}
+{{ view.media.js }}
+{% endblock %}
+
+{% block content %}
+{% comment %}
+{% block header %}
+<header class="nice-padding hasform">
+    <div class="row">
+        <div class="left">
+            <div class="col">
+                {% block h1 %}<h1 {% if view.header_icon %}class="icon icon-{{ view.header_icon }}" {% endif %}>{{
+                view.get_page_title }}<span></span></h1>{% endblock %}
+            </div>
+            {% block search %}{% search_form %}{% endblock %}
+        </div>
+        {% block header_extra %}
+        {% if user_can_create %}
+        <div class="right">
+            <div class="addbutton">
+                {% include 'modeladmin/includes/button.html' with button=view.button_helper.add_button %}
+            </div>
+        </div>
+        {% endif %}
+        {% endblock %}
+    </div>
+</header>
+{% endblock %}
+{% endcomment %}
+
+<header class="{% if merged %}merged{% endif %} {% if tabbed %}tab-merged{% endif %} {% if search_form %}hasform{% endif %}">
+    <div class="row nice-padding">
+        <div class="left">
+            <div class="col header-title">
+                <h1 class="icon icon-{{ icon }}">
+                    <!--{{ title }}{% if subtitle %} <span>{{ subtitle }}</span>{% endif %}-->
+                    Reports
+                </h1>
+            </div>
+        </div>
+    </div>
+</header>
+
+{% block content_main %}
+<div>
+    <div class="row nice-padding">
+        <!-- Export -->
+        <h1>per goal data</h1>
+        <form method="post">
+            {% csrf_token %}
+            <div class="field field-small">
+                <div class="field-content">
+                    <button name="action" value="EXPORT-GOAL" class="button icon-download bicolor icon right">
+                        Export Goal
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <h1>per user data</h1>
+        <form method="post">
+            {% csrf_token %}
+            <div class="field field-small">
+                <div class="field-content">
+                    <button name="action" value="EXPORT-USER" class="button icon-download bicolor icon right">
+                        Export User
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <h1>savings data</h1>
+        <form method="post">
+            {% csrf_token %}
+            <div class="field field-small">
+                <div class="field-content">
+                    <button name="action" value="EXPORT-SAVINGS" class="button icon-download bicolor icon right">
+                        Export Savings
+                    </button>
+                </div>
+            </div>
+        </form>
+
+        <h1>all data</h1>
+        <form method="post">
+            {% csrf_token %}
+            <div class="field field-small">
+                <div class="field-content">
+                    <button name="action" value="EXPORT-ALL" class="button icon-download bicolor icon right">
+                        Export All
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% endblock %}

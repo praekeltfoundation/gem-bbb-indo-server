@@ -1,0 +1,189 @@
+{% extends "modeladmin/index.html" %}
+{% load i18n modeladmin_tags %}
+
+{% block titletag %}{{ view.get_meta_title }}{% endblock %}
+
+{% block css %}
+{{ block.super }}
+{{ view.media.css }}
+{% endblock %}
+
+{% block extra_js %}
+{{ view.media.js }}
+{% include "wagtailadmin/shared/datetimepicker_translations.html" %}
+
+<script>
+        $(function() {
+            $('#id_date_from').datetimepicker({
+                timepicker: false,
+                format: 'Y-m-d',
+                i18n: {
+                    lang: window.dateTimePickerTranslations
+                },
+                lang: 'lang'
+            });
+            $('#id_date_to').datetimepicker({
+                timepicker: false,
+                format: 'Y-m-d',
+                i18n: {
+                    lang: window.dateTimePickerTranslations
+                },
+                lang: 'lang'
+            });
+        });
+
+
+
+
+
+
+
+</script>
+
+{% endblock %}
+
+{% block content %}
+{% comment %}
+{% block header %}
+<header class="nice-padding hasform">
+    <div class="row">
+        <div class="left">
+            <div class="col">
+                {% block h1 %}<h1 {% if view.header_icon %}class="icon icon-{{ view.header_icon }}" {% endif %}>{{
+                view.get_page_title }}<span></span></h1>{% endblock %}
+            </div>
+            {% block search %}{% search_form %}{% endblock %}
+        </div>
+        {% block header_extra %}
+        {% if user_can_create %}
+        <div class="right">
+            <div class="addbutton">
+                {% include 'modeladmin/includes/button.html' with button=view.button_helper.add_button %}
+            </div>
+        </div>
+        {% endif %}
+        {% endblock %}
+    </div>
+</header>
+{% endblock %}
+{% endcomment %}
+
+<header class="{% if merged %}merged{% endif %} {% if tabbed %}tab-merged{% endif %} {% if search_form %}hasform{% endif %}">
+    <div class="row nice-padding">
+        <div class="left">
+            <div class="col header-title">
+                <h1 class="icon icon-{{ icon }}">
+                    <!--{{ title }}{% if subtitle %} <span>{{ subtitle }}</span>{% endif %}-->
+                    Reports
+                </h1>
+            </div>
+        </div>
+    </div>
+</header>
+
+{% block content_main %}
+<div>
+    <div class="row nice-padding">
+        <!-- Export -->
+        <h1>summary data per challenge</h1>
+        <form method="post">
+            {% csrf_token %}
+            <p>Challenge run between the following two dates (Leave blank for all challenges): </p>
+            <div class="field date_time_field date_input field-small">
+                <label for="id_date_from">Start:</label>
+                <div class="field-content">
+                    <div class="input">
+                        <input id="id_date_from" name="date_from" placeholder="Date from" type="text">
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="field date_time_field date_input field-small">
+                <label for="id_date_to">End:</label>
+                <div class="field-content">
+                    <div class="input">
+                        <input id="id_date_to" name="date_to" placeholder="Date to" type="text">
+                        <span></span>
+                    </div>
+                </div>
+            </div>
+
+            <button name="action" value="EXPORT-CHALLENGE-SUMMARY"
+                    class="button icon-download bicolor icon right">
+                Export Challenge Summary
+            </button>
+        </form>
+
+        <h1>summary data per quiz</h1>
+        <form method="post">
+            {% csrf_token %}
+            <div>
+                <button name="action" value="EXPORT-CHALLENGE-QUIZ-SUMMARY"
+                        class="button icon-download bicolor icon right">
+                    Export Quiz Challenge Summary
+                </button>
+            </div>
+        </form>
+
+        <h1>Challenge - Picture</h1>
+        <form method="post">
+            {% csrf_token %}
+            <div class="field field-small">
+                <label for="picture-challenge-name">Select challenge:</label>
+                <div class="field-content">
+                    <div class="input">
+                        <select id="picture-challenge-name" name="picture-challenge-name">
+                            {% for c in picture_challenges %}
+                            <option>{{ c.name }}</option>
+                            {% endfor %}
+                        </select>
+
+                    </div>
+                </div>
+            </div>
+            <button name="action" value="EXPORT-CHALLENGE-PICTURE" class="button icon-download bicolor icon right">
+                Export Challenge Picture
+            </button>
+        </form>
+
+        <h1>Challenge - Quiz</h1>
+        <form method="post">
+            {% csrf_token %}
+            <div class="field field-small">
+                <label for="quiz-challenge-name">Select challenge:</label>
+                <div class="field-content">
+                    <select id="quiz-challenge-name" name="quiz-challenge-name">
+                        {% for c in quiz_challenges %}
+                        <option>{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <button name="action" value="EXPORT-CHALLENGE-QUIZ" class="button icon-download bicolor icon right">
+                Export Challenge Quiz
+            </button>
+        </form>
+
+        <h1>Challenge - Free Text</h1>
+        <form method="post">
+            {% csrf_token %}
+            <div class="field field-small">
+                <label for="freetext-challenge-name">Select challenge:</label>
+                <div class="field-content">
+                    <select id="freetext-challenge-name" name="freetext-challenge-name">
+                        {% for c in freetext_challenges %}
+                        <option>{{ c.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+            </div>
+            <button name="action" value="EXPORT-CHALLENGE-FREETEXT" class="button icon-download bicolor icon right">
+                Export Challenge Freetext
+            </button>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% endblock %}
