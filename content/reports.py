@@ -40,7 +40,7 @@ class GoalReport:
             data = [
                 # Weekly savings
                 cls.get_username(goal),
-                '',  # TODO: Goal prototype in Bahasa
+                '',  # TODO: Goal prototype in Bahasa (Not implemented)
                 goal.prototype,
                 goal.name,
                 goal.target,
@@ -158,43 +158,6 @@ class GoalReport:
 
         return withdrawals
 
-    # Goal edit history
-
-    @classmethod
-    def original_goal_date(cls, goal):
-        # TODO: Return the original goal date (Not implemented)
-        return 0
-
-    @classmethod
-    def new_goal_date(cls, goal):
-        # TODO: Return the new date of the goal (Not implemented)
-        return 0
-
-    @classmethod
-    def original_weekly_target(cls, goal):
-        # TODO: Return the original weekly target of the goal (Not implemented)
-        return 0
-
-    @classmethod
-    def new_weekly_target(cls, goal):
-        # TODO: Return the weekly target set during goal edit (Not implemented)
-        return 0
-
-    @classmethod
-    def original_goal_target(cls, goal):
-        # TODO: Return the original goal target (Not implemented)
-        return 0
-
-    @classmethod
-    def new_goal_target(cls, goal):
-        # TODO: Return the new goal target set during the goal edit (Not implemented)
-        return 0
-
-    @classmethod
-    def date_goal_edited(cls, goal):
-        # TODO: Return the date the goal was edited (Not implemented)
-        return 0
-
     # Goal dates
 
     @classmethod
@@ -215,11 +178,6 @@ class GoalReport:
                 return transaction.date
 
         return None
-
-    @classmethod
-    def date_deleted(cls, goal):
-        # TODO: Implement date deleted field on Goal model (Not implemented)
-        return 0
 
 
 class UserReport:
@@ -296,68 +254,57 @@ class UserReport:
 
     @classmethod
     def num_first_goal_created_badges(cls, profile):
-        # TODO: Count number of First Goal Created badges
-        return 0
+        return UserBadge.objects.filter(user=profile.user, badge__badge_type=Badge.GOAL_FIRST_CREATED).count()
 
     @classmethod
     def num_first_savings_created_badges(cls, profile):
-        # TODO: Count number of First Savings Created badges
-        return 0
+        return UserBadge.objects.filter(user=profile.user, badge__badge_type=Badge.TRANSACTION_FIRST).count()
 
     @classmethod
     def num_halfway_badges(cls, profile):
-        # TODO: Count number of Halfway badges
-        return 0
+        return UserBadge.objects.filter(user=profile.user, badge__badge_type=Badge.GOAL_HALFWAY).count()
 
     @classmethod
     def num_one_week_left_badges(cls, profile):
-        # TODO: Count number of One Week Left badges
-        return 0
+        return UserBadge.objects.filter(user=profile.user, badge__badge_type=Badge.GOAL_WEEK_LEFT).count()
 
     @classmethod
     def num_2_week_streak_badges(cls, profile):
-        # TODO: Count number of 2 Week Streak badges
-        return 0
+        return UserBadge.objects.filter(user=profile.user, badge__badge_type=Badge.STREAK_2).count()
 
     @classmethod
     def num_4_week_streak_badges(cls, profile):
-        # TODO: Count number of 4 week streak badges
-        return 0
+        return UserBadge.objects.filter(user=profile.user, badge__badge_type=Badge.STREAK_4).count()
 
     @classmethod
     def num_6_week_streak_badges(cls, profile):
-        # TODO: Count number of 6 week streak badges
-        return 0
+        return UserBadge.objects.filter(user=profile.user, badge__badge_type=Badge.STREAK_6).count()
 
     @classmethod
     def num_2_week_on_track_badges(cls, profile):
-        # TODO: Count number of 2 Week on Track badges
-        return 0
+        return UserBadge.objects.filter(user=profile.user, badge__badge_type=Badge.WEEKLY_TARGET_2).count()
 
     @classmethod
     def num_4_week_on_track_badges(cls, profile):
-        # TODO: Count number of 4 week on Track badges
-        return 0
+        return UserBadge.objects.filter(user=profile.user, badge__badge_type=Badge.WEEKLY_TARGET_4).count()
 
     @classmethod
     def num_6_week_on_track_badges(cls, profile):
-        # TODO: Count number of 6 week on Track badges
-        return 0
+        return UserBadge.objects.filter(user=profile.user, badge__badge_type=Badge.WEEKLY_TARGET_6).count()
 
     @classmethod
     def num_8_week_on_track_badges(cls, profile):
-        # TODO: Count number of 8 week on Track badges
+        # TODO: Count number of 8 week on Track badges (Not implemented)
         return 0
 
     @classmethod
     def num_goal_reached_badges(cls, profile):
-        # TODO: Count number of goal reached badges
+        # TODO: Count number of goal reached badges (Not implemented)
         return 0
 
     @classmethod
     def num_challenge_participation_badges(cls, profile):
-        # TODO: Count number of Challenge Participation badges
-        return 0
+        return UserBadge.objects.filter(user=profile.user, badge__badge_type=Badge.CHALLENGE_ENTRY).count()
 
     @classmethod
     def highest_streak_earned(cls, profile):
@@ -378,8 +325,26 @@ class UserReport:
 
     @classmethod
     def total_streak_and_ontrack_badges(cls, profile):
-        # TODO: Return the total number of on-track and streak badges
-        return 0
+        total_2_week_streak = UserBadge.objects.filter(user=profile.user,
+                                                       badge__badge_type=Badge.STREAK_2).count()
+        total_4_week_streak = UserBadge.objects.filter(user=profile.user,
+                                                       badge__badge_type=Badge.STREAK_4).count()
+        total_6_week_streak = UserBadge.objects.filter(user=profile.user,
+                                                       badge__badge_type=Badge.STREAK_6).count()
+
+        total_2_week_on_target = UserBadge.objects.filter(user=profile.user,
+                                                          badge__badge_type=Badge.WEEKLY_TARGET_2).count()
+        total_4_week_on_target = UserBadge.objects.filter(user=profile.user,
+                                                          badge__badge_type=Badge.WEEKLY_TARGET_4).count()
+        total_6_week_on_target = UserBadge.objects.filter(user=profile.user,
+                                                          badge__badge_type=Badge.WEEKLY_TARGET_6).count()
+
+        total_streaks = total_2_week_streak + total_4_week_streak + total_6_week_streak
+        total_on_targets = total_2_week_on_target + total_4_week_on_target + total_6_week_on_target
+
+        total_all = total_streaks + total_on_targets
+
+        return total_all
 
     @classmethod
     def total_streaks_earned(cls, profile):
@@ -559,7 +524,7 @@ class SummaryDataPerQuiz:
         challenges = Challenge.objects.filter(type=Challenge.CTP_QUIZ)
         writer = csv.writer(stream)
 
-        writer.writerow(('quiz_name', 'quiz_question', 'number_of_options', 'average_attempts'))
+        writer.writerow(('quiz_name', 'quiz_question', 'number_of_options', 'attempts'))
 
         for challenge in challenges:
             quiz_questions = QuizQuestion.objects.filter(challenge=challenge)
@@ -567,24 +532,16 @@ class SummaryDataPerQuiz:
             for quiz_question in quiz_questions:
                 question_options = QuestionOption.objects.filter(question=quiz_question)
 
-                # attempts = quiz_questions.annotate(num_attempts=Count('answers__id')) \
-                #     .values('id', 'text', 'num_attempts') \
-                #     .order_by('order')
+                attempts = ParticipantAnswer.objects.filter(question=quiz_question).count()
 
                 data = [
                     challenge.name,
                     quiz_question.text,
                     question_options.count(),
-                    cls.average_number_question_attempts(quiz_question, question_options)
+                    attempts
                 ]
 
                 writer.writerow(data)
-
-    @classmethod
-    def average_number_question_attempts(cls, question, options):
-        # TODO: Return the average number of user attempts per question option
-        average_attempts = 0
-        return average_attempts
 
 
 class ChallengeExportPicture:
@@ -879,14 +836,14 @@ class GoalDataPerCategory:
         Returns the total amount of users who have achieved 100% of the given goal prototype
         not unique users
         """
-        users_with_goals = Goal.objects.filter(prototype=goal_prototype)
+        goals = Goal.objects.filter(prototype=goal_prototype)
 
         num_100_percent_achieved = 0
-        for user in users_with_goals:
-            users_goals = Goal.objects.filter(prototype=goal_prototype, user_id=user['user_id'])
+        for goal in goals:
+            users_goals = Goal.objects.filter(prototype=goal_prototype, user_id=goal.user_id)
 
-            for goal in users_goals:
-                if goal.progress >= 100:
+            for user_goal in users_goals:
+                if user_goal.progress >= 100:
                     num_100_percent_achieved += 1
                     break
 
@@ -1032,7 +989,7 @@ class RewardsDataPerBadge:
     @classmethod
     def total_earned_by_all_users(cls, badge):
         """Returns the total number of badges won for the given badge for all users"""
-        return Badge.objects.filter(badge_type=badge.badge_type).count()
+        return Badge.objects.filter(badge_type=badge.badge_type).values('user').count()
 
     @classmethod
     def total_earned_at_least_once(cls, badge):
@@ -1123,7 +1080,7 @@ class UserTypeData:
         writer = csv.writer(stream)
         writer.writerow(('total_classroom_users', 'total_marketing_users'))
 
-        # TODO: Return the total number of each type of user
+        # TODO: Return the total number of each type of user (Not implemented)
 
         data = [
             0,
