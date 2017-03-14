@@ -4,7 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 from wagtail.contrib.modeladmin.options import ModelAdmin, ModelAdminGroup, modeladmin_register
 from wagtail.wagtailcore import hooks
 
-from .models import Challenge, Participant, CustomNotification
+from .models import Challenge, Participant, CustomNotification, Feedback
 from .models import FreeTextQuestion, PictureQuestion, QuizQuestion
 from .models import GoalPrototype
 from .models import Badge
@@ -189,3 +189,17 @@ class BudgetGroup(ModelAdminGroup):
 
 
 modeladmin_register(BudgetGroup)
+
+
+############
+# Feedback #
+############
+
+class FeedbackAdmin(ModelAdmin):
+    model = Feedback
+    menu_icon = 'form'
+    list_display = ('date_created', 'type', 'text', 'is_read')
+    search_fields = ('text',)
+    list_filter = ('type', 'is_read')
+
+modeladmin_register(FeedbackAdmin)
