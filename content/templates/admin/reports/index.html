@@ -58,10 +58,10 @@
         <h1>data exports</h1>
 
         <div>
-            <h3><a href="./goals/" class="button">Goal exports</a></h3>
-            <h3><a href="./challenges/" class="button">Challenge exports</a></h3>
-            <h3><a href="./surveys/" class="button">Survey exports</a></h3>
-            <h3><a href="./aggregates/" class="button">Aggregate exports</a></h3>
+            <h3><a href="{% url 'content-admin:reports-goals' %}" class="button">Goal exports</a></h3>
+            <h3><a href="{% url 'content-admin:reports-challenges' %}" class="button">Challenge exports</a></h3>
+            <h3><a href="{% url 'content-admin:reports-surveys' %}" class="button">Survey exports</a></h3>
+            <h3><a href="{% url 'content-admin:reports-aggregates' %}" class="button">Aggregate exports</a></h3>
         </div>
     </div>
 </div>
