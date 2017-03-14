@@ -58,10 +58,11 @@ def report_index_page(request):
 
 # Challenge reports
 def report_challenge_exports(request):
-    response = HttpResponse(content_type='text/csv; charset=utf-8')
-    response['Content-Disposition'] = 'attachment;filename=export-' + str(timezone.now()) + '.csv'
 
     if request.method == 'POST':
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment;filename=export-' + str(timezone.now()) + '.csv'
+
         if request.POST.get('action') == 'EXPORT-CHALLENGE-SUMMARY':
             if request.POST['date_from'] is '' or request.POST['date_to'] is '':
                 date_from = date_to = None
@@ -97,23 +98,25 @@ def report_challenge_exports(request):
 
 # Goal reports
 def report_goal_exports(request):
-    response = HttpResponse(content_type='text/csv; charset=utf-8')
-    response['Content-Disposition'] = 'attachment;filename=export-' + str(timezone.now()) + '.csv'
 
-    if request.POST.get('action') == 'EXPORT-ALL':
-        # TODO: Write all csv files, zip and send
+    if request.method == 'POST':
+        response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response['Content-Disposition'] = 'attachment;filename=export-' + str(timezone.now()) + '.csv'
+
+        if request.POST.get('action') == 'EXPORT-ALL':
+            # TODO: Write all csv files, zip and send
+            return render(request, 'admin/reports/goals.html')
+        elif request.POST.get('action') == 'EXPORT-GOAL':
+            GoalReport.export_csv(response)
+            return response
+        elif request.POST.get('action') == 'EXPORT-USER':
+            UserReport.export_csv(response)
+            return response
+        elif request.POST.get('action') == 'EXPORT-SAVINGS':
+            SavingsReport.export_csv(response)
+            return response
+    elif request.method == 'GET':
         return render(request, 'admin/reports/goals.html')
-    elif request.POST.get('action') == 'EXPORT-GOAL':
-        GoalReport.export_csv(response)
-        return response
-    elif request.POST.get('action') == 'EXPORT-USER':
-        UserReport.export_csv(response)
-        return response
-    elif request.POST.get('action') == 'EXPORT-SAVINGS':
-        SavingsReport.export_csv(response)
-        return response
-
-    return render(request, 'admin/reports/goals.html')
 
 
 # Aggregate reports
@@ -147,6 +150,7 @@ def report_aggregate_exports(request):
 
 # Survey exports
 def report_survey_exports(request):
+
     if request.method == 'POST':
         response = HttpResponse(content_type='text/csv; charset=utf-8')
         response['Content-Disposition'] = 'attachment;filename=export-' + str(timezone.now()) + '.csv'
