@@ -12,7 +12,7 @@ $(document).ready(function() {
                             xhr.setRequestHeader("X-CSRFToken", csrftoken);
                         }
                     },
-                    url: '/admin/participants/mark-read/' + $(this).val() + '/',
+                    url: '/admin/content/participants/mark-read/' + $(this).val() + '/',
                     method: "POST"
                 });
                 $(".mark-is-read").prop("readonly", false);
@@ -29,7 +29,7 @@ $(document).ready(function() {
                             xhr.setRequestHeader("X-CSRFToken", csrftoken);
                         }
                     },
-                    url: '/admin/participants/mark-shortlisted/' + $(this).val() + '/',
+                    url: '/admin/content/participants/mark-shortlisted/' + $(this).val() + '/',
                     method: "POST"
                 });
                 $(".mark-is-shortlisted").prop("readonly", false);
@@ -46,7 +46,7 @@ $(document).ready(function() {
                             xhr.setRequestHeader("X-CSRFToken", csrftoken);
                         }
                     },
-                    url: '/admin/participants/mark-winner/' + $(this).val() + '/',
+                    url: '/admin/content/participants/mark-winner/' + $(this).val() + '/',
                     method: "POST"
                 });
                 $(".mark-is-winner").prop("readonly", false);
