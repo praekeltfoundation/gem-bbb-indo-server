@@ -47,6 +47,7 @@ def participant_mark_winner(request, participant_pk):
     return JsonResponse({})
 
 
+@permission_required('feedback.can_change')
 @ensure_csrf_cookie
 def feedback_mark_read(request, feedback_pk):
     feedback = get_object_or_404(Feedback, pk=feedback_pk)
