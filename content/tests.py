@@ -914,9 +914,8 @@ class TestGoalAPI(APITestCase):
                                msg="Modified date not close enough to when was actually modified",
                                delta=timedelta(seconds=2))
 
-    def test_goal_edit_record_fields(self):
+    def test_goal_edit_history_update(self):
         user = self.create_regular_user('User 1')
-        # goal = self.create_goal('Goal 1', user, 1000)
 
         data = {
             "name": "Goal 1",
@@ -960,9 +959,28 @@ class TestGoalAPI(APITestCase):
         self.assertEquals(updated_goal.original_weekly_target, 100, 'Original goal weekly target changed on edit')
         self.assertEquals(updated_goal.original_target, 1000, 'Original goal target changed on edit')
         self.assertIsNotNone(updated_goal.last_edit_date, 'Last edit date should not be empty for an edited goal')
-        self.assertIsNone(updated_goal.date_deleted, 'Date deleted should be empty for a non-deleted goal')
 
-        response = self.client.delete(reverse('api:goals-detail', kwargs={'pk': updated_goal.pk}), data, format='json')
+    def test_goal_edit_history_delete(self):
+        user = self.create_regular_user('User 1')
+
+        data = {
+            "name": "Goal 1",
+            "transactions": [],
+            "start_date": datetime.utcnow().strftime('%Y-%m-%d'),
+            "end_date": datetime.utcnow().strftime('%Y-%m-%d'),
+            "target": 1000,
+            "image": None,
+            "weekly_target": 100
+        }
+
+        self.client.force_authenticate(user=user)
+        response = self.client.post(reverse('api:goals-list'), data, format='json')
+
+        goal = Goal.objects.get(name='Goal 1')
+
+        self.assertIsNone(goal.date_deleted, 'Date deleted should be empty for a non-deleted goal')
+
+        response = self.client.delete(reverse('api:goals-detail', kwargs={'pk': goal.pk}), data, format='json')
 
         deleted_goal = Goal.objects.get(pk=goal.pk)
 
