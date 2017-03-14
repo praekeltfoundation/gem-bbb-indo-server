@@ -7,6 +7,7 @@ Changelog
 
 - Added Challenge Prize field
 - Added Budget and Expenses models
+- Implemented Wagtail report pages
 
 1.0.0
 -----
