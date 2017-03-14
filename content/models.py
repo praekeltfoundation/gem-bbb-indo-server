@@ -1711,6 +1711,14 @@ class Feedback(models.Model):
         # Translators: Collection name on CMS
         verbose_name_plural = _('feedback entries')
 
+    def mark_is_read(self):
+        if self.is_read:
+            return format_html("<input type='checkbox' id='{}' class='feedback-mark-is-read' value='{}' checked='checked' />",
+                               'feedback-is-read-%d' % self.id, self.id)
+        else:
+            return format_html("<input type='checkbox' id='{}' class='feedback-mark-is-read' value='{}' />",
+                               'feedback-is-read-%d' % self.id, self.id)
+
 
 ########################
 # Ad Hoc Notification #

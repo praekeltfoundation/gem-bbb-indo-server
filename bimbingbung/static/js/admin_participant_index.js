@@ -52,6 +52,23 @@ $(document).ready(function() {
                 $(".mark-is-winner").prop("readonly", false);
             });
        });
+
+       $('.feedback-mark-is-read').each(function(index){
+            $(this).change(function(){
+                console.log($(this).val() + ':' + this.checked);
+                $(".feedback-mark-is-read").prop("readonly", true);
+                $.ajax({
+                    beforeSend: function(xhr, settings) {
+                        if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
+                            xhr.setRequestHeader("X-CSRFToken", csrftoken);
+                        }
+                    },
+                    url: '/admin/content/feedback/mark-read/' + $(this).val() + '/',
+                    method: "POST"
+                });
+                $(".feedback-mark-is-read").prop("readonly", false);
+            });
+       });
 });
 
 function csrfSafeMethod(method) {

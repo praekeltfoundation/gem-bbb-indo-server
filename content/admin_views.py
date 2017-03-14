@@ -9,7 +9,7 @@ from .reports import GoalReport, UserReport, SavingsReport, SummaryDataPerChalle
     GoalDataPerCategory, RewardsData, RewardsDataPerBadge, RewardsDataPerStreak, UserTypeData, SummarySurveyData, \
     EaTool1SurveyData, BaselineSurveyData, EaTool2SurveyData, EndlineSurveyData
 
-from .models import Challenge, Participant
+from .models import Challenge, Participant, Feedback
 
 
 def participant_list_view(request):
@@ -44,6 +44,14 @@ def participant_mark_winner(request, participant_pk):
     participant = get_object_or_404(Participant, pk=participant_pk)
     participant.is_winner = not participant.is_winner
     participant.save()
+    return JsonResponse({})
+
+
+@ensure_csrf_cookie
+def feedback_mark_read(request, feedback_pk):
+    feedback = get_object_or_404(Feedback, pk=feedback_pk)
+    feedback.is_read = not feedback.is_read
+    feedback.save()
     return JsonResponse({})
 
 

@@ -205,8 +205,9 @@ modeladmin_register(BudgetGroup)
 
 class FeedbackAdmin(ModelAdmin):
     model = Feedback
+    index_view_extra_js = ['js/js.cookie.js', 'js/admin_participant_index.js']
     menu_icon = 'form'
-    list_display = ('date_created', 'type', 'text', 'is_read')
+    list_display = ('date_created', 'type', 'text', 'is_read', 'mark_is_read')
     search_fields = ('text',)
     list_filter = ('type', 'is_read')
 
