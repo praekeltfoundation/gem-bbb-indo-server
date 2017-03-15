@@ -4,11 +4,6 @@ var leftButton = document.getElementById("left-nav-button");
 var rightButton = document.getElementById("right-nav-button");
 
 window.onload = function() {
-    var images = document.getElementsByTagName("img");
-    for(i = 0; i < images.length; ++i){
-        images[i].width = "20";
-        images[i].height = "20";
-    }
   checkButtonSource(0);
 };
 
@@ -52,8 +47,14 @@ var mySlideTransitionCallback = function(index, elem) {
     list[currIndex].removeAttribute("id");
     currIndex = index;
     list[currIndex].setAttribute("id", "activated");
-
     checkButtonSource(currIndex);
+    var images = document.getElementsByTagName("img");
+    for(i = 0; i < images.length; ++i){
+        var image = images[i];
+        if(image.id != "left-nav-button" && image.id != "right-nav-button"){
+            image.style = "width: 100px; height:100px";
+        }
+    }
 }
 
 
