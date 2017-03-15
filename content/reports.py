@@ -1,10 +1,13 @@
 import csv
 import json
-from datetime import timedelta, datetime
+import os
+from datetime import timedelta, datetime, time
+from zipfile import *
 
 from django.contrib.auth.models import User
 from django.db.models import Count, Avg
 
+from content.utilities import zip_and_encrypt
 from survey.models import CoachSurveySubmission, CoachSurvey, CoachSurveySubmissionDraft
 from users.models import Profile
 from .models import Goal, Badge, BadgeSettings, UserBadge, GoalTransaction, WeekCalc, Challenge, Participant, \
@@ -578,7 +581,6 @@ class ChallengeExportPicture:
 
 
 class ChallengeExportQuiz:
-
     fields = ()
 
     @classmethod
@@ -617,7 +619,10 @@ class ChallengeExportQuiz:
                     question_data = [attempt['text'], (attempt['num_attempts'])]
                     data.extend(question_data)
 
-                writer.writerow(data)
+                # writer.writerow(data)
+
+                zip_and_encrypt(data)
+                # os.remove(filename + '.csv')
 
 
 class ChallengeExportFreetext:
