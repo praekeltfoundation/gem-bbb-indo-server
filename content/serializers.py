@@ -745,14 +745,22 @@ class ExpenseCategorySerializer(serializers.ModelSerializer):
 
 class ExpenseSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField()
-    name = serializers.CharField()
+    name = serializers.SerializerMethodField()
     value = serializers.DecimalField(18, 2, coerce_to_string=False)
-    category = serializers.PrimaryKeyRelatedField(queryset=ExpenseCategory.objects.all(), allow_null=True,
-                                                  required=False)
+    category_id = serializers.PrimaryKeyRelatedField(queryset=ExpenseCategory.objects.all(), allow_null=True,
+                                                     required=False)
 
     class Meta:
         model = Expense
-        fields = ('id', 'name', 'value', 'category')
+        fields = ('id', 'name', 'value', 'category_id')
+
+    def get_name(self, obj):
+        if obj.name:
+            return obj.name
+        elif obj.category:
+            return obj.category.name
+        else:
+            return ''
 
 
 class BudgetSerializer(serializers.ModelSerializer):
@@ -775,10 +783,9 @@ class BudgetSerializer(serializers.ModelSerializer):
 
         budget.expenses.clear()
         for expense in validated_data.pop('expenses'):
+            expense['category'] = expense.pop('category_id', None)
             budget.expenses.create(**expense)
 
         budget.save()
 
         return budget
-
-
