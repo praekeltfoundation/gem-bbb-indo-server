@@ -4,6 +4,11 @@ var leftButton = document.getElementById("left-nav-button");
 var rightButton = document.getElementById("right-nav-button");
 
 window.onload = function() {
+    var images = document.getElementsByTagName("img");
+    for(i = 0; i < images.length; ++i){
+        images[i].width = "20";
+        images[i].height = "20";
+    }
   checkButtonSource(0);
 };
 
