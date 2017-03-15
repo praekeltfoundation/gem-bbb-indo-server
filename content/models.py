@@ -1836,7 +1836,7 @@ Budget.panels = [
 
 @python_2_unicode_compatible
 class Expense(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, blank=True)
 
     value = models.DecimalField(_('value'), max_digits=18, decimal_places=2, default=0)
 
