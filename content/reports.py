@@ -984,7 +984,7 @@ class RewardsData:
 
         zip_and_encrypt(filename)
 
-        fsock = open(filename + '.zip' + "rb")
+        fsock = open(filename + '.zip', "rb")
         stream.streaming_content = fsock
 
     @classmethod
