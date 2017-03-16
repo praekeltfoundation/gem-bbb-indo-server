@@ -2,7 +2,7 @@ from django.utils import timezone
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import permission_required
-from django.http.response import JsonResponse, HttpResponse
+from django.http.response import JsonResponse, HttpResponse, StreamingHttpResponse
 
 from .reports import GoalReport, UserReport, SavingsReport, SummaryDataPerChallenge, \
     SummaryDataPerQuiz, ChallengeExportPicture, ChallengeExportQuiz, ChallengeExportFreetext, SummaryGoalData, \
@@ -60,8 +60,8 @@ def report_index_page(request):
 def report_challenge_exports(request):
 
     if request.method == 'POST':
-        response = HttpResponse(content_type='text/csv; charset=utf-8')
-        response['Content-Disposition'] = 'attachment;filename=export-' + str(timezone.now()) + '.csv'
+        response = HttpResponse(content_type='application/zip; charset=utf-8')
+        response['Content-Disposition'] = 'attachment;filename=export-' + str(timezone.now().date()) + '.zip'
 
         if request.POST.get('action') == 'EXPORT-CHALLENGE-SUMMARY':
             if request.POST['date_from'] is '' or request.POST['date_to'] is '':
@@ -100,8 +100,9 @@ def report_challenge_exports(request):
 def report_goal_exports(request):
 
     if request.method == 'POST':
-        response = HttpResponse(content_type='text/csv; charset=utf-8')
-        response['Content-Disposition'] = 'attachment;filename=export-' + str(timezone.now()) + '.csv'
+        # response = HttpResponse(content_type='text/csv; charset=utf-8')
+        response = StreamingHttpResponse(content_type='application/zip; charset=utf-8')
+        response['Content-Disposition'] = 'attachment;filename=export-' + str(timezone.now().date()) + '.zip'
 
         if request.POST.get('action') == 'EXPORT-ALL':
             # TODO: Write all csv files, zip and send
@@ -123,8 +124,8 @@ def report_goal_exports(request):
 def report_aggregate_exports(request):
 
     if request.method == 'POST':
-        response = HttpResponse(content_type='text/csv; charset=utf-8')
-        response['Content-Disposition'] = 'attachment;filename=export-' + str(timezone.now()) + '.csv'
+        response = StreamingHttpResponse(content_type='application/zip; charset=utf-8')
+        response['Content-Disposition'] = 'attachment;filename=export-' + str(timezone.now().date) + '.zip'
 
         if request.POST.get('action') == 'EXPORT-AGGREGATE-SUMMARY':
             SummaryGoalData.export_csv(response)
@@ -152,8 +153,8 @@ def report_aggregate_exports(request):
 def report_survey_exports(request):
 
     if request.method == 'POST':
-        response = HttpResponse(content_type='text/csv; charset=utf-8')
-        response['Content-Disposition'] = 'attachment;filename=export-' + str(timezone.now()) + '.csv'
+        response = HttpResponse(content_type='application/zip; charset=utf-8')
+        response['Content-Disposition'] = 'attachment;filename=export-' + str(timezone.now().date) + '.zip'
 
         if request.POST.get('action') == 'EXPORT-SURVEY-SUMMARY':
             SummarySurveyData.export_csv(response)
