@@ -77,13 +77,4 @@ prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# article: http://ogp.me/ns
 
 <script language="JavaScript" src="{% static 'vendor/swipe.min.js' %}"></script>
 <script language="JavaScript" src="{% static 'js/bimbingbung.js' %}"></script>
-<script>
-    var images = document.getElementsByTagName("img");
-    for(i = 0; i < images.length; ++i){
-        var image = images[i];
-        if(image.id != "left-nav-button" && image.id != "right-nav-button"){
-            image.style = "width: 100px; height:100px";
-        }
-    }
-</script>
 {% endblock %}
