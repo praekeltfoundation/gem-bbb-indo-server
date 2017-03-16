@@ -5,6 +5,11 @@ import shutil
 import random
 import csv
 
+from django.core.mail import send_mail
+from django.utils import timezone
+
+REPORT_GENERATION_TIMEOUT = 60
+
 
 def create_csv(filename):
     """Remove old CSV for the impending export"""
@@ -42,33 +47,40 @@ def zip_and_encrypt(filename):
         '-p' + password,
         filename,
     ]
-    with subprocess.Popen(command, stderr=subprocess.PIPE) as proc:
-        print(proc.stderr.read())
+    try:
+        subprocess.call(command, stderr=subprocess.PIPE)
+    except subprocess.TimeoutExpired:
+        pass
+
+    # with subprocess.Popen(command, stderr=subprocess.PIPE, timeout=REPORT_GENERATION_TIMEOUT) as proc:
+    #     print(proc.stderr.read())
 
 
 def password_generator():
-    s = "abcdefghijklmnopqrstuvwxyz01234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()?"
+    sequence = "abcdefghijklmnopqrstuvwxyz01234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()?"
     password_length = 8
-    p = "".join(random.sample(s, password_length))
-    # a = secrets.choice(s)  # 'Securely' fetches one character from sequence
-    print('Password: %s' % p)
-    return p
+    password = "".join(random.sample(sequence, password_length))
+    # a = secrets.choice(sequence)  # 'Securely' fetches one character from sequence
+    print('Password: %s' % password)
+    send_password_email(password)
+    return password
 
-# import subprocess
-# import shutil
-#
-#
-# def zip_and_encrypt():
-#     exe = shutil.which('7z')
-#
-#     command = [
-#         exe,
-#         'a', 'test.zip',
-#         '-tzip',  # Type Zipfile
-#         '-mem=AES256',  # Required because Zip file format
-#         '-mx9',  # Ultra compression
-#         '-pSECRET',
-#         'eggs.csv',
-#     ]
-#     with subprocess.Popen(command, stderr=subprocess.PIPE) as proc:
-#         print(proc.stderr.read())
+
+def send_password_email(password):
+    subject = 'Date Export: ' + str(timezone.now().date()) + ' ' + 'password'
+
+    send_mail(
+        # Subject:
+        subject,
+
+        # Message:
+        'Here is the password in plaintext:' + password,
+
+        # From:
+        'chdgrrtt@yahoo.com',
+
+        # To:
+        ['cgarrett@retrorabbit.co.za'],
+
+        fail_silently=False
+    )
