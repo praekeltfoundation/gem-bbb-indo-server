@@ -841,6 +841,30 @@ class ParticipantFreeText(models.Model):
     date_answered = models.DateTimeField(_('answered on'))
     date_saved = models.DateTimeField(_('saved on'), default=timezone.now)
 
+    @property
+    def participant_user(self):
+        return self.participant.user
+
+    @property
+    def challenge(self):
+        return self.participant.challenge
+
+    @property
+    def challenge_created_on(self):
+        return self.participant.date_created
+
+    @property
+    def read(self):
+        return self.participant.mark_is_read();
+
+    @property
+    def shortlisted(self):
+        return self.participant.mark_is_shortlisted();
+
+    @property
+    def winner(self):
+        return self.participant.mark_is_winner();
+
     class Meta:
         # Translators: Collection name on CMS
         verbose_name = _('free-text answer')
