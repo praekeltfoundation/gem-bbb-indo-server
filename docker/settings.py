@@ -28,15 +28,6 @@ MEDIA_ROOT = join(PROJECT_ROOT, 'media')
 
 STATIC_ROOT = join(PROJECT_ROOT, 'static')
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_USE_TLS = True
-EMAIL_USE_SSL = True
-EMAIL_HOST = 'smtp.mail.yahoo.com'
-EMAIL_PORT = 465
-EMAIL_HOST_USER = 'chdgrrtt@yahoo.com'
-EMAIL_HOST_PASSWORD = 'xgcazffrzhviducc'
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
-
 LOGGING = {
     'disable_existing_loggers': False,
     'filters': {
