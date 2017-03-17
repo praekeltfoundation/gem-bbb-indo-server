@@ -77,7 +77,7 @@ def send_password_email(password):
         'Here is the password in plaintext:' + password,
 
         # From:
-        'chdgrrtt@yahoo.com',
+        'localhost',
 
         # To:
         ['cgarrett@retrorabbit.co.za'],
