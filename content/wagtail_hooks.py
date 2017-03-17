@@ -7,7 +7,7 @@ from wagtail.wagtailadmin.menu import MenuItem
 from wagtail.wagtailcore import hooks
 
 from users.models import Profile
-from .models import Challenge, Participant, CustomNotification, ParticipantFreeText
+from .models import Challenge, Participant, CustomNotification, ParticipantFreeText, ParticipantPicture
 from .models import FreeTextQuestion, PictureQuestion, QuizQuestion
 from .models import GoalPrototype
 from .models import Badge
@@ -94,13 +94,33 @@ class FreeTextParticipantAdmin(ModelAdmin):
                    'participant__is_read', 'participant__is_shortlisted', 'participant__is_winner')
     search_fields = ('participant__user__id', 'participant__challenge__name',)
 
+# ================== #
+# PictureParticipant #
+# ================== #
+
+class PictureParticipantAdmin(ModelAdmin):
+    # index_template_name = 'modeladmin/participant/index.html'
+    index_view_extra_js = ['js/js.cookie.js', 'js/admin_participant_index.js']
+    model = ParticipantPicture
+    # Translators: CMS menu name
+    menu_label = _('Picture Participant')
+    menu_icon = 'user'
+    menu_order = 200
+    add_to_settings_menu = False
+    list_display = ('participant_user','challenge', 'challenge_created_on', 'picture','caption','date_answered',
+                    'read','shortlisted','winner')
+    list_filter = ('participant__date_created', 'participant__challenge',
+                   'participant__is_read', 'participant__is_shortlisted', 'participant__is_winner')
+    search_fields = ('participant__user__id', 'participant__challenge__name',)
+
 
 class CompetitionsAdminGroup(ModelAdminGroup):
     # Translators: CMS menu name
     menu_label = _('Competitions')
     menu_icon = 'folder-open-inverse'
     menu_order = 200
-    items = (ChallengeAdmin, ParticipantAdmin, FreeTextParticipantAdmin, FreeTextQuestionAdmin, PictureQuestionAdmin, QuizQuestionAdmin)
+    items = (ChallengeAdmin, ParticipantAdmin, FreeTextParticipantAdmin, PictureParticipantAdmin,
+             FreeTextQuestionAdmin, PictureQuestionAdmin, QuizQuestionAdmin)
 
 
 modeladmin_register(CompetitionsAdminGroup)
