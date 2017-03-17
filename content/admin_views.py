@@ -108,7 +108,7 @@ def report_goal_exports(request):
             # TODO: Write all csv files, zip and send
             return render(request, 'admin/reports/goals.html')
         elif request.POST.get('action') == 'EXPORT-GOAL':
-            GoalReport.export_csv(response)
+            GoalReport.export_csv(request, response)
             return response
         elif request.POST.get('action') == 'EXPORT-USER':
             UserReport.export_csv(response)

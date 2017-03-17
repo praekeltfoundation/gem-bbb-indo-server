@@ -25,7 +25,7 @@ class GoalReport:
     fields = ()
 
     @classmethod
-    def export_csv(cls, stream):
+    def export_csv(cls, request, stream):
         goals = Goal.objects.all()
 
         filename = cls.__name__ + '.csv'
@@ -82,7 +82,7 @@ class GoalReport:
 
                 append_to_csv(data, csvfile)
 
-        zip_and_encrypt(filename)
+        zip_and_encrypt(request, filename)
 
         fsock = open(filename + '.zip', "rb")
         stream.streaming_content = fsock

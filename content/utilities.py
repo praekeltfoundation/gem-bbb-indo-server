@@ -29,11 +29,11 @@ def append_to_csv(data, csvfile):
     #     writer.writerow(data)
 
 
-def zip_and_encrypt(filename):
+def zip_and_encrypt(request, filename):
 
     exe = shutil.which('7z')
 
-    password = password_generator()
+    password = password_generator(request)
     output_name = filename + '.zip'
     filename = './' + filename
 
@@ -56,18 +56,22 @@ def zip_and_encrypt(filename):
     #     print(proc.stderr.read())
 
 
-def password_generator():
+def password_generator(request):
     sequence = "abcdefghijklmnopqrstuvwxyz01234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()?"
     password_length = 8
     password = "".join(random.sample(sequence, password_length))
-    # a = secrets.choice(sequence)  # 'Securely' fetches one character from sequence
-    print('Password: %s' % password)
-    send_password_email(password)
+    # print('Password: %s' % password)
+    send_password_email(request, password)
     return password
 
 
-def send_password_email(password):
-    subject = 'Date Export: ' + str(timezone.now().date()) + ' ' + 'password'
+def send_password_email(request, password):
+    subject = 'Dooit Date Export: ' + str(timezone.now().date())
+
+    send_to = request.user.email
+
+    if send_to is None or send_to is '':
+        return
 
     send_mail(
         # Subject:
@@ -77,10 +81,10 @@ def send_password_email(password):
         'Here is the password in plaintext:' + password,
 
         # From:
-        'localhost',
+        'chdgrrtt@yahoo.com',
 
         # To:
-        ['cgarrett@retrorabbit.co.za'],
+        [send_to],
 
         fail_silently=False
     )
