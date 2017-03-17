@@ -733,7 +733,7 @@ class ExpenseCategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ExpenseCategory
-        fields = ('id', 'name', 'image_url')
+        fields = ('id', 'name', 'image_url', 'order')
 
     def get_image_url(self, obj):
         request = self.context['request']
