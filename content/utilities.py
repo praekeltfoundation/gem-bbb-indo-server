@@ -5,6 +5,7 @@ import shutil
 import random
 import csv
 
+from django.conf import settings
 from django.core.mail import send_mail
 from django.utils import timezone
 
@@ -24,16 +25,11 @@ def append_to_csv(data, csvfile):
     writer = csv.writer(csvfile, delimiter=',', quotechar=',', quoting=csv.QUOTE_MINIMAL)
     writer.writerow(data)
 
-    # with open(filename, 'a', newline='') as csvfile:
-    #     writer = csv.writer(csvfile, delimiter=',', quotechar=',', quoting=csv.QUOTE_MINIMAL)
-    #     writer.writerow(data)
 
-
-def zip_and_encrypt(request, filename):
+def zip_and_encrypt(filename, password):
 
     exe = shutil.which('7z')
 
-    password = password_generator(request)
     output_name = filename + '.zip'
     filename = './' + filename
 
@@ -47,21 +43,24 @@ def zip_and_encrypt(request, filename):
         '-p' + password,
         filename,
     ]
+
     try:
-        subprocess.call(command, stderr=subprocess.PIPE)
+        subprocess.call(command, stderr=subprocess.PIPE, timeout=REPORT_GENERATION_TIMEOUT)
+    # except TimeoutError:
     except subprocess.TimeoutExpired:
-        pass
+        return False, 'Timeout'
+
+    return True, "Report created and archived successfully."
 
     # with subprocess.Popen(command, stderr=subprocess.PIPE, timeout=REPORT_GENERATION_TIMEOUT) as proc:
     #     print(proc.stderr.read())
 
 
-def password_generator(request):
+def password_generator():
     sequence = "abcdefghijklmnopqrstuvwxyz01234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ!@#$%^&*()?"
     password_length = 8
     password = "".join(random.sample(sequence, password_length))
-    # print('Password: %s' % password)
-    send_password_email(request, password)
+
     return password
 
 
@@ -70,21 +69,11 @@ def send_password_email(request, password):
 
     send_to = request.user.email
 
-    if send_to is None or send_to is '':
-        return
-
     send_mail(
-        # Subject:
-        subject,
-
-        # Message:
-        'Here is the password in plaintext:' + password,
-
-        # From:
-        'chdgrrtt@yahoo.com',
-
-        # To:
-        [send_to],
+        subject=subject,
+        message='Password for requested data export: ' + password,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[send_to],
 
         fail_silently=False
     )

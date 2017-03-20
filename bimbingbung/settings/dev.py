@@ -1,5 +1,7 @@
 from __future__ import absolute_import, unicode_literals
 
+from os import environ
+
 from .base import *
 
 # SECURITY WARNING: don't run with debug turned on in production!
@@ -8,8 +10,14 @@ DEBUG = True
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = 'eh+r*5&#=5a_w!ln_5yux2_d69v73q71n6j!=+x16^6z48p^w$'
 
-
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+# Email settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_USE_SSL = True
+EMAIL_HOST = environ.get('EMAIL_HOST', 'localhost')
+EMAIL_PORT = environ.get('EMAIL_PORT', 25)
+EMAIL_HOST_USER = environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = environ.get('DEFAULT_FROM_EMAIL', '')
 
 
 ALLOWED_HOSTS = [
