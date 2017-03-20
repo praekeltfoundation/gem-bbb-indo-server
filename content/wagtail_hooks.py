@@ -107,7 +107,7 @@ class PictureParticipantAdmin(ModelAdmin):
     menu_icon = 'user'
     menu_order = 200
     add_to_settings_menu = False
-    list_display = ('participant_user','challenge', 'challenge_created_on', 'picture','caption','date_answered',
+    list_display = ('participant_user','challenge', 'challenge_created_on', 'display_picture','caption','date_answered',
                     'read','shortlisted','winner')
     list_filter = ('participant__date_created', 'participant__challenge',
                    'participant__is_read', 'participant__is_shortlisted', 'participant__is_winner')

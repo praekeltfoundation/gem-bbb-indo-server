@@ -844,6 +844,10 @@ class ParticipantPicture(models.Model):
     def challenge_question(self):
         return self.question.text_truncted
 
+    @property
+    def display_picture(self):
+        return format_html(
+                "<img style='width:100px;height:100px' src='/media" + self.picture.url + "'/>", self.picture)
     # Translators: CMS field name (refers to dates)
     date_answered = models.DateTimeField(_('answered on'), default=timezone.now)
 
