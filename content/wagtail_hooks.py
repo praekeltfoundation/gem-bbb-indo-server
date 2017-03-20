@@ -6,8 +6,8 @@ from wagtail.contrib.modeladmin.options import ModelAdmin, ModelAdminGroup, mode
 from wagtail.wagtailadmin.menu import MenuItem
 from wagtail.wagtailcore import hooks
 
+from .models import Challenge, Participant, CustomNotification, Feedback
 from users.models import Profile
-from .models import Challenge, Participant, CustomNotification
 from .models import FreeTextQuestion, PictureQuestion, QuizQuestion
 from .models import GoalPrototype
 from .models import Badge
@@ -197,3 +197,18 @@ class BudgetGroup(ModelAdminGroup):
 
 
 modeladmin_register(BudgetGroup)
+
+
+############
+# Feedback #
+############
+
+class FeedbackAdmin(ModelAdmin):
+    model = Feedback
+    index_view_extra_js = ['js/js.cookie.js', 'js/admin_participant_index.js']
+    menu_icon = 'form'
+    list_display = ('date_created', 'type', 'text', 'is_read', 'mark_is_read')
+    search_fields = ('text',)
+    list_filter = ('type', 'is_read')
+
+modeladmin_register(FeedbackAdmin)
