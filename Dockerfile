@@ -5,6 +5,7 @@ RUN apt-get -y --force-yes install nginx redis-server supervisor
 RUN apt-get -y --force-yes install python3 python3-dev python3-pip
 RUN apt-get -y install python-virtualenv
 RUN apt-get -y install libffi-dev gettext
+RUN apt-get -y --force-yes install p7zip-full
 
 RUN rm /bin/sh && ln -s /bin/bash /bin/sh
 ENV PROJECT_ROOT /deploy/
