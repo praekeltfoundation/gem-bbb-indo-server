@@ -9,7 +9,8 @@ from django.apps import apps
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Count
-import datetime
+from django.shortcuts import reverse
+
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.html import format_html
@@ -1720,6 +1721,11 @@ class Feedback(models.Model):
             return format_html("<input type='checkbox' id='{}' class='feedback-mark-is-read' value='{}' />",
                                'feedback-is-read-%d' % self.id, self.id)
 
+    @property
+    def user_username(self):
+        return format_html("<a href='%s'>%s</a>" % (reverse('wagtailusers_users:edit', args=(self.user.pk,)), self.user.username)) \
+            if self.user else format_html("<span>%s</span>" % _("Unknown user"))
+
     def get_user_fullname(self):
         return self.user.get_full_name() if self.user else ''
 
@@ -1737,7 +1743,8 @@ Feedback.panels = [
         ReadOnlyPanel('get_type_display', heading=_('Type')),
     ], heading=_('Feedback Header')),
     wagtail_edit_handlers.MultiFieldPanel([
-        ReadOnlyPanel('get_user_fullname', heading=_('User')),
+        ReadOnlyPanel('user_username', heading=_('User')),
+        ReadOnlyPanel('get_user_fullname', heading=_('Fullname')),
         ReadOnlyPanel('get_user_mobile', heading=_('Mobile Number')),
         ReadOnlyPanel('get_user_email', heading=_('Email Address'))
     ], heading=_('User Details')),
