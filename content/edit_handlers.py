@@ -7,6 +7,7 @@ from wagtail.wagtailadmin.edit_handlers import EditHandler
 
 
 class BaseReadOnlyPanel(EditHandler):
+
     def render(self):
         value = getattr(self.instance, self.attr)
         if callable(value):
@@ -30,6 +31,7 @@ class BaseReadOnlyPanel(EditHandler):
 
 
 class ReadOnlyPanel:
+
     def __init__(self, attr, heading=None, classname=''):
         self.attr = attr
         self.heading = pretty_name(self.attr) if heading is None else heading

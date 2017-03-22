@@ -1720,14 +1720,27 @@ class Feedback(models.Model):
             return format_html("<input type='checkbox' id='{}' class='feedback-mark-is-read' value='{}' />",
                                'feedback-is-read-%d' % self.id, self.id)
 
+    def get_user_fullname(self):
+        return self.user.get_full_name() if self.user else ''
+
+    def get_user_mobile(self):
+        return self.user.profile.mobile if self.user and self.user.profile else ''
+
+    def get_user_email(self):
+        return self.user.email if self.user else ''
+
 
 Feedback.panels = [
     wagtail_edit_handlers.MultiFieldPanel([
         ReadOnlyPanel('date_created'),
-        ReadOnlyPanel('is_read'),
-        ReadOnlyPanel('get_type_display'),
-    ],
-        heading=_('Feedback')),
+        wagtail_edit_handlers.FieldPanel('is_read'),
+        ReadOnlyPanel('get_type_display', heading=_('Type')),
+    ], heading=_('Feedback Header')),
+    wagtail_edit_handlers.MultiFieldPanel([
+        ReadOnlyPanel('get_user_fullname', heading=_('User')),
+        ReadOnlyPanel('get_user_mobile', heading=_('Mobile Number')),
+        ReadOnlyPanel('get_user_email', heading=_('Email Address'))
+    ], heading=_('User Details')),
     ReadOnlyPanel('text', heading=_('Message')),
 ]
 

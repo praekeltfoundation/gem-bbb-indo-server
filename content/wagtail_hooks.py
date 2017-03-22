@@ -210,5 +210,6 @@ class FeedbackAdmin(ModelAdmin):
     list_display = ('date_created', 'type', 'text', 'is_read', 'mark_is_read')
     search_fields = ('text',)
     list_filter = ('type', 'is_read')
+    ordering = ('date_created',)
 
 modeladmin_register(FeedbackAdmin)
