@@ -26,6 +26,7 @@ from wagtail.wagtailimages import edit_handlers as wagtail_image_edit
 from wagtail.wagtailimages import models as wagtail_image_models
 
 from .storage import ChallengeStorage, GoalImgStorage, ParticipantPictureStorage
+from .edit_handlers import ReadOnlyPanel
 
 # ======== #
 # Settings #
@@ -1718,6 +1719,17 @@ class Feedback(models.Model):
         else:
             return format_html("<input type='checkbox' id='{}' class='feedback-mark-is-read' value='{}' />",
                                'feedback-is-read-%d' % self.id, self.id)
+
+
+Feedback.panels = [
+    wagtail_edit_handlers.MultiFieldPanel([
+        ReadOnlyPanel('date_created'),
+        ReadOnlyPanel('is_read'),
+        ReadOnlyPanel('get_type_display'),
+    ],
+        heading=_('Feedback')),
+    ReadOnlyPanel('text', heading=_('Message')),
+]
 
 
 ########################
