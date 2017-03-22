@@ -11,7 +11,7 @@ from .reports import GoalReport, UserReport, SavingsReport, SummaryDataPerChalle
     GoalDataPerCategory, RewardsData, RewardsDataPerBadge, RewardsDataPerStreak, UserTypeData, SummarySurveyData, \
     EaTool1SurveyData, BaselineSurveyData, EaTool2SurveyData, EndlineSurveyData
 
-from .models import Challenge, Participant
+from .models import Challenge, Participant, Feedback
 
 
 def participant_list_view(request):
@@ -49,6 +49,15 @@ def participant_mark_winner(request, participant_pk):
     return JsonResponse({})
 
 
+@permission_required('feedback.can_change')
+@ensure_csrf_cookie
+def feedback_mark_read(request, feedback_pk):
+    feedback = get_object_or_404(Feedback, pk=feedback_pk)
+    feedback.is_read = not feedback.is_read
+    feedback.save()
+    return JsonResponse({})
+
+
 #############
 # Reporting #
 #############
@@ -65,7 +74,7 @@ def report_challenge_exports(request):
         response = HttpResponse(content_type='application/zip; charset=utf-8')
 
         if request.POST.get('action') == 'EXPORT-CHALLENGE-SUMMARY':
-            export_name = _('Challenge_Summary')
+            export_name = 'Challenge_Summary'
             if request.POST['date_from'] is '' or request.POST['date_to'] is '':
                 date_from = date_to = None
             else:

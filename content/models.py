@@ -9,7 +9,8 @@ from django.apps import apps
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Count
-import datetime
+from django.shortcuts import reverse
+
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.html import format_html
@@ -26,6 +27,7 @@ from wagtail.wagtailimages import edit_handlers as wagtail_image_edit
 from wagtail.wagtailimages import models as wagtail_image_models
 
 from .storage import ChallengeStorage, GoalImgStorage, ParticipantPictureStorage
+from .edit_handlers import ReadOnlyPanel
 
 # ======== #
 # Settings #
@@ -1710,6 +1712,44 @@ class Feedback(models.Model):
 
         # Translators: Collection name on CMS
         verbose_name_plural = _('feedback entries')
+
+    def mark_is_read(self):
+        if self.is_read:
+            return format_html("<input type='checkbox' id='{}' class='feedback-mark-is-read' value='{}' checked='checked' />",
+                               'feedback-is-read-%d' % self.id, self.id)
+        else:
+            return format_html("<input type='checkbox' id='{}' class='feedback-mark-is-read' value='{}' />",
+                               'feedback-is-read-%d' % self.id, self.id)
+
+    @property
+    def user_username(self):
+        return format_html("<a href='%s'>%s</a>" % (reverse('wagtailusers_users:edit', args=(self.user.pk,)), self.user.username)) \
+            if self.user else format_html("<span>%s</span>" % _("Unknown user"))
+
+    def get_user_fullname(self):
+        return self.user.get_full_name() if self.user else ''
+
+    def get_user_mobile(self):
+        return self.user.profile.mobile if self.user and self.user.profile else ''
+
+    def get_user_email(self):
+        return self.user.email if self.user else ''
+
+
+Feedback.panels = [
+    wagtail_edit_handlers.MultiFieldPanel([
+        ReadOnlyPanel('date_created'),
+        wagtail_edit_handlers.FieldPanel('is_read'),
+        ReadOnlyPanel('get_type_display', heading=_('Type')),
+    ], heading=_('Feedback Header')),
+    wagtail_edit_handlers.MultiFieldPanel([
+        ReadOnlyPanel('user_username', heading=_('User')),
+        ReadOnlyPanel('get_user_fullname', heading=_('Fullname')),
+        ReadOnlyPanel('get_user_mobile', heading=_('Mobile Number')),
+        ReadOnlyPanel('get_user_email', heading=_('Email Address'))
+    ], heading=_('User Details')),
+    ReadOnlyPanel('text', heading=_('Message')),
+]
 
 
 ########################
