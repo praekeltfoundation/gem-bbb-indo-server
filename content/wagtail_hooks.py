@@ -1,4 +1,5 @@
 from django.conf.urls import url, include
+from django.contrib.auth.models import Permission
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 
@@ -6,6 +7,7 @@ from wagtail.contrib.modeladmin.options import ModelAdmin, ModelAdminGroup, mode
 from wagtail.wagtailadmin.menu import MenuItem
 from wagtail.wagtailcore import hooks
 
+from content.menu import ReportMenuItem
 from users.models import Profile
 from .models import Challenge, Participant, CustomNotification
 from .models import FreeTextQuestion, PictureQuestion, QuizQuestion
@@ -95,8 +97,12 @@ def register_admin_urls():
 
 @hooks.register('register_admin_menu_item')
 def register_reports_menu_item():
-    return MenuItem('Reports', reverse('content-admin:reports-index'), classnames='icon icon-user', order=10000)
+    return ReportMenuItem('Reports', reverse('content-admin:reports-index'), classnames='icon icon-user', order=10000)
 
+
+@hooks.register('register_permissions')
+def view_restricted_page():
+    return Permission.objects.filter(codename="access_reports")
 
 # ===== #
 # Goals #
