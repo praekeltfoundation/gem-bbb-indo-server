@@ -204,9 +204,3 @@ RAVEN_CONFIG = {
 # SENDFILE settings
 
 SENDFILE_URL = '/protected/'
-
-print("Email host: %s" % environ.get('EMAIL_HOST', 'localhost'))
-print("Email port: %s" % environ.get('EMAIL_PORT', 25))
-print("Email host user: %s" % environ.get('EMAIL_HOST_USER', ''))
-print("Email host password: %s" % environ.get('EMAIL_HOST_PASSWORD', ''))
-print("Default from email: %s" % environ.get('DEFAULT_FROM_EMAIL', 'halo@ayodooit.com'))
