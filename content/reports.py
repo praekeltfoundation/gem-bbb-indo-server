@@ -2,6 +2,7 @@ import json
 
 from django.contrib.auth.models import User
 from django.db.models import Count
+from django.conf import settings
 from django.utils.translation import ugettext as _
 
 from content.utilities import zip_and_encrypt, append_to_csv, create_csv, password_generator, send_password_email
@@ -14,8 +15,10 @@ from .models import Goal, Badge, UserBadge, GoalTransaction, Challenge, Particip
 SUCCESS_MESSAGE_EMAIL_SENT = _('Password has been sent in an email.')
 ERROR_MESSAGE_NO_EMAIL = _('No email address associated with this account.')
 
+STORAGE_DIRECTORY = settings.SENDFILE_ROOT + '/'
 
-def pass_zip_encrypt_email(request, filename):
+
+def pass_zip_encrypt_email(request, filename, export_name):
     """Generate a password, zip and encrypt the report, if nothing goes wrong email the password"""
 
     password = password_generator()
@@ -27,7 +30,7 @@ def pass_zip_encrypt_email(request, filename):
     if request.user.email is None or request.user.email is '':
         return False, ERROR_MESSAGE_NO_EMAIL
 
-    send_password_email(request, password)
+    send_password_email(request, export_name, password)
 
     return True, SUCCESS_MESSAGE_EMAIL_SENT
 
@@ -42,10 +45,11 @@ class GoalReport:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream):
+    def export_csv(cls, request, stream, export_name):
         goals = Goal.objects.all()
 
-        filename = cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
+
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -99,7 +103,7 @@ class GoalReport:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename)
+        success, message = pass_zip_encrypt_email(request, filename, export_name)
 
         if not success:
             return False, message
@@ -221,10 +225,10 @@ class UserReport:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream):
+    def export_csv(cls, request, stream, export_name):
         profiles = Profile.objects.all()
 
-        filename = cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -274,7 +278,7 @@ class UserReport:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename)
+        success, message = pass_zip_encrypt_email(request, filename, export_name)
 
         if not success:
             return False, message
@@ -479,10 +483,10 @@ class SavingsReport:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream):
+    def export_csv(cls, request, stream, export_name):
         goals = Goal.objects.all()
 
-        filename = cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -511,7 +515,7 @@ class SavingsReport:
 
                     append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename)
+        success, message = pass_zip_encrypt_email(request, filename, export_name)
 
         if not success:
             return False, message
@@ -532,13 +536,13 @@ class SummaryDataPerChallenge:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, date_from, date_to):
+    def export_csv(cls, request, stream, export_name, date_from, date_to):
         if date_from is not None and date_to is not None:
             challenges = Challenge.objects.filter(activation_date__gte=date_from, deactivation_date__lte=date_to)
         else:
             challenges = Challenge.objects.all()
 
-        filename = cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -561,7 +565,7 @@ class SummaryDataPerChallenge:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename)
+        success, message = pass_zip_encrypt_email(request, filename, export_name)
 
         if not success:
             return False, message
@@ -598,10 +602,10 @@ class SummaryDataPerQuiz:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream):
+    def export_csv(cls, request, stream, export_name):
         challenges = Challenge.objects.filter(type=Challenge.CTP_QUIZ)
 
-        filename = cls.__name__ = '.csv'
+        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -624,7 +628,7 @@ class SummaryDataPerQuiz:
 
                     append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename)
+        success, message = pass_zip_encrypt_email(request, filename, export_name)
 
         if not success:
             return False, message
@@ -640,10 +644,10 @@ class ChallengeExportPicture:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, challenge_name):
+    def export_csv(cls, request, stream, export_name, challenge_name):
         challenges = Challenge.objects.filter(type=Challenge.CTP_PICTURE, name=challenge_name)
 
-        filename = cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -670,7 +674,7 @@ class ChallengeExportPicture:
 
                     append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename)
+        success, message = pass_zip_encrypt_email(request, filename, export_name)
 
         if not success:
             return False, message
@@ -685,10 +689,10 @@ class ChallengeExportQuiz:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, challenge_name):
+    def export_csv(cls, request, stream, export_name, challenge_name):
         challenges = Challenge.objects.filter(type=Challenge.CTP_QUIZ, name=challenge_name)
 
-        filename = cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -725,7 +729,7 @@ class ChallengeExportQuiz:
 
                     append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename)
+        success, message = pass_zip_encrypt_email(request, filename, export_name)
 
         if not success:
             return False, message
@@ -741,10 +745,10 @@ class ChallengeExportFreetext:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, challenge_name):
+    def export_csv(cls, request, stream, export_name, challenge_name):
         challenges = Challenge.objects.filter(type=Challenge.CTP_FREEFORM, name=challenge_name)
 
-        filename = cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -774,7 +778,7 @@ class ChallengeExportFreetext:
 
                     append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename)
+        success, message = pass_zip_encrypt_email(request, filename, export_name)
 
         if not success:
             return False, message
@@ -795,9 +799,9 @@ class SummaryGoalData:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream):
+    def export_csv(cls, request, stream, export_name):
 
-        filename = cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -814,7 +818,7 @@ class SummaryGoalData:
 
             append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename)
+        success, message = pass_zip_encrypt_email(request, filename, export_name)
 
         if not success:
             return False, message
@@ -881,9 +885,9 @@ class GoalDataPerCategory:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream):
+    def export_csv(cls, request, stream, export_name):
 
-        filename = cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -910,7 +914,7 @@ class GoalDataPerCategory:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename)
+        success, message = pass_zip_encrypt_email(request, filename, export_name)
 
         if not success:
             return False, message
@@ -1030,9 +1034,9 @@ class RewardsData:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream):
+    def export_csv(cls, request, stream, export_name):
 
-        filename = cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -1049,7 +1053,7 @@ class RewardsData:
 
             append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename)
+        success, message = pass_zip_encrypt_email(request, filename, export_name)
 
         if not success:
             return False, message
@@ -1145,9 +1149,9 @@ class RewardsDataPerBadge:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream):
+    def export_csv(cls, request, stream, export_name):
 
-        filename = cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -1165,7 +1169,7 @@ class RewardsDataPerBadge:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename)
+        success, message = pass_zip_encrypt_email(request, filename, export_name)
 
         if not success:
             return False, message
@@ -1191,9 +1195,9 @@ class RewardsDataPerStreak:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream):
+    def export_csv(cls, request, stream, export_name):
 
-        filename = cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -1223,7 +1227,7 @@ class RewardsDataPerStreak:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename)
+        success, message = pass_zip_encrypt_email(request, filename, export_name)
 
         if not success:
             return False, message
@@ -1281,9 +1285,9 @@ class UserTypeData:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream):
+    def export_csv(cls, request, stream, export_name):
 
-        filename = cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -1299,7 +1303,7 @@ class UserTypeData:
 
             append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename)
+        success, message = pass_zip_encrypt_email(request, filename, export_name)
 
         if not success:
             return False, message
@@ -1320,9 +1324,9 @@ class SummarySurveyData:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream):
+    def export_csv(cls, request, stream, export_name):
 
-        filename = cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -1450,7 +1454,7 @@ class SummarySurveyData:
             ]
             append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename)
+        success, message = pass_zip_encrypt_email(request, filename, export_name)
 
         if not success:
             return False, message
@@ -1465,10 +1469,10 @@ class BaselineSurveyData:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream):
+    def export_csv(cls, request, stream, export_name):
         surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.BASELINE)
 
-        filename = cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -1543,7 +1547,7 @@ class BaselineSurveyData:
 
                     append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename)
+        success, message = pass_zip_encrypt_email(request, filename, export_name)
 
         if not success:
             return False, message
@@ -1558,10 +1562,10 @@ class EaTool1SurveyData:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream):
+    def export_csv(cls, request, stream, export_name):
         surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.EATOOL)
 
-        filename = cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -1624,7 +1628,7 @@ class EaTool1SurveyData:
 
                     append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename)
+        success, message = pass_zip_encrypt_email(request, filename, export_name)
 
         if not success:
             return False, message
@@ -1639,10 +1643,10 @@ class EaTool2SurveyData:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream):
+    def export_csv(cls, request, stream, export_name):
         # surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.EATOOL2)
 
-        filename = cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -1654,7 +1658,7 @@ class EaTool2SurveyData:
                            ),
                           csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename)
+        success, message = pass_zip_encrypt_email(request, filename, export_name)
 
         if not success:
             return False, message
@@ -1669,10 +1673,10 @@ class EndlineSurveyData:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream):
+    def export_csv(cls, request, stream, export_name):
         # surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.ENDLINE)
 
-        filename = cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -1685,7 +1689,7 @@ class EndlineSurveyData:
                            ),
                           csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename)
+        success, message = pass_zip_encrypt_email(request, filename, export_name)
 
         if not success:
             return False, message

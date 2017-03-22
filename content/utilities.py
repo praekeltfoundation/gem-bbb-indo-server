@@ -30,7 +30,6 @@ def zip_and_encrypt(filename, password):
     exe = shutil.which('7z')
 
     output_name = filename + '.zip'
-    filename = './' + filename
 
     command = [
         exe,
@@ -63,14 +62,14 @@ def password_generator():
     return password
 
 
-def send_password_email(request, password):
+def send_password_email(request, export_name, password):
     subject = 'Dooit Date Export: ' + str(timezone.now().date())
 
     send_to = request.user.email
 
     send_mail(
         subject=subject,
-        message='Password for requested data export: ' + password,
+        message='Password for ' + export_name + str(timezone.now().date()) + '.zip: ' + password,
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[send_to],
 
