@@ -368,8 +368,8 @@ class Challenge(modelcluster_fields.ClusterableModel):
     terms = models.ForeignKey(Agreement, related_name='+', blank=False, null=True, on_delete=models.DO_NOTHING)
 
     prize = models.TextField(_('prize'), blank=True,
-                                      # Translators: Help text on CMS
-                                      help_text=_('Prize for winning a challenge.'))
+                             # Translators: Help text on CMS
+                             help_text=_('Prize for winning a challenge.'))
 
     class Meta:
         # Translators: Collection name on CMS
@@ -1805,6 +1805,7 @@ class ExpenseCategory(models.Model):
         # Translators: Object state
         (ACTIVE, _('Active')),
     ), default=INACTIVE)
+    order = models.IntegerField(default=0, help_text=_('The order in which this category will appear on the frontend'))
 
     class Meta:
         # Translators: Collection name on CMS
@@ -1821,6 +1822,7 @@ ExpenseCategory.panels = [
     wagtail_edit_handlers.FieldPanel('name'),
     wagtail_edit_handlers.FieldPanel('state'),
     wagtail_image_edit.ImageChooserPanel('image'),
+    wagtail_edit_handlers.FieldPanel('order'),
 ]
 
 
@@ -1876,7 +1878,7 @@ Budget.panels = [
 
 @python_2_unicode_compatible
 class Expense(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, blank=True)
 
     value = models.DecimalField(_('value'), max_digits=18, decimal_places=2, default=0)
 

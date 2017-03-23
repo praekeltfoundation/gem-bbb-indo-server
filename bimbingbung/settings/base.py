@@ -192,21 +192,15 @@ REST_FRAMEWORK = {
     'NON_FIELD_ERRORS_KEY': 'errors'
 }
 
-#Raven settings
+# Raven settings
 RAVEN_CONFIG = {
     'dsn': os.environ.get('RAVEN_DSN'),
     # If you are using git, you can also automatically configure the
     # release based on the git info.
-    #'release': raven.fetch_git_sha(os.path.dirname(os.pardir)),
+    # 'release': raven.fetch_git_sha(os.path.dirname(os.pardir)),
 }
 
 
 # SENDFILE settings
 
 SENDFILE_URL = '/protected/'
-
-print("Email host: %s" % environ.get('EMAIL_HOST', 'localhost'))
-print("Email port: %s" % environ.get('EMAIL_PORT', 25))
-print("Email host user: %s" % environ.get('EMAIL_HOST_USER', ''))
-print("Email host password: %s" % environ.get('EMAIL_HOST_PASSWORD', ''))
-print("Default from email: %s" % environ.get('DEFAULT_FROM_EMAIL', 'halo@ayodooit.com'))
