@@ -175,9 +175,10 @@ class ExpenseCategoryAdmin(ModelAdmin):
     menu_label = _('Expense Category')
     menu_order = 100
     add_to_settings_menu = False
-    list_display = ('name', 'state')
+    list_display = ('name', 'state', 'order')
     list_filter = ('state',)
     search_fields = ('name',)
+    ordering = ('order', 'id',)
 
 
 class BudgetAdmin(ModelAdmin):
