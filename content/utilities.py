@@ -23,7 +23,7 @@ def create_csv(filename):
 def append_to_csv(data, csvfile):
     """Append new records for the current export"""
 
-    writer = csv.writer(csvfile, delimiter=',', quotechar=',', quoting=csv.QUOTE_MINIMAL)
+    writer = csv.writer(csvfile, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
     writer.writerow(data)
 
 
