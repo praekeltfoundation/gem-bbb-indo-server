@@ -29,7 +29,7 @@ class ReportMenuItem(with_metaclass(MediaDefiningClass)):
         checks etc should go here. By default, menu items are shown all the time
         """
 
-        if request.user.has_perm('access_reports'):
+        if request.user.has_perm('content.access_reports'):
             return True
 
         return False
