@@ -53,7 +53,7 @@ class GoalReport:
 
         create_csv(filename)
 
-        with open(filename, 'a', newline='') as csvfile:
+        with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
             append_to_csv(('username', 'prototype_bahasa', 'prototype_english', 'goal_name', 'goal_target',
                            'goal_value', 'goal_progress', 'weekly_target', 'total_weeks', 'weeks_left',
                            'weeks_saved', 'week_saved_on_target', 'weeks_saved_below_target',
@@ -236,7 +236,7 @@ class UserReport:
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
-        with open(filename, 'a', newline='') as csvfile:
+        with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
             append_to_csv(('username', 'name', 'mobile', 'email', 'gender', 'age', 'user_type', 'date_joined',
                            'number_of_goals', 'total_badges_earned', 'first_goal_created_badges',
                            'first_savings_created_badges', 'halfway_badges', 'one_week_left_badges',
@@ -498,7 +498,7 @@ class SavingsReport:
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
-        with open(filename, 'a', newline='') as csvfile:
+        with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
             append_to_csv(('username', 'goal_name', 'goal_weekly_target', 'transaction_type', 'transaction_value',
                            'transaction_date', 'amount_saved'),
                           csvfile)
@@ -558,7 +558,7 @@ class SummaryDataPerChallenge:
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
-        with open(filename, 'a', newline='') as csvfile:
+        with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
 
             append_to_csv(('challenge_name', 'challenge_type', 'call_to_action', 'activation_date', 'deactivation_date',
                            'total_challenge_completions', 'total_users_in_progress', 'total_no_response'),
@@ -625,7 +625,7 @@ class SummaryDataPerQuiz:
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
-        with open(filename, 'a', newline='') as csvfile:
+        with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
             append_to_csv(('quiz_name', 'quiz_question', 'number_of_options', 'attempts'), csvfile)
 
             for challenge in challenges:
@@ -671,7 +671,7 @@ class ChallengeExportPicture:
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
-        with open(filename, 'a', newline='') as csvfile:
+        with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
             append_to_csv(('username', 'name', 'mobile', 'email', 'gender', 'age',
                            'user_type', 'date_joined', 'call_to_action'),
                           csvfile)
@@ -720,7 +720,7 @@ class ChallengeExportQuiz:
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
-        with open(filename, 'a', newline='') as csvfile:
+        with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
             append_to_csv(('username', 'name', 'mobile', 'email', 'gender', 'age', 'user_type', 'date_joined',
                            'submission_date', 'question', 'number_of_attempts'),
                           csvfile)
@@ -780,7 +780,7 @@ class ChallengeExportFreetext:
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
-        with open(filename, 'a', newline='') as csvfile:
+        with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
             append_to_csv(('username', 'name', 'mobile', 'email', 'gender', 'age', 'user_type', 'date_registered',
                            'submission', 'submission_date'),
                           csvfile)
@@ -837,7 +837,7 @@ class SummaryGoalData:
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
-        with open(filename, 'a', newline='') as csvfile:
+        with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
             append_to_csv(('total_users_set_at_least_one_goal', 'total_users_achieved_at_least_one_goal',
                            'total_achieved_goals', 'percentage_of_weeks_saved_out_of_total_weeks'),
                           csvfile)
@@ -927,7 +927,7 @@ class GoalDataPerCategory:
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
-        with open(filename, 'a', newline='') as csvfile:
+        with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
             append_to_csv(('category', 'total_users_at_least_one_goal', 'total_goals_set',
                            'total_users_achieved_one_goal', 'average_goal_amount', 'average_percentage_goal_reached',
                            'total_users_50_percent_achieved', 'total_users_100_percent_achieved',
@@ -1080,7 +1080,7 @@ class RewardsData:
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
-        with open(filename, 'a', newline='') as csvfile:
+        with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
             append_to_csv(('total_badges_earned_by_all_users', 'total_users_at_least_one_streak',
                            'average_percentage_weeks_saved_weekly_target_met', 'average_percentage_weeks_saved'),
                           csvfile)
@@ -1199,7 +1199,7 @@ class RewardsDataPerBadge:
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
-        with open(filename, 'a', newline='') as csvfile:
+        with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
             append_to_csv(('badge_name', 'total_earned_by_all_users', 'total_earned_at_least_once'),
                           csvfile)
 
@@ -1249,7 +1249,7 @@ class RewardsDataPerStreak:
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
-        with open(filename, 'a', newline='') as csvfile:
+        with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
 
             append_to_csv(('streak_type', 'total_streaks_by_all_users', 'total_users_at_least_one_streak',
                            'total_users_reached_weekly_savings_amount', 'total_users_not_reached_weekly_savings_amount'),
@@ -1343,7 +1343,7 @@ class UserTypeData:
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
-        with open(filename, 'a', newline='') as csvfile:
+        with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
             append_to_csv(('total_classroom_users', 'total_marketing_users'),
                           csvfile)
 
@@ -1386,7 +1386,7 @@ class SummarySurveyData:
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
-        with open(filename, 'a', newline='') as csvfile:
+        with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
             append_to_csv(('survey_name', 'total_users_completed', 'total_users_in_progress', 'total_users_no_consent',
                            'total_users_claim_over_17', 'total_no_engagement', 'total_no_first_conversation'),
                           csvfile)
@@ -1536,7 +1536,7 @@ class BaselineSurveyData:
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
-        with open(filename, 'a', newline='') as csvfile:
+        with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
             append_to_csv(('uuid', 'username', 'name', 'mobile', 'email', 'gender', 'age',
                            'user_type', 'date_joined', 'city', 'younger_than_17', 'consent_given',
                            'submission_date',
@@ -1633,7 +1633,7 @@ class EaTool1SurveyData:
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
-        with open(filename, 'a', newline='') as csvfile:
+        with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
             append_to_csv(('uuid', 'username', 'name', 'mobile', 'email', 'gender', 'age',
                            'user_type', 'date_joined', 'city', 'younger_than_17', 'consent_given',
                            'submission_date',
@@ -1718,7 +1718,7 @@ class EaTool2SurveyData:
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
-        with open(filename, 'a', newline='') as csvfile:
+        with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
             append_to_csv(('uuid', 'username', 'name', 'mobile', 'email', 'gender', 'age',
                            'user_type', 'date_joined', 'city', 'younger_than_17', 'consent_given',
                            'submission_date',
@@ -1752,7 +1752,7 @@ class EndlineSurveyData:
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
-        with open(filename, 'a', newline='') as csvfile:
+        with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
 
             append_to_csv(('uuid', 'username', 'name', 'mobile', 'email', 'gender', 'age',
                            'user_type', 'date_joined', 'city', 'younger_than_17', 'consent_given',
