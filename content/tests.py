@@ -2693,8 +2693,6 @@ class TestBudgetAPI(APITestCase):
         self.assertEqual(created_budget.income, 70000, "Unexpected Budget income set")
 
     def test_create_with_category(self):
-        # {"expenses":[{"category_id":2,"id":0,"value":0.0}],"id":0,"income":123123.0,"savings":12312.3}
-
         user = create_test_regular_user()
         data = {
             'income': 70000,
