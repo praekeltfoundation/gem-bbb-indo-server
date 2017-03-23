@@ -16,14 +16,14 @@ SUCCESS_MESSAGE_EMAIL_SENT = _('Password has been sent in an email.')
 ERROR_MESSAGE_NO_EMAIL = _('No email address associated with this account.')
 ERROR_MESSAGE_DATA_CLEANUP = _('Report generation ran during data cleanup - try again')
 
-STORAGE_DIRECTORY = settings.SENDFILE_ROOT + '/'
+STORAGE_DIRECTORY = settings.SENDFILE_ROOT + '\\'
 
 
-def pass_zip_encrypt_email(request, filename, export_name):
+def pass_zip_encrypt_email(request, export_name, unique_time):
     """Generate a password, zip and encrypt the report, if nothing goes wrong email the password"""
 
     password = password_generator()
-    result, err_message = zip_and_encrypt(filename, password)
+    result, err_message = zip_and_encrypt(export_name, unique_time, password)
 
     if not result:
         return False, err_message
@@ -31,7 +31,7 @@ def pass_zip_encrypt_email(request, filename, export_name):
     if request.user.email is None or request.user.email is '':
         return False, ERROR_MESSAGE_NO_EMAIL
 
-    send_password_email(request, export_name, password)
+    send_password_email(request, export_name, unique_time, password)
 
     return True, SUCCESS_MESSAGE_EMAIL_SENT
 
@@ -46,10 +46,10 @@ class GoalReport:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name):
+    def export_csv(cls, request, stream, export_name, unique_time):
         goals = Goal.objects.all()
 
-        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
 
         create_csv(filename)
 
@@ -104,13 +104,13 @@ class GoalReport:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename, export_name)
+        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
 
         if not success:
             return False, message
 
         try:
-            fsock = open(filename + '.zip', "rb")
+            fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
         except FileNotFoundError:
             return False, ERROR_MESSAGE_DATA_CLEANUP
 
@@ -230,10 +230,10 @@ class UserReport:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name):
+    def export_csv(cls, request, stream, export_name, unique_time):
         profiles = Profile.objects.all()
 
-        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -283,13 +283,13 @@ class UserReport:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename, export_name)
+        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
 
         if not success:
             return False, message
 
         try:
-            fsock = open(filename + '.zip', "rb")
+            fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
         except FileNotFoundError:
             return False, ERROR_MESSAGE_DATA_CLEANUP
 
@@ -492,10 +492,10 @@ class SavingsReport:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name):
+    def export_csv(cls, request, stream, export_name, unique_time):
         goals = Goal.objects.all()
 
-        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -524,13 +524,13 @@ class SavingsReport:
 
                     append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename, export_name)
+        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
 
         if not success:
             return False, message
 
         try:
-            fsock = open(filename + '.zip', "rb")
+            fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
         except FileNotFoundError:
             return False, ERROR_MESSAGE_DATA_CLEANUP
 
@@ -549,13 +549,13 @@ class SummaryDataPerChallenge:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name, date_from, date_to):
+    def export_csv(cls, request, stream, export_name, unique_time, date_from, date_to):
         if date_from is not None and date_to is not None:
             challenges = Challenge.objects.filter(activation_date__gte=date_from, deactivation_date__lte=date_to)
         else:
             challenges = Challenge.objects.all()
 
-        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -578,13 +578,13 @@ class SummaryDataPerChallenge:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename, export_name)
+        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
 
         if not success:
             return False, message
 
         try:
-            fsock = open(filename + '.zip', "rb")
+            fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
         except FileNotFoundError:
             return False, ERROR_MESSAGE_DATA_CLEANUP
 
@@ -619,10 +619,10 @@ class SummaryDataPerQuiz:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name):
+    def export_csv(cls, request, stream, export_name, unique_time):
         challenges = Challenge.objects.filter(type=Challenge.CTP_QUIZ)
 
-        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -645,13 +645,13 @@ class SummaryDataPerQuiz:
 
                     append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename, export_name)
+        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
 
         if not success:
             return False, message
 
         try:
-            fsock = open(filename + '.zip', "rb")
+            fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
         except FileNotFoundError:
             return False, ERROR_MESSAGE_DATA_CLEANUP
 
@@ -665,10 +665,10 @@ class ChallengeExportPicture:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name, challenge_name):
+    def export_csv(cls, request, stream, export_name, unique_time, challenge_name):
         challenges = Challenge.objects.filter(type=Challenge.CTP_PICTURE, name=challenge_name)
 
-        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -695,13 +695,13 @@ class ChallengeExportPicture:
 
                     append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename, export_name)
+        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
 
         if not success:
             return False, message
 
         try:
-            fsock = open(filename + '.zip', "rb")
+            fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
         except FileNotFoundError:
             return False, ERROR_MESSAGE_DATA_CLEANUP
 
@@ -714,10 +714,10 @@ class ChallengeExportQuiz:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name, challenge_name):
+    def export_csv(cls, request, stream, export_name, unique_time, challenge_name):
         challenges = Challenge.objects.filter(type=Challenge.CTP_QUIZ, name=challenge_name)
 
-        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -754,13 +754,13 @@ class ChallengeExportQuiz:
 
                     append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename, export_name)
+        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
 
         if not success:
             return False, message
 
         try:
-            fsock = open(filename + '.zip', "rb")
+            fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
         except FileNotFoundError:
             return False, ERROR_MESSAGE_DATA_CLEANUP
 
@@ -774,10 +774,10 @@ class ChallengeExportFreetext:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name, challenge_name):
+    def export_csv(cls, request, stream, export_name, unique_time, challenge_name):
         challenges = Challenge.objects.filter(type=Challenge.CTP_FREEFORM, name=challenge_name)
 
-        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -807,13 +807,13 @@ class ChallengeExportFreetext:
 
                     append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename, export_name)
+        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
 
         if not success:
             return False, message
 
         try:
-            fsock = open(filename + '.zip', "rb")
+            fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
         except FileNotFoundError:
             return False, ERROR_MESSAGE_DATA_CLEANUP
 
@@ -832,9 +832,9 @@ class SummaryGoalData:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name):
+    def export_csv(cls, request, stream, export_name, unique_time):
 
-        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -851,13 +851,13 @@ class SummaryGoalData:
 
             append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename, export_name)
+        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
 
         if not success:
             return False, message
 
         try:
-            fsock = open(filename + '.zip', "rb")
+            fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
         except FileNotFoundError:
             return False, ERROR_MESSAGE_DATA_CLEANUP
 
@@ -922,9 +922,9 @@ class GoalDataPerCategory:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name):
+    def export_csv(cls, request, stream, export_name, unique_time):
 
-        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -951,13 +951,13 @@ class GoalDataPerCategory:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename, export_name)
+        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
 
         if not success:
             return False, message
 
         try:
-            fsock = open(filename + '.zip', "rb")
+            fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
         except FileNotFoundError:
             return False, ERROR_MESSAGE_DATA_CLEANUP
 
@@ -1075,9 +1075,9 @@ class RewardsData:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name):
+    def export_csv(cls, request, stream, export_name, unique_time):
 
-        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -1094,13 +1094,13 @@ class RewardsData:
 
             append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename, export_name)
+        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
 
         if not success:
             return False, message
 
         try:
-            fsock = open(filename + '.zip', "rb")
+            fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
         except FileNotFoundError:
             return False, ERROR_MESSAGE_DATA_CLEANUP
 
@@ -1194,9 +1194,9 @@ class RewardsDataPerBadge:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name):
+    def export_csv(cls, request, stream, export_name, unique_time):
 
-        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -1214,13 +1214,13 @@ class RewardsDataPerBadge:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename, export_name)
+        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
 
         if not success:
             return False, message
 
         try:
-            fsock = open(filename + '.zip', "rb")
+            fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
         except FileNotFoundError:
             return False, ERROR_MESSAGE_DATA_CLEANUP
 
@@ -1244,9 +1244,9 @@ class RewardsDataPerStreak:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name):
+    def export_csv(cls, request, stream, export_name, unique_time):
 
-        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -1276,13 +1276,13 @@ class RewardsDataPerStreak:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename, export_name)
+        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
 
         if not success:
             return False, message
 
         try:
-            fsock = open(filename + '.zip', "rb")
+            fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
         except FileNotFoundError:
             return False, ERROR_MESSAGE_DATA_CLEANUP
 
@@ -1338,9 +1338,9 @@ class UserTypeData:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name):
+    def export_csv(cls, request, stream, export_name, unique_time):
 
-        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -1356,13 +1356,13 @@ class UserTypeData:
 
             append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename, export_name)
+        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
 
         if not success:
             return False, message
 
         try:
-            fsock = open(filename + '.zip', "rb")
+            fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
         except FileNotFoundError:
             return False, ERROR_MESSAGE_DATA_CLEANUP
 
@@ -1381,9 +1381,9 @@ class SummarySurveyData:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name):
+    def export_csv(cls, request, stream, export_name, unique_time):
 
-        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -1511,13 +1511,13 @@ class SummarySurveyData:
             ]
             append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename, export_name)
+        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
 
         if not success:
             return False, message
 
         try:
-            fsock = open(filename + '.zip', "rb")
+            fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
         except FileNotFoundError:
             return False, ERROR_MESSAGE_DATA_CLEANUP
 
@@ -1530,10 +1530,10 @@ class BaselineSurveyData:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name):
+    def export_csv(cls, request, stream, export_name, unique_time):
         surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.BASELINE)
 
-        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -1608,13 +1608,13 @@ class BaselineSurveyData:
 
                     append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename, export_name)
+        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
 
         if not success:
             return False, message
 
         try:
-            fsock = open(filename + '.zip', "rb")
+            fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
         except FileNotFoundError:
             return False, ERROR_MESSAGE_DATA_CLEANUP
 
@@ -1627,10 +1627,10 @@ class EaTool1SurveyData:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name):
+    def export_csv(cls, request, stream, export_name, unique_time):
         surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.EATOOL)
 
-        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -1693,13 +1693,13 @@ class EaTool1SurveyData:
 
                     append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename, export_name)
+        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
 
         if not success:
             return False, message
 
         try:
-            fsock = open(filename + '.zip', "rb")
+            fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
         except FileNotFoundError:
             return False, ERROR_MESSAGE_DATA_CLEANUP
 
@@ -1712,10 +1712,10 @@ class EaTool2SurveyData:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name):
+    def export_csv(cls, request, stream, export_name, unique_time):
         # surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.EATOOL2)
 
-        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -1727,13 +1727,13 @@ class EaTool2SurveyData:
                            ),
                           csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename, export_name)
+        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
 
         if not success:
             return False, message
 
         try:
-            fsock = open(filename + '.zip', "rb")
+            fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
         except FileNotFoundError:
             return False, ERROR_MESSAGE_DATA_CLEANUP
 
@@ -1746,10 +1746,10 @@ class EndlineSurveyData:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name):
+    def export_csv(cls, request, stream, export_name, unique_time):
         # surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.ENDLINE)
 
-        filename = STORAGE_DIRECTORY + cls.__name__ + '.csv'
+        filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='') as csvfile:
@@ -1762,13 +1762,13 @@ class EndlineSurveyData:
                            ),
                           csvfile)
 
-        success, message = pass_zip_encrypt_email(request, filename, export_name)
+        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
 
         if not success:
             return False, message
 
         try:
-            fsock = open(filename + '.zip', "rb")
+            fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
         except FileNotFoundError:
             return False, ERROR_MESSAGE_DATA_CLEANUP
 
