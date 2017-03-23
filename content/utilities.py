@@ -8,6 +8,8 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.utils import timezone
 
+from content.celery import app
+
 REPORT_GENERATION_TIMEOUT = 60
 
 
@@ -25,12 +27,13 @@ def append_to_csv(data, csvfile):
     writer.writerow(data)
 
 
-def zip_and_encrypt(filename, password):
+def zip_and_encrypt(export_name, unique_time, password):
 
     exe = shutil.which('7z')
 
-    output_name = filename + '.zip'
-    filename = './' + filename
+    output_name = settings.SENDFILE_ROOT + '\\' + export_name + unique_time + '.zip'
+
+    filename = settings.SENDFILE_ROOT + '\\' + export_name + unique_time + '.csv'
 
     command = [
         exe,
@@ -63,14 +66,15 @@ def password_generator():
     return password
 
 
-def send_password_email(request, password):
+@app.task()
+def send_password_email(request, export_name, unique_time, password):
     subject = 'Dooit Date Export: ' + str(timezone.now().date())
 
     send_to = request.user.email
 
     send_mail(
         subject=subject,
-        message='Password for requested data export: ' + password,
+        message='Password for ' + export_name + unique_time + '.zip: ' + password,
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[send_to],
 
