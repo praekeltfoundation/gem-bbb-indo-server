@@ -14,6 +14,7 @@ from .models import Goal, Badge, UserBadge, GoalTransaction, Challenge, Particip
 
 SUCCESS_MESSAGE_EMAIL_SENT = _('Password has been sent in an email.')
 ERROR_MESSAGE_NO_EMAIL = _('No email address associated with this account.')
+ERROR_MESSAGE_DATA_CLEANUP = _('Report generation ran during data cleanup - try again')
 
 STORAGE_DIRECTORY = settings.SENDFILE_ROOT + '/'
 
@@ -108,7 +109,11 @@ class GoalReport:
         if not success:
             return False, message
 
-        fsock = open(filename + '.zip', "rb")
+        try:
+            fsock = open(filename + '.zip', "rb")
+        except FileNotFoundError:
+            return False, ERROR_MESSAGE_DATA_CLEANUP
+
         stream.streaming_content = fsock
 
         return True, SUCCESS_MESSAGE_EMAIL_SENT
@@ -283,7 +288,11 @@ class UserReport:
         if not success:
             return False, message
 
-        fsock = open(filename + '.zip', "rb")
+        try:
+            fsock = open(filename + '.zip', "rb")
+        except FileNotFoundError:
+            return False, ERROR_MESSAGE_DATA_CLEANUP
+
         stream.streaming_content = fsock
 
         return True, SUCCESS_MESSAGE_EMAIL_SENT
@@ -520,7 +529,11 @@ class SavingsReport:
         if not success:
             return False, message
 
-        fsock = open(filename + '.zip', "rb")
+        try:
+            fsock = open(filename + '.zip', "rb")
+        except FileNotFoundError:
+            return False, ERROR_MESSAGE_DATA_CLEANUP
+
         stream.streaming_content = fsock
 
         return True, SUCCESS_MESSAGE_EMAIL_SENT
@@ -570,7 +583,11 @@ class SummaryDataPerChallenge:
         if not success:
             return False, message
 
-        fsock = open(filename + '.zip', "rb")
+        try:
+            fsock = open(filename + '.zip', "rb")
+        except FileNotFoundError:
+            return False, ERROR_MESSAGE_DATA_CLEANUP
+
         stream.streaming_content = fsock
 
         return True, SUCCESS_MESSAGE_EMAIL_SENT
@@ -633,7 +650,11 @@ class SummaryDataPerQuiz:
         if not success:
             return False, message
 
-        fsock = open(filename + '.zip', "rb")
+        try:
+            fsock = open(filename + '.zip', "rb")
+        except FileNotFoundError:
+            return False, ERROR_MESSAGE_DATA_CLEANUP
+
         stream.streaming_content = fsock
 
         return True, SUCCESS_MESSAGE_EMAIL_SENT
@@ -679,7 +700,11 @@ class ChallengeExportPicture:
         if not success:
             return False, message
 
-        fsock = open(filename + '.zip', "rb")
+        try:
+            fsock = open(filename + '.zip', "rb")
+        except FileNotFoundError:
+            return False, ERROR_MESSAGE_DATA_CLEANUP
+
         stream.streaming_content = fsock
 
         return True, SUCCESS_MESSAGE_EMAIL_SENT
@@ -734,7 +759,11 @@ class ChallengeExportQuiz:
         if not success:
             return False, message
 
-        fsock = open(filename + '.zip', "rb")
+        try:
+            fsock = open(filename + '.zip', "rb")
+        except FileNotFoundError:
+            return False, ERROR_MESSAGE_DATA_CLEANUP
+
         stream.streaming_content = fsock
 
         return True, SUCCESS_MESSAGE_EMAIL_SENT
@@ -783,7 +812,11 @@ class ChallengeExportFreetext:
         if not success:
             return False, message
 
-        fsock = open(filename + '.zip', "rb")
+        try:
+            fsock = open(filename + '.zip', "rb")
+        except FileNotFoundError:
+            return False, ERROR_MESSAGE_DATA_CLEANUP
+
         stream.streaming_content = fsock
 
         return True, SUCCESS_MESSAGE_EMAIL_SENT
@@ -823,7 +856,11 @@ class SummaryGoalData:
         if not success:
             return False, message
 
-        fsock = open(filename + '.zip', "rb")
+        try:
+            fsock = open(filename + '.zip', "rb")
+        except FileNotFoundError:
+            return False, ERROR_MESSAGE_DATA_CLEANUP
+
         stream.streaming_content = fsock
 
         return True, SUCCESS_MESSAGE_EMAIL_SENT
@@ -919,7 +956,11 @@ class GoalDataPerCategory:
         if not success:
             return False, message
 
-        fsock = open(filename + '.zip', "rb")
+        try:
+            fsock = open(filename + '.zip', "rb")
+        except FileNotFoundError:
+            return False, ERROR_MESSAGE_DATA_CLEANUP
+
         stream.streaming_content = fsock
 
         return True, SUCCESS_MESSAGE_EMAIL_SENT
@@ -1058,7 +1099,11 @@ class RewardsData:
         if not success:
             return False, message
 
-        fsock = open(filename + '.zip', "rb")
+        try:
+            fsock = open(filename + '.zip', "rb")
+        except FileNotFoundError:
+            return False, ERROR_MESSAGE_DATA_CLEANUP
+
         stream.streaming_content = fsock
 
         return True, SUCCESS_MESSAGE_EMAIL_SENT
@@ -1174,7 +1219,11 @@ class RewardsDataPerBadge:
         if not success:
             return False, message
 
-        fsock = open(filename + '.zip', "rb")
+        try:
+            fsock = open(filename + '.zip', "rb")
+        except FileNotFoundError:
+            return False, ERROR_MESSAGE_DATA_CLEANUP
+
         stream.streaming_content = fsock
 
         return True, SUCCESS_MESSAGE_EMAIL_SENT
@@ -1232,7 +1281,11 @@ class RewardsDataPerStreak:
         if not success:
             return False, message
 
-        fsock = open(filename + '.zip', "rb")
+        try:
+            fsock = open(filename + '.zip', "rb")
+        except FileNotFoundError:
+            return False, ERROR_MESSAGE_DATA_CLEANUP
+
         stream.streaming_content = fsock
 
         return True, SUCCESS_MESSAGE_EMAIL_SENT
@@ -1308,7 +1361,11 @@ class UserTypeData:
         if not success:
             return False, message
 
-        fsock = open(filename + '.zip', "rb")
+        try:
+            fsock = open(filename + '.zip', "rb")
+        except FileNotFoundError:
+            return False, ERROR_MESSAGE_DATA_CLEANUP
+
         stream.streaming_content = fsock
 
         return True, SUCCESS_MESSAGE_EMAIL_SENT
@@ -1459,7 +1516,11 @@ class SummarySurveyData:
         if not success:
             return False, message
 
-        fsock = open(filename + '.zip', "rb")
+        try:
+            fsock = open(filename + '.zip', "rb")
+        except FileNotFoundError:
+            return False, ERROR_MESSAGE_DATA_CLEANUP
+
         stream.streaming_content = fsock
 
         return True, SUCCESS_MESSAGE_EMAIL_SENT
@@ -1552,7 +1613,11 @@ class BaselineSurveyData:
         if not success:
             return False, message
 
-        fsock = open(filename + '.zip', "rb")
+        try:
+            fsock = open(filename + '.zip', "rb")
+        except FileNotFoundError:
+            return False, ERROR_MESSAGE_DATA_CLEANUP
+
         stream.streaming_content = fsock
 
         return True, SUCCESS_MESSAGE_EMAIL_SENT
@@ -1633,7 +1698,11 @@ class EaTool1SurveyData:
         if not success:
             return False, message
 
-        fsock = open(filename + '.zip', "rb")
+        try:
+            fsock = open(filename + '.zip', "rb")
+        except FileNotFoundError:
+            return False, ERROR_MESSAGE_DATA_CLEANUP
+
         stream.streaming_content = fsock
 
         return True, SUCCESS_MESSAGE_EMAIL_SENT
@@ -1663,7 +1732,11 @@ class EaTool2SurveyData:
         if not success:
             return False, message
 
-        fsock = open(filename + '.zip', "rb")
+        try:
+            fsock = open(filename + '.zip', "rb")
+        except FileNotFoundError:
+            return False, ERROR_MESSAGE_DATA_CLEANUP
+
         stream.streaming_content = fsock
 
         return True, SUCCESS_MESSAGE_EMAIL_SENT
@@ -1694,7 +1767,11 @@ class EndlineSurveyData:
         if not success:
             return False, message
 
-        fsock = open(filename + '.zip', "rb")
+        try:
+            fsock = open(filename + '.zip', "rb")
+        except FileNotFoundError:
+            return False, ERROR_MESSAGE_DATA_CLEANUP
+
         stream.streaming_content = fsock
 
         return True, SUCCESS_MESSAGE_EMAIL_SENT
