@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 
 from __future__ import absolute_import, unicode_literals
 import dj_database_url
+from os import environ
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
@@ -156,6 +157,14 @@ STATIC_URL = '/static/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
+# Email settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_SSL = True
+EMAIL_HOST = environ.get('EMAIL_HOST', 'localhost')
+EMAIL_PORT = environ.get('EMAIL_PORT', 25)
+EMAIL_HOST_USER = environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = environ.get('DEFAULT_FROM_EMAIL', 'halo@ayodooit.com')
 
 # Wagtail settings
 
@@ -195,3 +204,9 @@ RAVEN_CONFIG = {
 # SENDFILE settings
 
 SENDFILE_URL = '/protected/'
+
+print("Email host: %s" % environ.get('EMAIL_HOST', 'localhost'))
+print("Email port: %s" % environ.get('EMAIL_PORT', 25))
+print("Email host user: %s" % environ.get('EMAIL_HOST_USER', ''))
+print("Email host password: %s" % environ.get('EMAIL_HOST_PASSWORD', ''))
+print("Default from email: %s" % environ.get('DEFAULT_FROM_EMAIL', 'halo@ayodooit.com'))
