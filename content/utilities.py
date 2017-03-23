@@ -8,6 +8,8 @@ from django.conf import settings
 from django.core.mail import send_mail
 from django.utils import timezone
 
+from content.celery import app
+
 REPORT_GENERATION_TIMEOUT = 60
 
 
@@ -62,6 +64,7 @@ def password_generator():
     return password
 
 
+@app.task()
 def send_password_email(request, export_name, password):
     subject = 'Dooit Date Export: ' + str(timezone.now().date())
 
