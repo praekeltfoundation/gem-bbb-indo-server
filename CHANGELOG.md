@@ -2,6 +2,12 @@
 Changelog
 =========
 
+1.0.2
+-----
+
+- Changes to Budget to allow for Expense creation
+- Implemented encrypted report export and password emailing functionality
+
 1.0.1
 -----
 
