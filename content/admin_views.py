@@ -4,7 +4,7 @@ from django.utils import timezone
 from django.views.decorators.csrf import ensure_csrf_cookie
 from django.shortcuts import render, redirect, get_object_or_404, reverse
 from django.contrib.auth.decorators import permission_required
-from django.http.response import JsonResponse, HttpResponse, StreamingHttpResponse
+from django.http.response import JsonResponse, StreamingHttpResponse
 
 from wagtail.wagtailadmin import messages
 
@@ -82,7 +82,7 @@ def report_index_page(request):
 def report_challenge_exports(request):
 
     if request.method == 'POST':
-        response = HttpResponse(content_type='application/zip; charset=utf-8')
+        response = StreamingHttpResponse(content_type='application/zip; charset=utf-8')
 
         if request.POST.get('action') == 'EXPORT-CHALLENGE-SUMMARY':
             export_name = 'Challenge_Summary'
@@ -307,7 +307,7 @@ def report_aggregate_exports(request):
 def report_survey_exports(request):
 
     if request.method == 'POST':
-        response = HttpResponse(content_type='application/zip; charset=utf-8')
+        response = StreamingHttpResponse(content_type='application/zip; charset=utf-8')
 
         if request.POST.get('action') == 'EXPORT-SURVEY-SUMMARY':
             export_name = 'Survey_Summary'
