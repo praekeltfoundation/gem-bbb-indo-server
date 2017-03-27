@@ -163,7 +163,9 @@ class ChallengeViewSet(viewsets.ModelViewSet):
         """Returns true if notification should be shown, and false otherwise"""
 
         try:
-            challenge = Challenge.objects.get(state=Challenge.CST_PUBLISHED)
+            challenge = Challenge.objects.get(state=Challenge.CST_PUBLISHED,
+                                              activation_date__lt=timezone.now(),
+                                              deactivation_date__gt=timezone.now())
         except:
             return Response({"available": False})
 

@@ -1114,6 +1114,10 @@ class Goal(models.Model):
     @property
     def progress(self):
         """Returns the progress of the Goal's savings as percentage."""
+
+        if int(self.target) == 0:
+            return 0
+
         return int((self.value / self.target) * 100)
 
     @property
