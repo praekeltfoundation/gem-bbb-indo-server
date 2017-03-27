@@ -1409,11 +1409,11 @@ class SummarySurveyData:
             num_no_consent = 0
             num_claim_over_17_users = 0
 
-            submitted_surveys = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.BASELINE,
-                                                                          consent=False)
+            submitted_survey_drafts = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.BASELINE,
+                                                                                consent=False)
 
             # Counts number of first conversation no responses, others checks to see if they have no consent
-            for survey in submitted_surveys:
+            for survey in submitted_survey_drafts:
                 submission_data = json.loads(survey.submission_data)
                 try:
                     if submission_data['survey_baseline_intro'] == '0':
@@ -1425,25 +1425,24 @@ class SummarySurveyData:
                 except KeyError:
                     pass
 
-            submitted_surveys = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.BASELINE)
+            submitted_surveys = CoachSurveySubmission.objects.filter(survey__bot_conversation=CoachSurvey.BASELINE)
 
             for survey in submitted_surveys:
-                if survey.submission is not None:
-                    survey_data = survey.submission.get_data()
-                    try:
-                        if survey_data['survey_baseline_q1_consent'] == 1:
-                            num_claim_over_17_users += 1
-                    except KeyError:
-                        pass
+                survey_data = survey.get_data()
+                try:
+                    if survey_data['survey_baseline_q1_consent'] == 1:
+                        num_claim_over_17_users += 1
+                except KeyError:
+                    pass
 
             num_total_users = User.objects.all().count()
-            num_participated_survey = CoachSurveySubmissionDraft.objects\
+            num_participated_survey = CoachSurveySubmission.objects\
                 .filter(survey__bot_conversation=CoachSurvey.BASELINE)\
                 .values('user')\
                 .distinct()\
                 .count()
 
-            num_no_engagement = num_total_users - num_participated_survey
+            num_no_engagement = num_total_users - num_participated_survey - num_first_convo_no
 
             data = [
                 'Baseline Survey',
@@ -1467,11 +1466,11 @@ class SummarySurveyData:
             num_no_consent = 0
             num_claim_over_17_users = 0
 
-            submitted_surveys = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.EATOOL,
-                                                                          consent=False)
+            submitted_survey_drafts = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.EATOOL,
+                                                                                consent=False)
 
             # Counts number of first conversation no responses, others checks to see if they have no consent
-            for survey in submitted_surveys:
+            for survey in submitted_survey_drafts:
                 submission_data = json.loads(survey.submission_data)
                 try:
                     if submission_data['survey_eatool_intro'] == '0':
@@ -1501,7 +1500,7 @@ class SummarySurveyData:
                 .distinct() \
                 .count()
 
-            num_no_engagement = num_total_users - num_participated_survey
+            num_no_engagement = num_total_users - num_participated_survey - num_first_convo_no
 
             data = [
                 'EA Tool 1 Survey',
