@@ -789,23 +789,30 @@ class ChallengeExportFreetext:
                 participants = Participant.objects.filter(challenge=challenge)
 
                 for participant in participants:
-                    participant_free_text = ParticipantFreeText.objects.get(participant=participant)
                     profile = Profile.objects.get(user=participant.user)
 
-                    data = [
-                        participant.user.username,
-                        participant.user.first_name,
-                        profile.mobile,
-                        participant.user.email,
-                        profile.gender,
-                        profile.age,
-                        '',  # user type
-                        participant.date_created,
-                        participant_free_text.text,
-                        participant_free_text.date_answered
-                    ]
+                    # With a free text challenge, there can be a participant but no entry
+                    # This try/catch prevents a crash for when the user has started a challenge but not submitted an entry
+                    try:
+                        participant_free_text = ParticipantFreeText.objects.get(participant=participant)
 
-                    append_to_csv(data, csvfile)
+                        data = [
+                            participant.user.username,
+                            participant.user.first_name,
+                            profile.mobile,
+                            participant.user.email,
+                            profile.gender,
+                            profile.age,
+                            '',  # user type
+                            participant.date_created,
+                            participant_free_text.text,
+                            participant_free_text.date_answered
+                        ]
+
+                        append_to_csv(data, csvfile)
+
+                    except ParticipantFreeText.DoesNotExist:
+                        pass
 
         success, message = pass_zip_encrypt_email(request, export_name, unique_time)
 
