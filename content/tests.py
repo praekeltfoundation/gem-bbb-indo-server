@@ -2709,3 +2709,26 @@ class TestBudgetAPI(APITestCase):
 
         created_budget = Budget.objects.filter(user=user).first()
         self.assertEqual(created_budget.expenses.first().category, self.categories['food'], "Expense category not correctly set")
+
+    def test_basic_retrieve(self):
+        user = create_test_regular_user()
+        budget = Budget.objects.create(
+            user=user,
+            income=100000,
+            savings=30000
+        )
+        budget.expenses.create(
+            name='Food',
+            value=20000
+        )
+        budget.expenses.create(
+            name='Shoes',
+            value=10000
+        )
+        budget.save()
+
+        self.client.force_authenticate(user=user)
+        response = self.client.get(reverse('api:budgets-list'))
+
+        self.assertEqual(len(response.data), 1, "No budgets returned.")
+        self.assertEqual(response.data[0]['id'], budget.id, "Unexpected returned budget")
