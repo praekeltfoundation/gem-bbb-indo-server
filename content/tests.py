@@ -2732,3 +2732,24 @@ class TestBudgetAPI(APITestCase):
 
         self.assertEqual(len(response.data), 1, "No budgets returned.")
         self.assertEqual(response.data[0]['id'], budget.id, "Unexpected returned budget")
+
+    def test_user_permission(self):
+        """Test to ensure that users can't retrieve each other's budgets."""
+        owner = create_test_regular_user('Owner')
+        other = create_test_regular_user('Other')
+
+        budget = Budget.objects.create(
+            user=owner,
+            income=100000,
+            savings=30000
+        )
+
+        self.client.force_authenticate(user=other)
+        response = self.client.get(reverse('api:budgets-list'))
+
+        self.assertEqual(len(response.data), 0, "User unexpectedly retrieved budgets")
+
+        response = self.client.get(reverse('api:budgets-detail', kwargs={'pk':budget.pk}))
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN,
+                         "User unexpectedly granted permission to budget.")
