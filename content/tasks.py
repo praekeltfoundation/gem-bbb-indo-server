@@ -1,15 +1,5 @@
 # -*- coding: utf-8 -*-
 import os
-import argparse
-
-from apiclient.discovery import build
-from oauth2client.service_account import ServiceAccountCredentials
-import oauth2client.contrib
-import httplib2
-
-from oauth2client import client
-from oauth2client import file
-from oauth2client import tools
 
 from celery.task import task
 
