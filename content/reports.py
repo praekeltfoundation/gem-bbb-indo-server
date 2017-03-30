@@ -231,7 +231,7 @@ class UserReport:
 
     @classmethod
     def export_csv(cls, request, stream, export_name, unique_time):
-        profiles = Profile.objects.all()
+        profiles = Profile.objects.filter(user__is_staff=False)
 
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
@@ -595,19 +595,19 @@ class SummaryDataPerChallenge:
     @classmethod
     def total_challenge_completions(cls, challenge):
         """Returns the number of participants who have completed a challenge"""
-        return Participant.objects.filter(challenge=challenge, date_completed__isnull=False).count()
+        return Participant.objects.filter(user__is_staff=False, challenge=challenge, date_completed__isnull=False).count()
 
     @classmethod
     def total_users_in_progress(cls, challenge):
         """Returns the total number of participants who have started the challenge but not completed it"""
-        return Participant.objects.filter(challenge=challenge, date_completed__isnull=True).count()
+        return Participant.objects.filter(user__is_staff=False, challenge=challenge, date_completed__isnull=True).count()
 
     @classmethod
     def total_no_response(cls, challenge):
         """Checks to see which users don't have a participant for the given challenge"""
 
-        total_amount_of_users = User.objects.all().count()
-        total_amount_of_participants = Participant.objects.filter(challenge=challenge).count()
+        total_amount_of_users = User.objects.filter(is_staff=False).count()
+        total_amount_of_participants = Participant.objects.filter(user__is_staff=False, challenge=challenge).count()
 
         num_no_responses = total_amount_of_users - total_amount_of_participants
 
@@ -677,10 +677,10 @@ class ChallengeExportPicture:
                           csvfile)
 
             for challenge in challenges:
-                participants = Participant.objects.filter(challenge=challenge)
+                participants = Participant.objects.filter(user__is_staff=False, challenge=challenge)
 
                 for participant in participants:
-                    profile = Profile.objects.get(user=participant.user)
+                    profile = Profile.objects.get(user=participant.user, user__is_staff=False)
                     data = [
                         participant.user.username,
                         participant.user.first_name,
@@ -726,11 +726,11 @@ class ChallengeExportQuiz:
                           csvfile)
 
             for challenge in challenges:
-                participants = Participant.objects.filter(challenge=challenge)
+                participants = Participant.objects.filter(user__is_staff=False, challenge=challenge)
                 quiz_questions = QuizQuestion.objects.filter(challenge=challenge)
 
                 for participant in participants:
-                    profile = Profile.objects.get(user=participant.user)
+                    profile = Profile.objects.get(user=participant.user, user__is_staff=False)
                     attempts = quiz_questions.annotate(num_attempts=Count('answers__id')) \
                         .values('id', 'text', 'num_attempts') \
                         .order_by('order')
@@ -786,10 +786,10 @@ class ChallengeExportFreetext:
                           csvfile)
 
             for challenge in challenges:
-                participants = Participant.objects.filter(challenge=challenge)
+                participants = Participant.objects.filter(user__is_staff=False, challenge=challenge)
 
                 for participant in participants:
-                    profile = Profile.objects.get(user=participant.user)
+                    profile = Profile.objects.get(user=participant.user, user__is_staff=False)
 
                     # With a free text challenge, there can be a participant but no entry
                     # This try/catch prevents a crash for when the user has started a challenge but not submitted an entry
@@ -875,16 +875,16 @@ class SummaryGoalData:
     @classmethod
     def num_users_set_at_least_one_goal(cls):
         """Number of users with at least one goal set"""
-        return Goal.objects.all().values('user_id').distinct().count()
+        return Goal.objects.filter(user__is_staff=False).values('user_id').distinct().count()
 
     @classmethod
     def num_users_achieved_one_goal(cls):
         """Total amount of users who have achieved at least one goal"""
         num_users_achieved_one_goal = 0
-        array_of_users = Goal.objects.all().values('user_id').distinct()
+        array_of_users = Goal.objects.filter(user__is_staff=False).values('user_id').distinct()
 
         for user in array_of_users:
-            goals = Goal.objects.filter(user_id=user['user_id'])
+            goals = Goal.objects.filter(user_id=user['user_id'], user__is_staff=False)
             for goal in goals:
                 if goal.progress >= 100:
                     num_users_achieved_one_goal += 1
@@ -895,7 +895,7 @@ class SummaryGoalData:
     @classmethod
     def num_achieved_goals(cls):
         """Number of achieved goals"""
-        goals = Goal.objects.filter()
+        goals = Goal.objects.filter(user__is_staff=False)
         num_achieved_goals = 0
         for goal in goals:
             if goal.progress >= 100:
@@ -907,7 +907,7 @@ class SummaryGoalData:
     def percentage_weeks_saved(cls):
         """Percentage weeks saved out of total weeks"""
         percentage_weeks_saved = 0
-        goals = Goal.objects.filter()
+        goals = Goal.objects.filter(user__is_staff=False)
         total_weeks = 0
         total_weeks_saved = 0
 
@@ -978,11 +978,11 @@ class GoalDataPerCategory:
         Returns the number of users that have achieved the goal prototype
         unique users
         """
-        users_with_goals = Goal.objects.filter(prototype=goal_prototype).values('user_id').distinct()
+        users_with_goals = Goal.objects.filter(user__is_staff=False, prototype=goal_prototype).values('user_id').distinct()
 
         num_achieved_one_goal = 0
         for user in users_with_goals:
-            users_goals = Goal.objects.filter(prototype=goal_prototype, user_id=user['user_id'])
+            users_goals = Goal.objects.filter(user__is_staff=False, prototype=goal_prototype, user_id=user['user_id'])
 
             for goal in users_goals:
                 if goal.progress >= 100:
@@ -994,7 +994,7 @@ class GoalDataPerCategory:
     @classmethod
     def average_total_goal_amount(cls, goal_prototype):
         """Returns the average goal amount for the given goal prototype"""
-        goals = Goal.objects.filter(prototype=goal_prototype)
+        goals = Goal.objects.filter(user__is_staff=False, prototype=goal_prototype)
 
         total_amount_of_goals_count = goals.count()
 
@@ -1011,7 +1011,7 @@ class GoalDataPerCategory:
     def average_percentage_of_goal_reached(cls, goal_prototype):
         """Returns the average percentage of completions for the given goal prototype"""
 
-        goals = Goal.objects.filter(prototype=goal_prototype)
+        goals = Goal.objects.filter(user__is_staff=False, prototype=goal_prototype)
 
         total_amount_of_goals = goals.count()
 
@@ -1028,11 +1028,11 @@ class GoalDataPerCategory:
     @classmethod
     def total_users_50_percent_achieved(cls, goal_prototype):
         """Returns the total amount of users who have achieved 50% of the given goal prototype"""
-        users_with_goals = Goal.objects.filter(prototype=goal_prototype).values('user_id').distinct()
+        users_with_goals = Goal.objects.filter(user__is_staff=False, prototype=goal_prototype).values('user_id').distinct()
 
         num_50_percent_achieved = 0
         for user in users_with_goals:
-            users_goals = Goal.objects.filter(prototype=goal_prototype, user_id=user['user_id'])
+            users_goals = Goal.objects.filter(user__is_staff=False, prototype=goal_prototype, user_id=user['user_id'])
 
             for goal in users_goals:
                 if goal.progress >= 50:
@@ -1047,11 +1047,11 @@ class GoalDataPerCategory:
         Returns the total amount of users who have achieved 100% of the given goal prototype
         not unique users
         """
-        goals = Goal.objects.filter(prototype=goal_prototype)
+        goals = Goal.objects.filter(user__is_staff=False, prototype=goal_prototype)
 
         num_100_percent_achieved = 0
         for goal in goals:
-            users_goals = Goal.objects.filter(prototype=goal_prototype, user_id=goal.user_id)
+            users_goals = Goal.objects.filter(user__is_staff=False, prototype=goal_prototype, user_id=goal.user_id)
 
             for user_goal in users_goals:
                 if user_goal.progress >= 100:
@@ -1063,7 +1063,7 @@ class GoalDataPerCategory:
     @classmethod
     def percentage_of_weeks_saved_out_of_total_weeks(cls, goal_prototype):
         """Percentage of weeks saved for given goal prototype"""
-        goals = Goal.objects.filter(prototype=goal_prototype)
+        goals = Goal.objects.filter(user__is_staff=False, prototype=goal_prototype)
         total_weeks = 0
         total_weeks_saved = 0
 
@@ -1093,7 +1093,7 @@ class RewardsData:
                           csvfile)
 
             data = [
-                UserBadge.objects.all().count(),
+                UserBadge.objects.filter(user__is_staff=False).count(),
                 cls.total_users_at_least_one_streak(),
                 cls.average_percentage_weeks_saved_weekly_target_met(),
                 cls.average_percentage_weeks_saved()
@@ -1119,10 +1119,10 @@ class RewardsData:
     def total_users_at_least_one_streak(cls):
         """Returns the total number of users that have at least one streak"""
         users_with_streaks = 0
-        users = User.objects.all()
+        users = User.objects.filter(is_staff=False)
 
         for user in users:
-            goals = Goal.objects.filter(user=user)
+            goals = Goal.objects.filter(user__is_staff=False, user=user)
             current_count = 0
 
             user_has_streak = False
@@ -1151,10 +1151,10 @@ class RewardsData:
         total_weeks_saved = 0
         total_weeks = 0
 
-        users = User.objects.all()
+        users = User.objects.filter(is_staff=False)
 
         for user in users:
-            goals = Goal.objects.filter(user=user)
+            goals = Goal.objects.filter(user__is_staff=False, user=user)
 
             for goal in goals:
                 weekly_aggregates = goal.get_weekly_aggregates()
@@ -1176,10 +1176,10 @@ class RewardsData:
         total_weeks_saved = 0
         total_weeks = 0
 
-        users = User.objects.all()
+        users = User.objects.filter(is_staff=False)
 
         for user in users:
-            goals = Goal.objects.filter(user=user)
+            goals = Goal.objects.filter(user__is_staff=False, user=user)
 
             for goal in goals:
                 weekly_aggregates = goal.get_weekly_aggregates()
@@ -1313,7 +1313,7 @@ class RewardsDataPerStreak:
         if badge_type is Badge.STREAK_2 \
                 or badge_type is Badge.STREAK_4 \
                 or badge_type is Badge.STREAK_6:
-            return UserBadge.objects.filter(badge=badge).values('user').distinct().count()
+            return UserBadge.objects.filter(user__is_staff=False, badge=badge).values('user').distinct().count()
         else:
             return 0
 
@@ -1324,7 +1324,7 @@ class RewardsDataPerStreak:
         if badge_type is Badge.WEEKLY_TARGET_2 \
             or badge_type is Badge.WEEKLY_TARGET_4 \
             or badge_type is Badge.WEEKLY_TARGET_6:
-            return UserBadge.objects.filter(badge=badge).count()
+            return UserBadge.objects.filter(user__is_staff=False, badge=badge).count()
         else:
             return 0
 
@@ -1335,7 +1335,7 @@ class RewardsDataPerStreak:
         if badge_type is Badge.WEEKLY_TARGET_2 \
                 or badge_type is Badge.WEEKLY_TARGET_4 \
                 or badge_type is Badge.WEEKLY_TARGET_6:
-            return UserBadge.objects.filter(badge=badge).values('user').distinct().count()
+            return UserBadge.objects.filter(user__is_staff=False, badge=badge).values('user').distinct().count()
         else:
             return 0
 
@@ -1401,16 +1401,22 @@ class SummarySurveyData:
             # Baseline Survey
 
             num_completed_users = CoachSurveySubmission.objects.filter(
+                user__is_staff=False,
                 survey__bot_conversation=CoachSurvey.BASELINE).count()
 
-            num_in_progress_users = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.BASELINE,
-                                                                              complete=False).count()
+            num_in_progress_users = CoachSurveySubmissionDraft.objects.filter(
+                user__is_staff=False,
+                survey__bot_conversation=CoachSurvey.BASELINE,
+                complete=False).count()
+
             num_first_convo_no = 0
             num_no_consent = 0
             num_claim_over_17_users = 0
 
-            submitted_survey_drafts = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.BASELINE,
-                                                                                consent=False)
+            submitted_survey_drafts = CoachSurveySubmissionDraft.objects.filter(
+                user__is_staff=False,
+                survey__bot_conversation=CoachSurvey.BASELINE,
+                consent=False)
 
             # Counts number of first conversation no responses, others checks to see if they have no consent
             for survey in submitted_survey_drafts:
@@ -1423,7 +1429,9 @@ class SummarySurveyData:
                 except KeyError:
                     pass
 
-            submitted_surveys = CoachSurveySubmission.objects.filter(survey__bot_conversation=CoachSurvey.BASELINE)
+            submitted_surveys = CoachSurveySubmission.objects.filter(
+                user__is_staff=False,
+                survey__bot_conversation=CoachSurvey.BASELINE)
 
             for survey in submitted_surveys:
                 survey_data = survey.get_data()
@@ -1433,9 +1441,9 @@ class SummarySurveyData:
                 except KeyError:
                     pass
 
-            num_total_users = User.objects.all().count()
+            num_total_users = User.objects.filter(is_staff=False).count()
             num_participated_survey = CoachSurveySubmission.objects\
-                .filter(survey__bot_conversation=CoachSurvey.BASELINE)\
+                .filter(user__is_staff=False, survey__bot_conversation=CoachSurvey.BASELINE)\
                 .values('user')\
                 .distinct()\
                 .count()
@@ -1456,16 +1464,22 @@ class SummarySurveyData:
             # Ea Tool 1 Survey
 
             num_completed_users = CoachSurveySubmission.objects.filter(
+                user__is_staff=False,
                 survey__bot_conversation=CoachSurvey.EATOOL).count()
 
-            num_in_progress_users = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.EATOOL,
-                                                                              complete=False).count()
+            num_in_progress_users = CoachSurveySubmissionDraft.objects.filter(
+                user__is_staff=False,
+                survey__bot_conversation=CoachSurvey.EATOOL,
+                complete=False).count()
+
             num_first_convo_no = 0
             num_no_consent = 0
             num_claim_over_17_users = 0
 
-            submitted_survey_drafts = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.EATOOL,
-                                                                                consent=False)
+            submitted_survey_drafts = CoachSurveySubmissionDraft.objects.filter(
+                user__is_staff=False,
+                survey__bot_conversation=CoachSurvey.EATOOL,
+                consent=False)
 
             # Counts number of first conversation no responses, others checks to see if they have no consent
             for survey in submitted_survey_drafts:
@@ -1478,7 +1492,9 @@ class SummarySurveyData:
                 except KeyError:
                     pass
 
-            submitted_surveys = CoachSurveySubmission.objects.filter(survey__bot_conversation=CoachSurvey.EATOOL)
+            submitted_surveys = CoachSurveySubmission.objects.filter(
+                user__is_staff=False,
+                survey__bot_conversation=CoachSurvey.EATOOL)
 
             for survey in submitted_surveys:
                 survey_data = survey.get_data()
@@ -1488,9 +1504,9 @@ class SummarySurveyData:
                 except KeyError:
                     pass
 
-            num_total_users = User.objects.all().count()
+            num_total_users = User.objects.filter(is_staff=False).count()
             num_participated_survey = CoachSurveySubmissionDraft.objects \
-                .filter(survey__bot_conversation=CoachSurvey.EATOOL) \
+                .filter(user__is_staff=False, survey__bot_conversation=CoachSurvey.EATOOL) \
                 .values('user') \
                 .distinct() \
                 .count()
@@ -1562,7 +1578,7 @@ class BaselineSurveyData:
 
             for survey in surveys:
                 # All baseline survey submissions that are complete
-                submissions = CoachSurveySubmission.objects.filter(survey=survey)
+                submissions = CoachSurveySubmission.objects.filter(user__is_staff=False, survey=survey)
 
                 for submission in submissions:
                     survey_data = submission.get_data()
@@ -1658,7 +1674,7 @@ class EaTool1SurveyData:
                           csvfile)
 
             for survey in surveys:
-                submissions = CoachSurveySubmission.objects.filter(survey=survey)
+                submissions = CoachSurveySubmission.objects.filter(user__is_staff=False, survey=survey)
 
                 for submission in submissions:
                     survey_data = submission.get_data()
