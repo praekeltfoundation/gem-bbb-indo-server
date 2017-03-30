@@ -1917,7 +1917,14 @@ Budget.panels = [
 
 @python_2_unicode_compatible
 class Expense(models.Model):
+    INACTIVE = 0
+    ACTIVE = 1
+
     name = models.CharField(max_length=100, blank=True)
+    state = models.IntegerField(choices=(
+        (INACTIVE, _('Inactive')),
+        (ACTIVE, _('Active')),
+    ), default=ACTIVE)
 
     value = models.DecimalField(_('value'), max_digits=18, decimal_places=2, default=0)
     original_value = models.DecimalField(_('original value'), max_digits=18, decimal_places=2,
