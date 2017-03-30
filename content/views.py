@@ -803,3 +803,7 @@ class BudgetView(viewsets.ModelViewSet):
                 'budget': self.get_serializer(instance=budget).data,
                 'badges': []
             }, status=status.HTTP_201_CREATED)
+
+    def list(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_queryset().filter(user=request.user), many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)

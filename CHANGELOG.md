@@ -2,6 +2,16 @@
 Changelog
 =========
 
+1.0.4
+-----
+
+- Implemented Budget retrieve
+
+1.0.3
+-----
+
+- Fixes to reporting and zipping
+
 1.0.2
 -----
 
