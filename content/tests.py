@@ -2670,6 +2670,7 @@ class TestBudgetAPI(APITestCase):
 
         created_budget = Budget.objects.get(user=user)
         self.assertEqual(created_budget.income, 70000, "Unexpected Budget income set")
+        self.assertEqual(created_budget.savings, 3000, "Unexpected Budget savings set")
 
     def test_create_with_category(self):
         user = create_test_regular_user()
@@ -2759,3 +2760,135 @@ class TestBudgetAPI(APITestCase):
         updated_budget = Budget.objects.get(pk=budget.pk)
         self.assertEqual(updated_budget.income, new_income, "Budget income not updated")
         self.assertEqual(updated_budget.savings, budget.savings, "Budget savings unexpectedly affected")
+
+
+class TestBudgetAuditing(APITestCase):
+    def test_budget_create(self):
+        """Ensures that the initial state of a created Budget is correct."""
+
+        dt = timezone.make_aware(datetime(2017, 2, 8))
+        with patch.object(timezone, 'now', lambda: dt):
+            user = create_test_regular_user()
+
+            data = {
+                'income': 100000,
+                'savings': 40000,
+                'expenses': [
+                    {'name': 'Food', 'value': 20000},
+                    {'name': 'Shoes', 'value': 10000},
+                ]
+            }
+
+            self.client.force_authenticate(user=user)
+            response = self.client.post(reverse('api:budgets-list'), data=data, format='json')
+
+            created_budget = Budget.objects.get(id=response.data['budget']['id'])
+
+            # Budget
+            self.assertEqual(created_budget.created_on, dt, "Unexpected Budget create datetime.")
+            self.assertIsNone(created_budget.modified_on, "Modified timestamp unexpectedly populated.")
+
+            # Income
+            self.assertEqual(created_budget.original_income, created_budget.income, "Budget income was not saved.")
+            self.assertIsNone(created_budget.income_modified, "Budget income modified datetime was populated.")
+            self.assertEqual(created_budget.income_increased_count, 0, "Budget increase count is not zero.")
+            self.assertEqual(created_budget.income_decreased_count, 0, "Budget decrease count is not zero.")
+
+            # Savings
+            self.assertEqual(created_budget.original_savings, created_budget.savings, "Budget savings was not saved.")
+            self.assertIsNone(created_budget.savings_modified, "Budget savings modified datetime was populated.")
+            self.assertEqual(created_budget.savings_increased_count, 0, "Budget increase count is not zero.")
+            self.assertEqual(created_budget.savings_decreased_count, 0, "Budget decrease count is not zero.")
+
+            # Total Expenses
+            self.assertEqual(created_budget.original_expense, created_budget.expense,
+                             "Budget total expenses were not saved.")
+            self.assertIsNone(created_budget.expense_modified, "Budget income modified datetime was populated.")
+
+    def test_budget_upsert_audit(self):
+        """Ensure that audit fields are correctly set when performing an upsert"""
+        user = create_test_regular_user()
+        self.client.force_authenticate(user=user)
+
+        dt = timezone.make_aware(datetime(2017, 2, 8))
+        with patch.object(timezone, 'now', lambda: dt):
+
+            # Audit fields are set by serializer, so budget has to be created by api
+            self.client.post(reverse('api:budgets-list'), data={
+                'income': 100000,
+                'savings': 30000,
+                'expenses': [
+                    {'value': 20000},
+                    {'value': 10000},
+                ]
+            }, format='json')
+
+        dt1 = timezone.make_aware(datetime(2017, 3, 15))
+        with patch.object(timezone, 'now', lambda: dt1):
+            # Perform an upsert via the POST endpoint
+            self.client.post(reverse('api:budgets-list'), data={
+                'income': 200000,  # Income is changed
+                'savings': 30000,
+                'expenses': [
+                    {'value': 30000},
+                    {'value': 10000},
+                ]  # Expenses will be replaced, regardless
+            }, format='json')
+
+            budget = Budget.objects.get(user=user)
+
+            # Income
+            self.assertEqual(budget.income, 200000, "Income was not updated")
+            self.assertEqual(budget.original_income, 100000, "Original income changed unexpectedly")
+            self.assertEqual(budget.income_modified, dt1, "Income modified datetime not updated")
+            self.assertEqual(budget.income_increased_count, 1, "Income increase counter not updated")
+            self.assertEqual(budget.income_decreased_count, 0, "Income decrease counter unexpectedly updated")
+
+            # Savings
+            # Savings did not change
+            self.assertIsNone(budget.savings_modified, "Savings modified date unexpectedly populated")
+            self.assertEquals(budget.savings_increased_count, 0, "Savings increase count unexpectedly incremented")
+            self.assertEquals(budget.savings_decreased_count, 0, "Savings decrease count unexpectedly incremented")
+
+            # Expenses
+            self.assertEqual(budget.expense, 40000, "Unexpected expense total")
+            self.assertEqual(budget.original_expense, 30000, "Original expense changed unexpectedly")
+            self.assertEqual(budget.expense_modified, dt1, "Expense modified datetime not updated")
+
+            # Budget
+            self.assertEqual(budget.modified_on, dt1, "Budget modified datetime not updated")
+            self.assertEqual(budget.modified_count, 1, "Budget modified count not updated")
+
+        # Now let's upsert the savings
+        dt2 = timezone.make_aware(datetime(2017, 4, 15))
+        with patch.object(timezone, 'now', lambda: dt2):
+            self.client.post(reverse('api:budgets-list'), data={
+                'income': 200000,  # Income doesn't change
+                'savings': 10000,
+                'expenses': [
+                    {'value': 30000},
+                    {'value': 10000},
+                ]
+            }, format='json')
+
+            budget = Budget.objects.get(user=user)
+
+            # Income
+            self.assertEqual(budget.income_modified, dt1, "Income modified datetime was updated")
+            self.assertEqual(budget.income_increased_count, 1, "Income increase counter changed")
+            self.assertEqual(budget.income_decreased_count, 0, "Income decrease counter changed")
+
+            # Savings
+            self.assertEqual(budget.savings, 10000, "Savings was not updated")
+            self.assertEqual(budget.original_savings, 30000, "Original savings changed")
+            self.assertEqual(budget.savings_modified, dt2, "Unexpected savings modified datetime")
+            self.assertEqual(budget.savings_increased_count, 0, "Unexpected savings increase count")
+            self.assertEqual(budget.savings_decreased_count, 1, "Unexpected savings decrease count")
+
+    def test_budget_update_income_audit(self):
+        """Ensure that audit fields are correctly set when updating income"""
+        self.skipTest('TODO')
+
+    def test_budget_update_savings_audit(self):
+        """Ensure that audit fields are correctly set when updating the savings"""
+        self.skipTest('TODO')
