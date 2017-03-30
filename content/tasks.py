@@ -5,7 +5,7 @@ from celery.task import task
 
 from django.conf import settings
 
-from content.analytics_api import get_report, print_response, initialize_analytics_reporting
+from content.analytics_api import get_report, connect_ga_to_user, initialize_analytics_reporting
 from content.celery import app
 
 
@@ -28,5 +28,5 @@ def ga_task_handler():
     print("Starting GA connection")
     analytics = initialize_analytics_reporting()
     response = get_report(analytics)
-    print_response(response)
+    connect_ga_to_user(response)
     print("Finished GA connection")
