@@ -99,7 +99,7 @@ def connect_ga_to_user(response):
                     try:
                         user_uuid = UserUUID.objects.get(gaid=dimension)
                     except:
-                        print('No UserUUID information for this user')
+                        # No UserUUID information for this user'
                         break
 
                 if header == 'ga:campaign':
