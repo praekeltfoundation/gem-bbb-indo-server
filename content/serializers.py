@@ -864,6 +864,7 @@ class BudgetSerializer(serializers.ModelSerializer):
 
         if modified:
             instance.modified_on = now
+            instance.modified_count += 1
             instance.save()
 
         return instance
