@@ -1,4 +1,3 @@
-
 import json
 from datetime import datetime, date, timedelta
 import unittest
@@ -109,7 +108,6 @@ def create_test_challenge(**kwargs):
 
 
 class TestChallengeModel(TestCase):
-
     def test_is_not_active(self):
         challenge = Challenge.objects.create(
             name='Test Challenge',
@@ -217,7 +215,6 @@ class TestChallengeModel(TestCase):
 
 
 class TestChallengeAPI(APITestCase):
-
     # def test_date_filtering(self):
     #     """When the current date is outside the Challenge's activation and deactivation time, it should not be available.
     #     """
@@ -239,7 +236,6 @@ class TestChallengeAPI(APITestCase):
 
 
 class ChallengeParticipantRegistrationAPI(APITestCase):
-
     def test_create_participant(self):
         """Before a user can participate in a Challenge, they must register for the Challenge."""
         user = create_test_regular_user('anon')
@@ -305,7 +301,6 @@ class ChallengeParticipantRegistrationAPI(APITestCase):
 
 
 class ChallengeParticipantIntegrationAPI(APITestCase):
-
     def test_filter_challenge(self):
         """When the user has participated in a Challenge, they should receive the next available Challenge."""
         user = create_test_regular_user('anon')
@@ -328,8 +323,8 @@ class ChallengeParticipantIntegrationAPI(APITestCase):
         challenge_second.save()
 
         # Participate and complete
-        challenge_first.participants\
-            .create(user=user)\
+        challenge_first.participants \
+            .create(user=user) \
             .entries.create()
 
         self.client.force_authenticate(user=user)
@@ -337,24 +332,24 @@ class ChallengeParticipantIntegrationAPI(APITestCase):
 
         self.assertEqual(response.data['id'], challenge_second.id, "Unexpected challenge returned.")
 
-class TestParticipantPicture(APITestCase):
 
+class TestParticipantPicture(APITestCase):
     def test_adding_caption_to_participant_picture_that_exists(self):
         user = create_test_regular_user('anon')
 
         challenge_first = Challenge.objects.create(
             name='First Challenge',
             activation_date=timezone.now() + timedelta(days=-7),
-            deactivation_date=timezone.now() + timedelta(days=7,),
+            deactivation_date=timezone.now() + timedelta(days=7, ),
             type=2
         )
         challenge_first.publish()
         challenge_first.save()
 
         participant = Participant.objects.create(user=user,
-                                   challenge=challenge_first,
-                                   date_created=timezone.now(),
-                                   date_completed=timezone.now())
+                                                 challenge=challenge_first,
+                                                 date_created=timezone.now(),
+                                                 date_completed=timezone.now())
 
         question = PictureQuestion.objects.create(challenge=challenge_first,
                                                   text="A Question?")
@@ -362,11 +357,10 @@ class TestParticipantPicture(APITestCase):
         ParticipantPicture.objects.create(participant=participant,
                                           question=question)
 
-
         self.client.force_authenticate(user=user)
 
-        response = self.client.post(reverse('api:participantpicture-caption', kwargs={'pk' : participant.id}),
-                                    data={'caption':"caption words"})
+        response = self.client.post(reverse('api:participantpicture-caption', kwargs={'pk': participant.id}),
+                                    data={'caption': "caption words"})
         self.assertEquals(response.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_adding_caption_to_participant_picture_that_does_not_exist(self):
@@ -375,26 +369,26 @@ class TestParticipantPicture(APITestCase):
         challenge_first = Challenge.objects.create(
             name='First Challenge',
             activation_date=timezone.now() + timedelta(days=-7),
-            deactivation_date=timezone.now() + timedelta(days=7,),
+            deactivation_date=timezone.now() + timedelta(days=7, ),
             type=2
         )
         challenge_first.publish()
         challenge_first.save()
 
         participant = Participant.objects.create(user=user,
-                                   challenge=challenge_first,
-                                   date_created=timezone.now(),
-                                   date_completed=timezone.now())
+                                                 challenge=challenge_first,
+                                                 date_created=timezone.now(),
+                                                 date_completed=timezone.now())
 
         question = PictureQuestion.objects.create(challenge=challenge_first,
                                                   text="A Question?")
 
-
         self.client.force_authenticate(user=user)
 
-        response = self.client.post(reverse('api:participantpicture-caption', kwargs={'pk' : participant.id}),
-                                    data={'caption':"caption words"})
+        response = self.client.post(reverse('api:participantpicture-caption', kwargs={'pk': participant.id}),
+                                    data={'caption': "caption words"})
         self.assertEquals(response.status_code, status.HTTP_404_NOT_FOUND)
+
 
 # ==== #
 # Tips #
@@ -402,7 +396,6 @@ class TestParticipantPicture(APITestCase):
 
 
 class TestTipModel(TestCase):
-
     def setUp(self):
         self.user = create_test_admin_user()
 
@@ -414,23 +407,22 @@ class TestTipModel(TestCase):
         self.assertIsNotNone(tip, 'Tip not created')
         self.assertEqual(tip.title, 'Test tip', 'Test tip title was not set.')
 
-    # def test_cover_image_url(self):
-    #     self.skipTest('Needs to instantiate a wagtail Image')
-    #     # TODO: Instatiate Image
-    #     from django.core.files.images import ImageFile
-    #     from wagtail.wagtailimages.models import Image
-    #
-    #     image = Image(
-    #         title="Image title",
-    #
-    #         # image_file is your StringIO/BytesIO object
-    #         file=ImageFile(image_file, name="image-filename.jpg"),
-    #     )
-    #     image.save()
+        # def test_cover_image_url(self):
+        #     self.skipTest('Needs to instantiate a wagtail Image')
+        #     # TODO: Instatiate Image
+        #     from django.core.files.images import ImageFile
+        #     from wagtail.wagtailimages.models import Image
+        #
+        #     image = Image(
+        #         title="Image title",
+        #
+        #         # image_file is your StringIO/BytesIO object
+        #         file=ImageFile(image_file, name="image-filename.jpg"),
+        #     )
+        #     image.save()
 
 
 class TestTipAPI(APITestCase):
-
     def setUp(self):
         self.user = create_test_admin_user()
         self.client.force_authenticate(user=self.user)
@@ -557,7 +549,6 @@ class TestFavouriteAPI(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
         self.assertTrue(updated_fav.is_active, "Updated Tip is not favourited.")
 
-
     def test_favourite_list(self):
         user = self.create_regular_user()
         tip1 = create_tip('Tip 1')
@@ -599,7 +590,6 @@ class TestFavouriteAPI(APITestCase):
 
 
 class TestWeekCalc(unittest.TestCase):
-
     def test_week_diff_basic(self):
         start = datetime(2017, 2, 1)
         end = datetime(2017, 2, 15)
@@ -647,7 +637,6 @@ class TestWeekCalc(unittest.TestCase):
 
 
 class TestGoalModel(TestCase):
-
     def test_value_property(self):
         user = create_test_regular_user()
         goal = create_goal('Goal 1', user, 1000)
@@ -774,7 +763,6 @@ class TestGoalModel(TestCase):
 
 
 class TestGoalAPI(APITestCase):
-
     @staticmethod
     def find_by_attr(lst, attr, val, default=None):
         """
@@ -849,7 +837,7 @@ class TestGoalAPI(APITestCase):
 
         self.client.force_authenticate(user=user)
         response = self.client.post(reverse('api:goals-list'), data, format='json')
-        
+
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
 
     def test_user_goal_update(self):
@@ -1037,7 +1025,6 @@ class TestGoalAPI(APITestCase):
 
 
 class TestGoalTransactionAPI(APITestCase):
-
     def test_create_transactions(self):
         user = create_test_regular_user()
         goal = create_goal('Goal 1', user, 1000)
@@ -1082,10 +1069,12 @@ class TestGoalTransactionAPI(APITestCase):
         user = create_test_regular_user()
         goal = create_goal('Goal 1', user, 1000)
         trans = GoalTransaction.objects.create(goal=goal, date=timezone.now(), value=50)
-        trans2 = GoalTransaction.objects.create(goal=goal, date=timezone.now()+timezone.timedelta(seconds=1), value=100)
-        trans3 = GoalTransaction.objects.create(goal=goal, date=timezone.now()+timezone.timedelta(seconds=2), value=200)
+        trans2 = GoalTransaction.objects.create(goal=goal, date=timezone.now() + timezone.timedelta(seconds=1),
+                                                value=100)
+        trans3 = GoalTransaction.objects.create(goal=goal, date=timezone.now() + timezone.timedelta(seconds=2),
+                                                value=200)
 
-        next_date = timezone.now()+timezone.timedelta(seconds=3)
+        next_date = timezone.now() + timezone.timedelta(seconds=3)
 
         data = {
             "name": "Goal 2",
@@ -1119,7 +1108,6 @@ class TestGoalTransactionAPI(APITestCase):
 
 
 class TestGoalPrototypesAPI(APITestCase):
-
     def test_goal_proto_list(self):
         user = create_test_regular_user('anon')
         proto = GoalPrototype.objects.create(name='Proto 1')
@@ -1175,7 +1163,6 @@ class TestGoalPrototypesAPI(APITestCase):
 
 
 class TestGoalPrototypesModel(TestCase):
-
     def test_goal_proto_num_users_field_caculation(self):
         user1 = create_test_regular_user("sam")
         user2 = create_test_regular_user("dan")
@@ -1202,7 +1189,6 @@ class TestGoalPrototypesModel(TestCase):
 
 
 class TestWeeklyStreaks(TestCase):
-
     def test_basic_streak(self):
         now = datetime(2016, 11, 30, tzinfo=timezone.utc)
 
@@ -1314,7 +1300,6 @@ class TestWeeklyStreaks(TestCase):
 
 
 class TestWeeklyTargetStreaks(TestCase):
-
     def test_basic_streak_2(self):
         now = datetime(2017, 1, 27, tzinfo=timezone.utc)
 
@@ -1322,8 +1307,8 @@ class TestWeeklyTargetStreaks(TestCase):
         goal = Goal.objects.create(
             name='Goal 1',
             user=user,
-            target=36, #Thus the weekly target is 6 for 6 weeks to reach the target
-            start_date=now + timedelta(days=-36), #Goal duration is 6 weeks
+            target=36,  # Thus the weekly target is 6 for 6 weeks to reach the target
+            start_date=now + timedelta(days=-36),  # Goal duration is 6 weeks
             end_date=now,
         )
 
@@ -1348,8 +1333,8 @@ class TestWeeklyTargetStreaks(TestCase):
         goal = Goal.objects.create(
             name='Goal 1',
             user=user,
-            target=36, #Thus the weekly target is 6 for 6 weeks to reach the target
-            start_date=now + timedelta(days=-36), #Goal duration is 6 weeks
+            target=36,  # Thus the weekly target is 6 for 6 weeks to reach the target
+            start_date=now + timedelta(days=-36),  # Goal duration is 6 weeks
             end_date=now,
         )
 
@@ -1384,8 +1369,8 @@ class TestWeeklyTargetStreaks(TestCase):
         goal = Goal.objects.create(
             name='Goal 1',
             user=user,
-            target=36, #Thus the weekly target is 6 for 6 weeks to reach the target
-            start_date=now + timedelta(days=-36), #Goal duration is 6 weeks
+            target=36,  # Thus the weekly target is 6 for 6 weeks to reach the target
+            start_date=now + timedelta(days=-36),  # Goal duration is 6 weeks
             end_date=now,
         )
 
@@ -1430,8 +1415,8 @@ class TestWeeklyTargetStreaks(TestCase):
         goal = Goal.objects.create(
             name='Goal 1',
             user=user,
-            target=36, #Thus the weekly target is 6 for 6 weeks to reach the target
-            start_date=now + timedelta(days=-36), #Goal duration is 6 weeks
+            target=36,  # Thus the weekly target is 6 for 6 weeks to reach the target
+            start_date=now + timedelta(days=-36),  # Goal duration is 6 weeks
             end_date=now,
         )
 
@@ -1440,7 +1425,7 @@ class TestWeeklyTargetStreaks(TestCase):
         goal.transactions.create(value=2, date=now + timedelta(days=-23))
         goal.transactions.create(value=3, date=now + timedelta(days=-25))
 
-        #Streak breaks here
+        # Streak breaks here
 
         # Week 5
         goal.transactions.create(value=1, date=now + timedelta(days=-7))
@@ -1503,7 +1488,6 @@ class TestWeeklyTargetStreaks(TestCase):
 
 
 class TestAchievementAPI(APITestCase):
-
     def test_basic(self):
         """Basic test to ensure view is accessible."""
         user = create_test_regular_user('anon')
@@ -1539,7 +1523,6 @@ class TestAchievementAPI(APITestCase):
 
 
 class TestBadgeAwarding(APITestCase):
-
     @classmethod
     def setUpTestData(cls):
         cls.goal_first_created = Badge.objects.create(name='First Goal')
@@ -1926,14 +1909,14 @@ class TestBadgeAwarding(APITestCase):
             .entries.create()
 
         data = {
-             "answers": [
-                 {"selected_option": 1, "challenge": 1, "date_answered": "2017-01-30T16:59:26.054+02:00", "question": 1,
-                  "user": 1, "participant": 1},
-                 {"selected_option": 1, "challenge": 1, "date_answered": "2017-01-30T16:59:29.746+02:00", "question": 1,
-                  "user": 1, "participant": 1}
-             ],
-             "date_completed": "2017-01-30T16:59:32.427+02:00",
-             "participant": 1
+            "answers": [
+                {"selected_option": 1, "challenge": 1, "date_answered": "2017-01-30T16:59:26.054+02:00", "question": 1,
+                 "user": 1, "participant": 1},
+                {"selected_option": 1, "challenge": 1, "date_answered": "2017-01-30T16:59:29.746+02:00", "question": 1,
+                 "user": 1, "participant": 1}
+            ],
+            "date_completed": "2017-01-30T16:59:32.427+02:00",
+            "participant": 1
         }
 
         self.client.force_authenticate(user=user)
@@ -2035,7 +2018,6 @@ class TestBadgeAwarding(APITestCase):
 
 
 class TestNotification(APITestCase):
-
     def test_notification(self):
         """Test that the user can POST to /notification to mark their win as being 'read' """
         user = create_test_regular_user('anon_winner')
@@ -2556,7 +2538,6 @@ class TestNotification(APITestCase):
 class TestBadgeUrls(APITestCase):
     def test_urls_returned(self):
         with mock.patch('content.models.Badge.image', new_callable=PropertyMock) as mock_image:
-
             file1 = PropertyMock(url="url1")
             mock_image.return_value = PropertyMock(file=file1)
 
@@ -2570,17 +2551,17 @@ class TestBadgeUrls(APITestCase):
             self.assertEquals(response.data['urls'][0], 'http://testserver/api/badge-urls/url1', "Incorrect url name")
 
     def test_no_urls_returned(self):
-            response = self.client.get(reverse('api:badge-urls', kwargs={}), format='json')
-            self.assertEquals(response.data['urls'].__len__(), 0, "No urls should have been returned")
+        response = self.client.get(reverse('api:badge-urls', kwargs={}), format='json')
+        self.assertEquals(response.data['urls'].__len__(), 0, "No urls should have been returned")
 
     def test_when_badge_image_is_none(self):
-            badge = Badge.objects.create(
-                name="Badge 1",
-                slug="badgie 1",
-                intro="into 1",
-            )
-            response = self.client.get(reverse('api:badge-urls', kwargs={}), format='json')
-            self.assertEquals(response.data['urls'].__len__(), 0, "No urls should have been returned")
+        badge = Badge.objects.create(
+            name="Badge 1",
+            slug="badgie 1",
+            intro="into 1",
+        )
+        response = self.client.get(reverse('api:badge-urls', kwargs={}), format='json')
+        self.assertEquals(response.data['urls'].__len__(), 0, "No urls should have been returned")
 
 
 class TestFeedback(APITestCase):
@@ -2646,7 +2627,6 @@ class TestFeedback(APITestCase):
 
 
 class TestBudgetModel(TestCase):
-
     def test_expense_sum(self):
         """
         Ensure that a Budget's expenses are correctly summed
@@ -2664,7 +2644,6 @@ class TestBudgetModel(TestCase):
 
 
 class TestBudgetAPI(APITestCase):
-
     @classmethod
     def setUpTestData(cls):
         cls.categories = {
@@ -2708,7 +2687,8 @@ class TestBudgetAPI(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED, "Budget create request failed.")
 
         created_budget = Budget.objects.filter(user=user).first()
-        self.assertEqual(created_budget.expenses.first().category, self.categories['food'], "Expense category not correctly set")
+        self.assertEqual(created_budget.expenses.first().category, self.categories['food'],
+                         "Expense category not correctly set")
 
     def test_basic_retrieve(self):
         user = create_test_regular_user()
@@ -2749,7 +2729,33 @@ class TestBudgetAPI(APITestCase):
 
         self.assertEqual(len(response.data), 0, "User unexpectedly retrieved budgets")
 
-        response = self.client.get(reverse('api:budgets-detail', kwargs={'pk':budget.pk}))
+        response = self.client.get(reverse('api:budgets-detail', kwargs={'pk': budget.pk}))
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN,
                          "User unexpectedly granted permission to budget.")
+
+    def test_budget_update_income(self):
+        original_income = 150000
+        new_income = 200000
+
+        user = create_test_regular_user()
+        budget = Budget.objects.create(
+            user=user,
+            income=original_income,
+            savings=30000
+        )
+        budget.expenses.create(
+            name='Food',
+            value=40000
+        )
+
+        self.client.force_authenticate(user=user)
+        response = self.client.patch(reverse('api:budgets-detail', kwargs={'pk': budget.pk}), data={
+            'income': new_income
+        }, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK, "Budget update request failed.")
+
+        updated_budget = Budget.objects.get(pk=budget.pk)
+        self.assertEqual(updated_budget.income, new_income, "Budget income not updated")
+        self.assertEqual(updated_budget.savings, budget.savings, "Budget savings unexpectedly affected")
