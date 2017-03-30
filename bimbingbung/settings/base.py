@@ -206,7 +206,7 @@ CELERYBEAT_SCHEDULE = {
     },
     'reconcile-ga-with-users': {
         'task': 'content.tasks.ga_task_handler',
-        'schedule': timedelta(seconds=20),
+        'schedule': timedelta(hours=1),
     },
 }
 
