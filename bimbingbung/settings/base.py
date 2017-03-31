@@ -204,6 +204,10 @@ CELERYBEAT_SCHEDULE = {
         'task': 'content.tasks.remove_report_archives',
         'schedule': timedelta(hours=1),
     },
+    'reconcile-ga-with-users': {
+        'task': 'content.tasks.ga_task_handler',
+        'schedule': timedelta(hours=1),
+    },
 }
 
 # Wagtail settings
