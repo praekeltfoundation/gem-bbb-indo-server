@@ -7,7 +7,7 @@ from django.utils.translation import ugettext as _
 
 from content.utilities import zip_and_encrypt, append_to_csv, create_csv, password_generator, send_password_email
 from survey.models import CoachSurveySubmission, CoachSurvey, CoachSurveySubmissionDraft
-from users.models import Profile
+from users.models import Profile, CampaignInformation
 from .models import Goal, Badge, UserBadge, GoalTransaction, Challenge, Participant, QuizQuestion, QuestionOption, \
     ParticipantAnswer, ParticipantFreeText, GoalPrototype
 
@@ -1351,17 +1351,30 @@ class UserTypeData:
         create_csv(filename)
 
         with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
-            append_to_csv(('total_classroom_users', 'total_marketing_users'),
+            append_to_csv(('username', 'campaign', 'source', 'medium'),
                           csvfile)
 
-            # TODO: Return the total number of each type of user (Not implemented)
+            users = User.objects.filter(is_staff=False)
 
-            data = [
-                0,
-                0
-            ]
+            for user in users:
+                campaign_info = CampaignInformation.objects.filter(user=user).first()
 
-            append_to_csv(data, csvfile)
+                if campaign_info is None:
+                    data = [
+                        user.username,
+                        '',
+                        '',
+                        ''
+                    ]
+                else:
+                    data = [
+                        user.username,
+                        campaign_info.campaign,
+                        campaign_info.source,
+                        campaign_info.medium
+                    ]
+
+                append_to_csv(data, csvfile)
 
         success, message = pass_zip_encrypt_email(request, export_name, unique_time)
 
