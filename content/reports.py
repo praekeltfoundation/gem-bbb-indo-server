@@ -127,7 +127,7 @@ class GoalReport:
     def num_weeks_saved(cls, goal):
         """Returns the number of weeks that the user has saved"""
 
-        weekly_aggregates = goal.get_weekly_aggregates()
+        weekly_aggregates = goal.get_weekly_aggregates_to_date()
 
         weeks_saved = 0
         for weekly_savings in weekly_aggregates:
@@ -140,7 +140,7 @@ class GoalReport:
     def num_weeks_saved_on_target(cls, goal):
         """Returns the number of weeks the user saved the same as their weekly target"""
 
-        weekly_aggregates = goal.get_weekly_aggregates()
+        weekly_aggregates = goal.get_weekly_aggregates_to_date()
 
         weeks_saved_on_target = 0
         for weekly_savings in weekly_aggregates:
@@ -153,7 +153,7 @@ class GoalReport:
     def num_weeks_saved_below(cls, goal):
         """Returns the number of weeks, that when the user saved, they saved below their weekly target"""
 
-        weekly_aggregates = goal.get_weekly_aggregates()
+        weekly_aggregates = goal.get_weekly_aggregates_to_date()
 
         weeks_saved_below_target = 0
         for weekly_savings in weekly_aggregates:
@@ -166,7 +166,7 @@ class GoalReport:
     def num_weeks_saved_above(cls, goal):
         """Returns the number of weeks the user saved above their weekly target"""
 
-        weekly_aggregates = goal.get_weekly_aggregates()
+        weekly_aggregates = goal.get_weekly_aggregates_to_date()
 
         weeks_saved_above_target = 0
         for weekly_savings in weekly_aggregates:
@@ -179,7 +179,7 @@ class GoalReport:
     def num_weeks_not_saved(cls, goal):
         """Returns the number of weeks the user did not save"""
 
-        weekly_aggregates = goal.get_weekly_aggregates()
+        weekly_aggregates = goal.get_weekly_aggregates_to_date()
 
         weeks_not_saved = 0
         for weekly_savings in weekly_aggregates:
@@ -376,7 +376,7 @@ class UserReport:
         current_count = 0
 
         for goal in goals:
-            transactions = goal.get_weekly_aggregates()
+            transactions = goal.get_weekly_aggregates_to_date()
             for trans in transactions:
                 if trans != 0:
                     current_count += 1
@@ -416,7 +416,7 @@ class UserReport:
         current_count = 0
 
         for goal in goals:
-            transactions = goal.get_weekly_aggregates()
+            transactions = goal.get_weekly_aggregates_to_date()
             for trans in transactions:
                 if trans != 0:
                     current_count += 1
@@ -912,7 +912,7 @@ class SummaryGoalData:
         total_weeks_saved = 0
 
         for goal in goals:
-            weekly_savings = goal.get_weekly_aggregates()
+            weekly_savings = goal.get_weekly_aggregates_to_date()
             total_weeks += goal.weeks
             for amount_saved_in_week in weekly_savings:
                 if amount_saved_in_week != 0:
@@ -1068,7 +1068,7 @@ class GoalDataPerCategory:
         total_weeks_saved = 0
 
         for goal in goals:
-            agg = goal.get_weekly_aggregates()
+            agg = goal.get_weekly_aggregates_to_date()
             total_weeks += goal.weeks
             for aggCount in agg:
                 if aggCount != 0:
@@ -1130,7 +1130,7 @@ class RewardsData:
             goal_generator = (goal for goal in goals if user_has_streak is False)
 
             for goal in goal_generator:
-                transactions = goal.get_weekly_aggregates()
+                transactions = goal.get_weekly_aggregates_to_date()
 
                 transaction_generator = (transaction for transaction in transactions if user_has_streak is False)
 
@@ -1157,7 +1157,7 @@ class RewardsData:
             goals = Goal.objects.filter(user__is_staff=False, user=user)
 
             for goal in goals:
-                weekly_aggregates = goal.get_weekly_aggregates()
+                weekly_aggregates = goal.get_weekly_aggregates_to_date()
 
                 for week in weekly_aggregates:
                     if week >= goal.weekly_target:
@@ -1182,7 +1182,7 @@ class RewardsData:
             goals = Goal.objects.filter(user__is_staff=False, user=user)
 
             for goal in goals:
-                weekly_aggregates = goal.get_weekly_aggregates()
+                weekly_aggregates = goal.get_weekly_aggregates_to_date()
 
                 for week in weekly_aggregates:
                     if week > 0:

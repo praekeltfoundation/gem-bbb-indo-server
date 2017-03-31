@@ -1196,6 +1196,27 @@ class Goal(models.Model):
 
         return agg
 
+    def get_weekly_aggregates_to_date(self):
+        date = self.start_date
+
+        # Ensure elements so weeks with no transactions will have 0
+        agg = [0 for _ in range(self.weeks)]
+
+        week_id = 0
+        for trans in self.transactions.all().order_by('date'):
+            if WeekCalc.day_diff(date, timezone.now()) >= 7:
+                # Next weekly window
+                week_id += 1
+                date = (date + timedelta(days=7))
+
+            # Ignore savings after the deadline
+            if week_id >= len(agg):
+                break
+
+            agg[week_id] += trans.value
+
+        return agg
+
     @classmethod
     def calculate_weekly_target(cls, start_date, end_date, target):
         weeks = WeekCalc.week_diff(start_date, end_date, WeekCalc.Rounding.UP) or 1
