@@ -1351,28 +1351,34 @@ class UserTypeData:
         create_csv(filename)
 
         with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
-            append_to_csv(('username', 'campaign', 'source', 'medium'),
+            append_to_csv(('username', 'name', 'email', 'mobile', 'gender', 'age', 'date_joined',
+                           'campaign', 'source', 'medium'),
                           csvfile)
 
             users = User.objects.filter(is_staff=False)
 
             for user in users:
                 campaign_info = CampaignInformation.objects.filter(user=user).first()
+                profile = Profile.objects.get(user=user)
+
+                data = [
+                    user.username,
+                    user.get_full_name(),
+                    user.email,
+                    profile.mobile,
+                    'M' if profile.gender == Profile.GENDER_MALE else 'F',
+                    profile.age,
+                    user.date_joined,
+                ]
 
                 if campaign_info is None:
-                    data = [
-                        user.username,
-                        '',
-                        '',
-                        ''
-                    ]
+                    data.append('')  # Campaign
+                    data.append('')  # Source
+                    data.append('')  # Medium
                 else:
-                    data = [
-                        user.username,
-                        campaign_info.campaign,
-                        campaign_info.source,
-                        campaign_info.medium
-                    ]
+                    data.append(campaign_info.campaign)
+                    data.append(campaign_info.source)
+                    data.append(campaign_info.medium)
 
                 append_to_csv(data, csvfile)
 
