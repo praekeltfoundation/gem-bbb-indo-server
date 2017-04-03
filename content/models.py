@@ -1719,15 +1719,17 @@ class Feedback(models.Model):
 
     def mark_is_read(self):
         if self.is_read:
-            return format_html("<input type='checkbox' id='{}' class='feedback-mark-is-read' value='{}' checked='checked' />",
-                               'feedback-is-read-%d' % self.id, self.id)
+            return format_html(
+                "<input type='checkbox' id='{}' class='feedback-mark-is-read' value='{}' checked='checked' />",
+                'feedback-is-read-%d' % self.id, self.id)
         else:
             return format_html("<input type='checkbox' id='{}' class='feedback-mark-is-read' value='{}' />",
                                'feedback-is-read-%d' % self.id, self.id)
 
     @property
     def user_username(self):
-        return format_html("<a href='%s'>%s</a>" % (reverse('wagtailusers_users:edit', args=(self.user.pk,)), self.user.username)) \
+        return format_html(
+            "<a href='%s'>%s</a>" % (reverse('wagtailusers_users:edit', args=(self.user.pk,)), self.user.username)) \
             if self.user else format_html("<span>%s</span>" % _("Unknown user"))
 
     def get_user_fullname(self):
@@ -1830,19 +1832,52 @@ ExpenseCategory.panels = [
 ]
 
 
+def datetime_default():
+    """
+    In order for the unit tests to monkey patch the current datetime, now() has to be called after patching. When it's
+    assigned directly to default, monkey patching only happens later and doesn't affect fields with
+    `default=timezone.now`.
+
+    Lambdas are not serializable by makemigration, so it's wrap in this function, which can be serialized.
+    :return: Current datetime
+    """
+    return timezone.now()
+
+
 @python_2_unicode_compatible
 class Budget(modelcluster_fields.ClusterableModel):
     # The user's monthly income
     income = models.DecimalField(_('income'), max_digits=18, decimal_places=2, default=0)
+    original_income = models.DecimalField(_('original income'), max_digits=18, decimal_places=2,
+                                          null=True, editable=False)
+    income_modified = models.DateTimeField(_('income modified on'),
+                                           null=True, editable=False)
+    income_increased_count = models.IntegerField(_('income increase count'), default=0)
+    income_decreased_count = models.IntegerField(_('income decreased count'), default=0)
 
     # The user's monthly savings
     savings = models.DecimalField(_('savings'), max_digits=18, decimal_places=2, default=0)
+    original_savings = models.DecimalField(_('original savings'), max_digits=18, decimal_places=2,
+                                           null=True, editable=False)
+    savings_modified = models.DateTimeField(_('savings modified on'),
+                                            null=True, editable=False)
+    savings_increased_count = models.IntegerField(_('savings increased count'), default=0)
+    savings_decreased_count = models.IntegerField(_('savings decreased count'), default=0)
+
+    # The user's total expenses
+    original_expense = models.DecimalField(_('original total expenses'), max_digits=18, decimal_places=2,
+                                           null=True, editable=False)
+    expense_modified = models.DateTimeField(_('total expenses modified on'),
+                                            null=True, editable=False)
+    expense_increased_count = models.IntegerField(_('total expenses increased count'), default=0)
+    expense_decreased_count = models.IntegerField(_('total expenses decreased count'), default=0)
 
     user = models.OneToOneField(User, related_name='budget', on_delete=models.CASCADE)
 
     # Audit
-
-    created_on = models.DateTimeField(default=timezone.now, editable=False)
+    created_on = models.DateTimeField(default=datetime_default, editable=False)
+    modified_on = models.DateTimeField(blank=True, null=True, editable=False)
+    modified_count = models.IntegerField(default=0, editable=False)
 
     class Meta:
         # Translators: Collection name on CMS
@@ -1882,9 +1917,24 @@ Budget.panels = [
 
 @python_2_unicode_compatible
 class Expense(models.Model):
+    INACTIVE = 0
+    ACTIVE = 1
+
     name = models.CharField(max_length=100, blank=True)
+    state = models.IntegerField(choices=(
+        (INACTIVE, _('Inactive')),
+        (ACTIVE, _('Active')),
+    ), default=ACTIVE)
 
     value = models.DecimalField(_('value'), max_digits=18, decimal_places=2, default=0)
+    original_value = models.DecimalField(_('original value'), max_digits=18, decimal_places=2,
+                                         null=True, editable=False)
+    value_modified = models.DateTimeField(_('value modified on'),
+                                          null=True, editable=False)
+    value_increased_count = models.IntegerField(_('value increased count'),
+                                                editable=False, default=0)
+    value_decreased_count = models.IntegerField(_('value decreased count'),
+                                                editable=False, default=0)
 
     # A null category means the expense is custom
     category = models.ForeignKey(ExpenseCategory, related_name='+', on_delete=models.SET_NULL,
@@ -1894,8 +1944,8 @@ class Expense(models.Model):
                                              null=False)
 
     # Audit
-
-    created_on = models.DateTimeField(default=timezone.now, editable=False)
+    created_on = models.DateTimeField(default=datetime_default, editable=False)
+    modified_on = models.DateTimeField(null=True, editable=False)
 
     class Meta:
         # Translators: Collection name on CMS
@@ -1913,6 +1963,12 @@ class Expense(models.Model):
         else:
             # Translators: Default Expense name
             return _('Expense')
+
+    def save(self, **kwargs):
+        if self.id is not None:
+            # id is set when instance has been saved once
+            self.modified_on = timezone.now()
+        return super(Expense, self).save(**kwargs)
 
     def __str__(self):
         return 'Expense {} {}'.format(self.preferred_name, self.value)

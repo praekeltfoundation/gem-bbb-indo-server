@@ -1419,11 +1419,11 @@ class SummarySurveyData:
 
             # Baseline Survey
 
-            num_completed_users = CoachSurveySubmissionDraft.objects.filter(
-                survey__bot_conversation=CoachSurvey.BASELINE,
-                complete=True).count()
+            num_completed_users = CoachSurveySubmission.objects.filter(
+                survey__bot_conversation=CoachSurvey.BASELINE).count()
 
-            num_in_progress_users = 0
+            num_in_progress_users = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.BASELINE,
+                                                                              complete=False).count()
             num_first_convo_no = 0
             num_no_consent = 0
             num_claim_over_17_users = 0
@@ -1439,8 +1439,6 @@ class SummarySurveyData:
                         num_first_convo_no += 1
                     elif survey.consent is False:
                         num_no_consent += 1
-                    elif survey.complete is False:
-                        num_in_progress_users += 1
                 except KeyError:
                     pass
 
@@ -1476,11 +1474,11 @@ class SummarySurveyData:
 
             # Ea Tool 1 Survey
 
-            num_completed_users = CoachSurveySubmissionDraft.objects.filter(
-                survey__bot_conversation=CoachSurvey.EATOOL,
-                complete=True).count()
+            num_completed_users = CoachSurveySubmission.objects.filter(
+                survey__bot_conversation=CoachSurvey.EATOOL).count()
 
-            num_in_progress_users = 0
+            num_in_progress_users = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.EATOOL,
+                                                                              complete=False).count()
             num_first_convo_no = 0
             num_no_consent = 0
             num_claim_over_17_users = 0
@@ -1496,21 +1494,18 @@ class SummarySurveyData:
                         num_first_convo_no += 1
                     elif survey.consent is False:
                         num_no_consent += 1
-                    elif survey.complete is False:
-                        num_in_progress_users += 1
                 except KeyError:
                     pass
 
-            submitted_surveys = CoachSurveySubmissionDraft.objects.filter(survey__bot_conversation=CoachSurvey.EATOOL)
+            submitted_surveys = CoachSurveySubmission.objects.filter(survey__bot_conversation=CoachSurvey.EATOOL)
 
             for survey in submitted_surveys:
-                if survey.submission is not None:
-                    survey_data = survey.submission.get_data()
-                    try:
-                        if survey_data['survey_eatool_q1_consent'] == 1:
-                            num_claim_over_17_users += 1
-                    except KeyError:
-                        pass
+                survey_data = survey.get_data()
+                try:
+                    if survey_data['survey_eatool_q1_consent'] == 1:
+                        num_claim_over_17_users += 1
+                except KeyError:
+                    pass
 
             num_total_users = User.objects.all().count()
             num_participated_survey = CoachSurveySubmissionDraft.objects \
@@ -1586,25 +1581,25 @@ class BaselineSurveyData:
 
             for survey in surveys:
                 # All baseline survey submissions that are complete
-                submissions = CoachSurveySubmissionDraft.objects.filter(survey=survey, complete=True)
+                submissions = CoachSurveySubmission.objects.filter(survey=survey)
 
                 for submission in submissions:
-                    survey_data = submission.submission.get_data()
+                    survey_data = submission.get_data()
 
                     data = [
-                        submission.submission.user_unique_id,
-                        submission.submission.username,
-                        submission.submission.name,
-                        submission.submission.mobile,
-                        submission.submission.email,
-                        submission.submission.gender,
-                        submission.submission.age,
+                        submission.user_unique_id,
+                        submission.username,
+                        submission.name,
+                        submission.mobile,
+                        submission.email,
+                        submission.gender,
+                        submission.age,
                         '',  # user type
                         submission.user.date_joined,
                         survey_data['survey_baseline_q04_city'],
                         survey_data['survey_baseline_q1_consent'],
                         submission.consent,  # survey_data['survey_baseline_q2_consent']
-                        submission.modified_at,
+                        submission.created_at,
 
                         # survey questions
                         survey_data['survey_baseline_q01_occupation'],
@@ -1682,25 +1677,25 @@ class EaTool1SurveyData:
                           csvfile)
 
             for survey in surveys:
-                submissions = CoachSurveySubmissionDraft.objects.filter(survey=survey, complete=True)
+                submissions = CoachSurveySubmission.objects.filter(survey=survey)
 
                 for submission in submissions:
-                    survey_data = submission.submission.get_data()
+                    survey_data = submission.get_data()
 
                     data = [
-                        submission.submission.user_unique_id,
-                        submission.submission.username,
-                        submission.submission.name,
-                        submission.submission.mobile,
-                        submission.submission.email,
-                        submission.submission.gender,
-                        submission.submission.age,
+                        submission.user_unique_id,
+                        submission.username,
+                        submission.name,
+                        submission.mobile,
+                        submission.email,
+                        submission.gender,
+                        submission.age,
                         '',  # user type
                         submission.user.date_joined,
                         '',  # City
                         survey_data['survey_eatool_q1_consent'],
                         submission.consent,  # survey_data['survey_eatool_q2_consent']
-                        submission.modified_at,
+                        submission.created_at,
 
                         survey_data['survey_eatool_q01_appreciate'],
                         survey_data['survey_eatool_q02_optimistic'],
