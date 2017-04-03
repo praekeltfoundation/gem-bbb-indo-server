@@ -248,7 +248,11 @@ class UserReport:
                           csvfile)
 
             for profile in profiles:
-                campaign_info = CampaignInformation.objects.get(user=profile.user)
+                try:
+                    campaign_info = CampaignInformation.objects.get(user=profile.user)
+                    user_type = campaign_info.source + '/' + campaign_info.medium
+                except:
+                    user_type = ''
 
                 data = [
                     profile.user.username,
@@ -257,7 +261,7 @@ class UserReport:
                     profile.user.email,
                     profile.gender,
                     profile.age,
-                    campaign_info.source + '/' + campaign_info.medium,
+                    user_type,
                     profile.user.date_joined,
                     cls.number_of_goals(profile),
                     cls.total_badges_earned(profile),
@@ -679,7 +683,11 @@ class ChallengeExportPicture:
 
                 for participant in participants:
                     profile = Profile.objects.get(user=participant.user)
-                    campaign_info = CampaignInformation.objects.get(user=participant.user)
+                    try:
+                        campaign_info = CampaignInformation.objects.get(user=profile.user)
+                        user_type = campaign_info.source + '/' + campaign_info.medium
+                    except:
+                        user_type = ''
                     data = [
                         participant.user.username,
                         participant.user.first_name,
@@ -687,7 +695,7 @@ class ChallengeExportPicture:
                         participant.user.email,
                         profile.gender,
                         profile.age,
-                        campaign_info.source + '/' + campaign_info.medium,  # user type
+                        user_type,  # user type
                         profile.user.date_joined,
                         challenge.call_to_action
                     ]
@@ -730,7 +738,11 @@ class ChallengeExportQuiz:
 
                 for participant in participants:
                     profile = Profile.objects.get(user=participant.user)
-                    campaign_info = CampaignInformation.objects.get(user=participant.user)
+                    try:
+                        campaign_info = CampaignInformation.objects.get(user=profile.user)
+                        user_type = campaign_info.source + '/' + campaign_info.medium
+                    except:
+                        user_type = ''
                     attempts = quiz_questions.annotate(num_attempts=Count('answers__id')) \
                         .values('id', 'text', 'num_attempts') \
                         .order_by('order')
@@ -742,7 +754,7 @@ class ChallengeExportQuiz:
                         participant.user.email,
                         profile.gender,
                         profile.age,
-                        campaign_info.source + '/' + campaign_info.medium,  # user type
+                        user_type,  # user type
                         participant.user.date_joined,
                         participant.date_completed,
                     ]
@@ -789,7 +801,11 @@ class ChallengeExportFreetext:
                 participants = Participant.objects.filter(challenge=challenge)
 
                 for participant in participants:
-                    campaign_info = CampaignInformation.objects.get(user=participant.user)
+                    try:
+                        campaign_info = CampaignInformation.objects.get(user=participant.user)
+                        user_type = campaign_info.source + '/' + campaign_info.medium
+                    except:
+                        user_type = ''
                     profile = Profile.objects.get(user=participant.user)
 
                     # With a free text challenge, there can be a participant but no entry
@@ -804,7 +820,7 @@ class ChallengeExportFreetext:
                             participant.user.email,
                             profile.gender,
                             profile.age,
-                            campaign_info.source + '/' + campaign_info.medium,  # user type
+                            user_type,  # user type
                             participant.date_created,
                             participant_free_text.text,
                             participant_free_text.date_answered
@@ -1585,7 +1601,11 @@ class BaselineSurveyData:
                 submissions = CoachSurveySubmission.objects.filter(survey=survey)
 
                 for submission in submissions:
-                    campaign_info = CampaignInformation.objects.get(user=submission.user)
+                    try:
+                        campaign_info = CampaignInformation.objects.get(user=submission.user)
+                        user_type = campaign_info.source + '/' + campaign_info.medium
+                    except:
+                        user_type = ''
                     survey_data = submission.get_data()
 
                     data = [
@@ -1596,7 +1616,7 @@ class BaselineSurveyData:
                         submission.email,
                         submission.gender,
                         submission.age,
-                        campaign_info.source + '/' + campaign_info.medium,  # user type
+                        user_type,  # user type
                         submission.user.date_joined,
                         survey_data['survey_baseline_q04_city'],
                         survey_data['survey_baseline_q1_consent'],
@@ -1682,7 +1702,11 @@ class EaTool1SurveyData:
                 submissions = CoachSurveySubmission.objects.filter(survey=survey)
 
                 for submission in submissions:
-                    campaign_info = CampaignInformation.objects.get(user=submission.user)
+                    try:
+                        campaign_info = CampaignInformation.objects.get(user=submission.user)
+                        user_type = campaign_info.source + '/' + campaign_info.medium
+                    except:
+                        user_type = ''
                     survey_data = submission.get_data()
 
                     data = [
@@ -1693,7 +1717,7 @@ class EaTool1SurveyData:
                         submission.email,
                         submission.gender,
                         submission.age,
-                        campaign_info.source + '/' + campaign_info.medium,  # user type
+                        user_type,  # user type
                         submission.user.date_joined,
                         '',  # City
                         survey_data['survey_eatool_q1_consent'],
