@@ -172,6 +172,20 @@ class UserUUID(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE)
 
 
+#############################
+# Google Campaign Analytics #
+#############################
+
+
+class CampaignInformation(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    user_uuid = models.OneToOneField(UserUUID, on_delete=models.CASCADE)
+
+    campaign = models.TextField(_('campaign'), blank=False, null=True)
+    source = models.TextField(_('source'), blank=False, null=True)
+    medium = models.TextField(_('medium'), blank=False, null=True)
+
+
 def reset_token(sender, instance, **kwargs):
     """Invalidates a token when a user's password is changed."""
     new_password = instance.password

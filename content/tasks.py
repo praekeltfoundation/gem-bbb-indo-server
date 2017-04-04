@@ -2,8 +2,10 @@
 import os
 
 from celery.task import task
+
 from django.conf import settings
 
+from content.analytics_api import get_report, connect_ga_to_user, initialize_analytics_reporting
 from content.celery import app
 
 
@@ -19,3 +21,12 @@ def remove_report_archives():
         if filename.endswith('.csv') or filename.endswith('.zip'):
             print("Removing: " + settings.SENDFILE_ROOT + '\\' + filename)
             os.remove(settings.SENDFILE_ROOT + '\\' + filename)
+
+
+@app.task(ignore_result=True, max_retries=10, default_retry_delay=10)
+def ga_task_handler():
+    print("Starting GA connection")
+    analytics = initialize_analytics_reporting()
+    response = get_report(analytics)
+    connect_ga_to_user(response)
+    print("Finished GA connection")

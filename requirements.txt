@@ -8,4 +8,7 @@ raven
 markdown
 wagtailsurveys==0.1.1
 celery==3.1.25
-django-celery
+django-celery==3.2.1
+oauth2client==3.0.0
+google-api-python-client==1.6.2
+redis==2.10.5

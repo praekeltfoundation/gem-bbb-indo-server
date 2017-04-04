@@ -791,7 +791,7 @@ class BudgetView(viewsets.ModelViewSet):
     queryset = Budget.objects.all()
     serializer_class = BudgetSerializer
     permission_classes = (IsAuthenticated, IsAdminOrOwner)
-    http_method_names = ('get', 'post',)
+    http_method_names = ('get', 'post', 'patch',)
 
     def create(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
@@ -803,3 +803,13 @@ class BudgetView(viewsets.ModelViewSet):
                 'budget': self.get_serializer(instance=budget).data,
                 'badges': []
             }, status=status.HTTP_201_CREATED)
+
+    def list(self, request, *args, **kwargs):
+        serializer = self.get_serializer(self.get_queryset().filter(user=request.user), many=True)
+        return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+    def partial_update(self, request, pk=None, *args, **kwargs):
+        serializer = self.get_serializer(instance=self.get_object(), data=request.data, partial=True)
+        if serializer.is_valid(raise_exception=True):
+            serializer.save()
+            return Response(data=serializer.data, status=status.HTTP_200_OK)
