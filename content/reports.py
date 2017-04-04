@@ -7,7 +7,7 @@ from django.utils.translation import ugettext as _
 
 from content.utilities import zip_and_encrypt, append_to_csv, create_csv, password_generator, send_password_email
 from survey.models import CoachSurveySubmission, CoachSurvey, CoachSurveySubmissionDraft
-from users.models import Profile
+from users.models import Profile, CampaignInformation
 from .models import Goal, Badge, UserBadge, GoalTransaction, Challenge, Participant, QuizQuestion, QuestionOption, \
     ParticipantAnswer, ParticipantFreeText, GoalPrototype
 
@@ -237,8 +237,8 @@ class UserReport:
         create_csv(filename)
 
         with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
-            append_to_csv(('username', 'name', 'mobile', 'email', 'gender', 'age', 'user_type', 'date_joined',
-                           'number_of_goals', 'total_badges_earned', 'first_goal_created_badges',
+            append_to_csv(('username', 'name', 'mobile', 'email', 'gender', 'age', 'user_type_source_medium',
+                           'date_joined', 'number_of_goals', 'total_badges_earned', 'first_goal_created_badges',
                            'first_savings_created_badges', 'halfway_badges', 'one_week_left_badges',
                            '2_week_streak_badges', '4_week_streak_badges', '6_week_streak_badges',
                            '2_week_on_track_badges', '4_week_on_track_badges', '8_week_on_track_badges',
@@ -248,6 +248,12 @@ class UserReport:
                           csvfile)
 
             for profile in profiles:
+                try:
+                    campaign_info = CampaignInformation.objects.get(user=profile.user)
+                    user_type = campaign_info.source + '/' + campaign_info.medium
+                except:
+                    user_type = ''
+
                 data = [
                     profile.user.username,
                     profile.user.first_name + " " + profile.user.last_name,
@@ -255,7 +261,7 @@ class UserReport:
                     profile.user.email,
                     profile.gender,
                     profile.age,
-                    cls.user_type(profile),
+                    user_type,
                     profile.user.date_joined,
                     cls.number_of_goals(profile),
                     cls.total_badges_earned(profile),
@@ -296,10 +302,6 @@ class UserReport:
         stream.streaming_content = fsock
 
         return True, SUCCESS_MESSAGE_EMAIL_SENT
-
-    @classmethod
-    def user_type(cls, profile):
-        return 0
 
     @classmethod
     def number_of_goals(cls, profile):
@@ -673,7 +675,7 @@ class ChallengeExportPicture:
 
         with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
             append_to_csv(('username', 'name', 'mobile', 'email', 'gender', 'age',
-                           'user_type', 'date_joined', 'call_to_action'),
+                           'user_type_source_medium', 'date_joined', 'call_to_action'),
                           csvfile)
 
             for challenge in challenges:
@@ -681,6 +683,11 @@ class ChallengeExportPicture:
 
                 for participant in participants:
                     profile = Profile.objects.get(user=participant.user)
+                    try:
+                        campaign_info = CampaignInformation.objects.get(user=profile.user)
+                        user_type = campaign_info.source + '/' + campaign_info.medium
+                    except:
+                        user_type = ''
                     data = [
                         participant.user.username,
                         participant.user.first_name,
@@ -688,7 +695,7 @@ class ChallengeExportPicture:
                         participant.user.email,
                         profile.gender,
                         profile.age,
-                        '',  # user type
+                        user_type,  # user type
                         profile.user.date_joined,
                         challenge.call_to_action
                     ]
@@ -721,8 +728,8 @@ class ChallengeExportQuiz:
         create_csv(filename)
 
         with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
-            append_to_csv(('username', 'name', 'mobile', 'email', 'gender', 'age', 'user_type', 'date_joined',
-                           'submission_date', 'question', 'number_of_attempts'),
+            append_to_csv(('username', 'name', 'mobile', 'email', 'gender', 'age', 'user_type_source_medium',
+                           'date_joined', 'submission_date', 'question', 'number_of_attempts'),
                           csvfile)
 
             for challenge in challenges:
@@ -731,6 +738,11 @@ class ChallengeExportQuiz:
 
                 for participant in participants:
                     profile = Profile.objects.get(user=participant.user)
+                    try:
+                        campaign_info = CampaignInformation.objects.get(user=profile.user)
+                        user_type = campaign_info.source + '/' + campaign_info.medium
+                    except:
+                        user_type = ''
                     attempts = quiz_questions.annotate(num_attempts=Count('answers__id')) \
                         .values('id', 'text', 'num_attempts') \
                         .order_by('order')
@@ -742,7 +754,7 @@ class ChallengeExportQuiz:
                         participant.user.email,
                         profile.gender,
                         profile.age,
-                        '',  # user type
+                        user_type,  # user type
                         participant.user.date_joined,
                         participant.date_completed,
                     ]
@@ -781,14 +793,19 @@ class ChallengeExportFreetext:
         create_csv(filename)
 
         with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
-            append_to_csv(('username', 'name', 'mobile', 'email', 'gender', 'age', 'user_type', 'date_registered',
-                           'submission', 'submission_date'),
+            append_to_csv(('username', 'name', 'mobile', 'email', 'gender', 'age', 'user_type_source_medium',
+                           'date_registered', 'submission', 'submission_date'),
                           csvfile)
 
             for challenge in challenges:
                 participants = Participant.objects.filter(challenge=challenge)
 
                 for participant in participants:
+                    try:
+                        campaign_info = CampaignInformation.objects.get(user=participant.user)
+                        user_type = campaign_info.source + '/' + campaign_info.medium
+                    except:
+                        user_type = ''
                     profile = Profile.objects.get(user=participant.user)
 
                     # With a free text challenge, there can be a participant but no entry
@@ -803,7 +820,7 @@ class ChallengeExportFreetext:
                             participant.user.email,
                             profile.gender,
                             profile.age,
-                            '',  # user type
+                            user_type,  # user type
                             participant.date_created,
                             participant_free_text.text,
                             participant_free_text.date_answered
@@ -1351,17 +1368,36 @@ class UserTypeData:
         create_csv(filename)
 
         with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
-            append_to_csv(('total_classroom_users', 'total_marketing_users'),
+            append_to_csv(('username', 'name', 'email', 'mobile', 'gender', 'age', 'date_joined',
+                           'campaign', 'source', 'medium'),
                           csvfile)
 
-            # TODO: Return the total number of each type of user (Not implemented)
+            users = User.objects.filter(is_staff=False)
 
-            data = [
-                0,
-                0
-            ]
+            for user in users:
+                campaign_info = CampaignInformation.objects.filter(user=user).first()
+                profile = Profile.objects.get(user=user)
 
-            append_to_csv(data, csvfile)
+                data = [
+                    user.username,
+                    user.get_full_name(),
+                    user.email,
+                    profile.mobile,
+                    'M' if profile.gender == Profile.GENDER_MALE else 'F',
+                    profile.age,
+                    user.date_joined,
+                ]
+
+                if campaign_info is None:
+                    data.append('')  # Campaign
+                    data.append('')  # Source
+                    data.append('')  # Medium
+                else:
+                    data.append(campaign_info.campaign)
+                    data.append(campaign_info.source)
+                    data.append(campaign_info.medium)
+
+                append_to_csv(data, csvfile)
 
         success, message = pass_zip_encrypt_email(request, export_name, unique_time)
 
@@ -1551,7 +1587,7 @@ class BaselineSurveyData:
 
         with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
             append_to_csv(('uuid', 'username', 'name', 'mobile', 'email', 'gender', 'age',
-                           'user_type', 'date_joined', 'city', 'younger_than_17', 'consent_given',
+                           'user_type_source_medium', 'date_joined', 'city', 'younger_than_17', 'consent_given',
                            'submission_date',
 
                            # Survey questions
@@ -1565,6 +1601,11 @@ class BaselineSurveyData:
                 submissions = CoachSurveySubmission.objects.filter(survey=survey)
 
                 for submission in submissions:
+                    try:
+                        campaign_info = CampaignInformation.objects.get(user=submission.user)
+                        user_type = campaign_info.source + '/' + campaign_info.medium
+                    except:
+                        user_type = ''
                     survey_data = submission.get_data()
 
                     data = [
@@ -1575,7 +1616,7 @@ class BaselineSurveyData:
                         submission.email,
                         submission.gender,
                         submission.age,
-                        '',  # user type
+                        user_type,  # user type
                         submission.user.date_joined,
                         survey_data['survey_baseline_q04_city'],
                         survey_data['survey_baseline_q1_consent'],
@@ -1648,7 +1689,7 @@ class EaTool1SurveyData:
 
         with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
             append_to_csv(('uuid', 'username', 'name', 'mobile', 'email', 'gender', 'age',
-                           'user_type', 'date_joined', 'city', 'younger_than_17', 'consent_given',
+                           'user_type_source_medium', 'date_joined', 'city', 'younger_than_17', 'consent_given',
                            'submission_date',
 
                            # Survey questions
@@ -1661,6 +1702,11 @@ class EaTool1SurveyData:
                 submissions = CoachSurveySubmission.objects.filter(survey=survey)
 
                 for submission in submissions:
+                    try:
+                        campaign_info = CampaignInformation.objects.get(user=submission.user)
+                        user_type = campaign_info.source + '/' + campaign_info.medium
+                    except:
+                        user_type = ''
                     survey_data = submission.get_data()
 
                     data = [
@@ -1671,7 +1717,7 @@ class EaTool1SurveyData:
                         submission.email,
                         submission.gender,
                         submission.age,
-                        '',  # user type
+                        user_type,  # user type
                         submission.user.date_joined,
                         '',  # City
                         survey_data['survey_eatool_q1_consent'],
@@ -1733,7 +1779,7 @@ class EaTool2SurveyData:
 
         with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
             append_to_csv(('uuid', 'username', 'name', 'mobile', 'email', 'gender', 'age',
-                           'user_type', 'date_joined', 'city', 'younger_than_17', 'consent_given',
+                           'user_type_source_medium', 'date_joined', 'city', 'younger_than_17', 'consent_given',
                            'submission_date',
 
                            # Survey questions
@@ -1768,7 +1814,7 @@ class EndlineSurveyData:
         with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
 
             append_to_csv(('uuid', 'username', 'name', 'mobile', 'email', 'gender', 'age',
-                           'user_type', 'date_joined', 'city', 'younger_than_17', 'consent_given',
+                           'user_type_source_medium', 'date_joined', 'city', 'younger_than_17', 'consent_given',
                            'submission_date',
 
                            # Survey questions
