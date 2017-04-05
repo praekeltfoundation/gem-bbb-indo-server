@@ -813,3 +813,13 @@ class BudgetView(viewsets.ModelViewSet):
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+
+class ExpenseView(viewsets.ModelViewSet):
+    queryset = Expense.objects.all()
+    permission_classes = (IsAuthenticated, IsAdminOrOwner)
+    http_method_names = ('delete',)
+
+    def check_object_permissions(self, request, obj):
+        if not IsAdminOrOwner().has_object_permission(request, self, obj.budget):
+            raise PermissionDenied("Users can only access their own expenses.")
