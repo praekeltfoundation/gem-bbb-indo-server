@@ -8,7 +8,7 @@ from wagtail.wagtailadmin.menu import MenuItem
 from wagtail.wagtailcore import hooks
 
 from content.menu import ReportMenuItem
-from .models import Challenge, Participant, CustomNotification, Feedback
+from .models import Challenge, Participant, CustomNotification, Feedback, ParticipantAnswer
 from users.models import Profile
 from .models import Challenge, Participant, CustomNotification, ParticipantFreeText, ParticipantPicture
 from .models import FreeTextQuestion, PictureQuestion, QuizQuestion
@@ -87,7 +87,7 @@ class FreeTextParticipantAdmin(ModelAdmin):
     index_view_extra_js = ['js/js.cookie.js', 'js/admin_participant_index.js']
     model = ParticipantFreeText
     # Translators: CMS menu name
-    menu_label = _('Free Text Participant')
+    menu_label = _('Free Text Submissions')
     menu_icon = 'user'
     menu_order = 200
     add_to_settings_menu = False
@@ -96,6 +96,7 @@ class FreeTextParticipantAdmin(ModelAdmin):
     list_filter = ('participant__date_created', 'participant__challenge',
                    'participant__is_read', 'participant__is_shortlisted', 'participant__is_winner')
     search_fields = ('participant__user__id', 'participant__challenge__name',)
+
 
 # ================== #
 # PictureParticipant #
@@ -106,7 +107,7 @@ class PictureParticipantAdmin(ModelAdmin):
     index_view_extra_js = ['js/js.cookie.js', 'js/admin_participant_index.js']
     model = ParticipantPicture
     # Translators: CMS menu name
-    menu_label = _('Picture Participant')
+    menu_label = _('Picture Submissions')
     menu_icon = 'user'
     menu_order = 200
     add_to_settings_menu = False
@@ -117,12 +118,32 @@ class PictureParticipantAdmin(ModelAdmin):
     search_fields = ('participant__user__id', 'participant__challenge__name',)
 
 
+# ================== #
+# QuizParticipant #
+# ================== #
+
+class QuizParticipantAdmin(ModelAdmin):
+    index_view_extra_js = ['js/js.cookie.js', 'js/admin_participant_index.js']
+    model = ParticipantAnswer
+    # Translators: CMS menu name
+    menu_label = _('Quiz Submissions')
+    menu_icon = 'user'
+    menu_order = 200
+    add_to_settings_menu = False
+    list_display = ('participant_user', 'question_challenge', 'challenge_created_on', 'question', 'selected_option',
+                    'date_answered', 'read', 'shortlisted', 'winner')
+    # list_filter = ('entry__participant__challenge__type=Challenge.CTP_QUIZ',)
+    list_filter = ('participant_user',)
+    search_fields = ('participant_user', 'question_challenge', 'question', 'selected_option')
+
+
 class CompetitionsAdminGroup(ModelAdminGroup):
     # Translators: CMS menu name
     menu_label = _('Competitions')
     menu_icon = 'folder-open-inverse'
     menu_order = 200
-    items = (ChallengeAdmin, ParticipantAdmin, FreeTextParticipantAdmin, PictureParticipantAdmin,
+    items = (ChallengeAdmin, ParticipantAdmin,
+             FreeTextParticipantAdmin, PictureParticipantAdmin, QuizParticipantAdmin,
              FreeTextQuestionAdmin, PictureQuestionAdmin, QuizQuestionAdmin)
 
 
