@@ -790,6 +790,30 @@ class ParticipantAnswer(models.Model):
     # Translators: CMS field name (refers to dates)
     date_saved = models.DateTimeField(_('saved on'), default=timezone.now)
 
+    @property
+    def participant_user(self):
+        return self.entry.participant.user
+
+    @property
+    def question_challenge(self):
+        return self.question.challenge
+
+    @property
+    def challenge_created_on(self):
+        return self.entry.participant.date_created
+
+    @property
+    def read(self):
+        return self.entry.participant.mark_is_read()
+
+    @property
+    def shortlisted(self):
+        return self.entry.participant.mark_is_shortlisted()
+
+    @property
+    def winner(self):
+        return self.entry.participant.mark_is_winner()
+
     class Meta:
         # Translators: Collection name on CMS
         verbose_name = _('participant answer')
@@ -832,15 +856,15 @@ class ParticipantPicture(models.Model):
 
     @property
     def read(self):
-        return self.participant.mark_is_read();
+        return self.participant.mark_is_read()
 
     @property
     def shortlisted(self):
-        return self.participant.mark_is_shortlisted();
+        return self.participant.mark_is_shortlisted()
 
     @property
     def winner(self):
-        return self.participant.mark_is_winner();
+        return self.participant.mark_is_winner()
 
     @property
     def challenge_question(self):
