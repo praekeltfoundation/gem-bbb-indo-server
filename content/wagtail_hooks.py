@@ -1,4 +1,5 @@
 from django.conf.urls import url, include
+from django.contrib.auth.models import Permission
 from django.core.urlresolvers import reverse
 from django.utils.translation import ugettext_lazy as _
 
@@ -6,6 +7,8 @@ from wagtail.contrib.modeladmin.options import ModelAdmin, ModelAdminGroup, mode
 from wagtail.wagtailadmin.menu import MenuItem
 from wagtail.wagtailcore import hooks
 
+from content.menu import ReportMenuItem
+from .models import Challenge, Participant, CustomNotification, Feedback
 from users.models import Profile
 from .models import Challenge, Participant, CustomNotification, ParticipantFreeText, ParticipantPicture
 from .models import FreeTextQuestion, PictureQuestion, QuizQuestion
@@ -135,8 +138,12 @@ def register_admin_urls():
 
 @hooks.register('register_admin_menu_item')
 def register_reports_menu_item():
-    return MenuItem('Reports', reverse('content-admin:reports-index'), classnames='icon icon-user', order=10000)
+    return ReportMenuItem('Reports', reverse('content-admin:reports-index'), classnames='icon icon-user', order=10000)
 
+
+@hooks.register('register_permissions')
+def view_restricted_page():
+    return Permission.objects.filter(codename="access_reports")
 
 # ===== #
 # Goals #
@@ -209,9 +216,10 @@ class ExpenseCategoryAdmin(ModelAdmin):
     menu_label = _('Expense Category')
     menu_order = 100
     add_to_settings_menu = False
-    list_display = ('name', 'state')
+    list_display = ('name', 'state', 'order')
     list_filter = ('state',)
     search_fields = ('name',)
+    ordering = ('order', 'id',)
 
 
 class BudgetAdmin(ModelAdmin):
@@ -237,3 +245,19 @@ class BudgetGroup(ModelAdminGroup):
 
 
 modeladmin_register(BudgetGroup)
+
+
+############
+# Feedback #
+############
+
+class FeedbackAdmin(ModelAdmin):
+    model = Feedback
+    index_view_extra_js = ['js/js.cookie.js', 'js/admin_participant_index.js']
+    menu_icon = 'form'
+    list_display = ('date_created', 'user_username', 'type', 'text', 'mark_is_read')
+    search_fields = ('text',)
+    list_filter = ('type', 'is_read')
+    ordering = ('date_created',)
+
+modeladmin_register(FeedbackAdmin)

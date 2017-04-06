@@ -2,6 +2,22 @@
 Changelog
 =========
 
+1.0.4
+-----
+
+- Implemented Budget retrieve
+
+1.0.3
+-----
+
+- Fixes to reporting and zipping
+
+1.0.2
+-----
+
+- Changes to Budget to allow for Expense creation
+- Implemented encrypted report export and password emailing functionality
+
 1.0.1
 -----
 

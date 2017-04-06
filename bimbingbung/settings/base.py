@@ -11,7 +11,11 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 from __future__ import absolute_import, unicode_literals
+
+from datetime import timedelta
+
 import dj_database_url
+from os import environ
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
@@ -54,6 +58,7 @@ INSTALLED_APPS = [
     'modelcluster',
     'taggit',
     'wagtailsurveys',
+    'djcelery',
 
     'django.contrib.admin',
     'django.contrib.auth',
@@ -156,6 +161,54 @@ STATIC_URL = '/static/'
 MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 MEDIA_URL = '/media/'
 
+# Email settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_USE_SSL = environ.get('EMAIL_USE_SSL', 'False') == 'True'
+EMAIL_HOST = environ.get('EMAIL_HOST', 'localhost')
+EMAIL_PORT = environ.get('EMAIL_PORT', 25)
+EMAIL_HOST_USER = environ.get('EMAIL_HOST_USER', '')
+EMAIL_HOST_PASSWORD = environ.get('EMAIL_HOST_PASSWORD', '')
+DEFAULT_FROM_EMAIL = environ.get('DEFAULT_FROM_EMAIL', 'halo@ayodooit.com')
+
+
+# Redis configuration
+REDIS_PORT = 6379
+REDIS_HOST = "127.0.0.1"
+REDIS_DB = 0
+REDIS_CONNECT_RETRY = True
+
+# Broker configuration
+BROKER_HOST = "127.0.0.1"
+BROKER_BACKEND = "redis"
+BROKER_USER = ""
+BROKER_PASSWORD = ""
+BROKER_VHOST = "0"
+
+# Celery Redis configuration
+CELERY_SEND_EVENTS = True
+CELERY_RESULT_BACKEND = 'redis'
+# CELERY_REDIS_HOST = '127.0.0.1'
+CELERY_REDIS_HOST = environ.get('BROKER_URL', 'redis://localhost:6379/0')
+CELERY_REDIS_PORT = 6379
+CELERY_REDIS_DB = 0
+CELERY_ACCEPT_CONTENT = ['json']
+CELERY_TASK_SERIALIZER = 'json'
+CELERY_RESULT_SERIALIZER = 'json'
+CELERY_TASK_RESULT_EXPIRES = 10
+CELERYBEAT_SCHEDULER = "djcelery.schedulers.DatabaseScheduler"
+CELERY_ALWAYS_EAGER = False
+
+
+CELERYBEAT_SCHEDULE = {
+    'remove-report-archives': {
+        'task': 'content.tasks.remove_report_archives',
+        'schedule': timedelta(hours=1),
+    },
+    'reconcile-ga-with-users': {
+        'task': 'content.tasks.ga_task_handler',
+        'schedule': timedelta(hours=1),
+    },
+}
 
 # Wagtail settings
 
@@ -183,15 +236,18 @@ REST_FRAMEWORK = {
     'NON_FIELD_ERRORS_KEY': 'errors'
 }
 
-#Raven settings
+# Raven settings
 RAVEN_CONFIG = {
     'dsn': os.environ.get('RAVEN_DSN'),
     # If you are using git, you can also automatically configure the
     # release based on the git info.
-    #'release': raven.fetch_git_sha(os.path.dirname(os.pardir)),
+    # 'release': raven.fetch_git_sha(os.path.dirname(os.pardir)),
 }
 
 
 # SENDFILE settings
 
 SENDFILE_URL = '/protected/'
+
+import djcelery
+djcelery.setup_loader()

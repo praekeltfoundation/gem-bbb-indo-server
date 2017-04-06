@@ -1,15 +1,19 @@
+from datetime import datetime
+
 from django.utils import timezone
 from django.views.decorators.csrf import ensure_csrf_cookie
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, redirect, get_object_or_404, reverse
 from django.contrib.auth.decorators import permission_required
-from django.http.response import JsonResponse, HttpResponse
+from django.http.response import JsonResponse, StreamingHttpResponse
+
+from wagtail.wagtailadmin import messages
 
 from .reports import GoalReport, UserReport, SavingsReport, SummaryDataPerChallenge, \
     SummaryDataPerQuiz, ChallengeExportPicture, ChallengeExportQuiz, ChallengeExportFreetext, SummaryGoalData, \
     GoalDataPerCategory, RewardsData, RewardsDataPerBadge, RewardsDataPerStreak, UserTypeData, SummarySurveyData, \
     EaTool1SurveyData, BaselineSurveyData, EaTool2SurveyData, EndlineSurveyData
 
-from .models import Challenge, Participant
+from .models import Challenge, Participant, Feedback
 
 
 def participant_list_view(request):
@@ -47,9 +51,27 @@ def participant_mark_winner(request, participant_pk):
     return JsonResponse({})
 
 
+@permission_required('feedback.can_change')
+@ensure_csrf_cookie
+def feedback_mark_read(request, feedback_pk):
+    feedback = get_object_or_404(Feedback, pk=feedback_pk)
+    feedback.is_read = not feedback.is_read
+    feedback.save()
+    return JsonResponse({})
+
+
 #############
 # Reporting #
 #############
+
+def get_report_generation_time():
+    time = datetime.now()
+    time = str(time)
+    time = time.replace(' ', "_")
+    time = time.replace('.', '_')
+    time = time.replace(':', '_')
+
+    return time
 
 
 def report_index_page(request):
@@ -60,31 +82,79 @@ def report_index_page(request):
 def report_challenge_exports(request):
 
     if request.method == 'POST':
-        response = HttpResponse(content_type='text/csv; charset=utf-8')
-        response['Content-Disposition'] = 'attachment;filename=export-' + str(timezone.now()) + '.csv'
+        response = StreamingHttpResponse(content_type='application/zip; charset=utf-8')
 
         if request.POST.get('action') == 'EXPORT-CHALLENGE-SUMMARY':
+            export_name = 'Challenge_Summary'
+            unique_time = get_report_generation_time()
+
             if request.POST['date_from'] is '' or request.POST['date_to'] is '':
                 date_from = date_to = None
             else:
                 date_from = request.POST['date_from']
                 date_to = request.POST['date_to']
-            SummaryDataPerChallenge.export_csv(response, date_from=date_from, date_to=date_to)
+
+            response['Content-Disposition'] = 'attachment;filename=' \
+                                              + export_name \
+                                              + unique_time \
+                                              + '.zip'
+            success, err = SummaryDataPerChallenge.export_csv(request, response, export_name, unique_time,
+                                                              date_from=date_from, date_to=date_to)
+            if not success:
+                messages.error(request, err)
+                return redirect(reverse('content-admin:reports-challenges'))
             return response
         elif request.POST.get('action') == 'EXPORT-CHALLENGE-QUIZ-SUMMARY':
-            SummaryDataPerQuiz.export_csv(response)
+            export_name = 'Challenge_Quiz_Summary'
+            unique_time = get_report_generation_time()
+
+            response['Content-Disposition'] = 'attachment;filename=' \
+                                              + export_name \
+                                              + unique_time \
+                                              + '.zip'
+            success, err = SummaryDataPerQuiz.export_csv(request, response, export_name, unique_time)
+            if not success:
+                messages.error(request, err)
+                return redirect(reverse('content-admin:reports-challenges'))
             return response
         elif request.POST.get('action') == 'EXPORT-CHALLENGE-PICTURE':
             challenge_name = request.POST['picture-challenge-name']
-            ChallengeExportPicture.export_csv(response, challenge_name=challenge_name)
+            export_name = 'Challenge_Picture'
+            unique_time = get_report_generation_time()
+            response['Content-Disposition'] = 'attachment;filename=' \
+                                              + export_name \
+                                              + unique_time \
+                                              + '.zip'
+            success, err = ChallengeExportPicture.export_csv(request, response, export_name, unique_time, challenge_name=challenge_name)
+            if not success:
+                messages.error(request, err)
+                return redirect(reverse('content-admin:reports-challenges'))
             return response
         elif request.POST.get('action') == 'EXPORT-CHALLENGE-QUIZ':
             challenge_name = request.POST['quiz-challenge-name']
-            ChallengeExportQuiz.export_csv(response, challenge_name=challenge_name)
+            export_name = 'Challenge_Quiz'
+            unique_time = get_report_generation_time()
+            response['Content-Disposition'] = 'attachment;filename=' \
+                                              + export_name \
+                                              + unique_time \
+                                              + '.zip'
+            success, err = ChallengeExportQuiz.export_csv(request, response, export_name, unique_time, challenge_name=challenge_name)
+            if not success:
+                messages.error(request, err)
+                return redirect(reverse('content-admin:reports-challenges'))
             return response
         elif request.POST.get('action') == 'EXPORT-CHALLENGE-FREETEXT':
             challenge_name = request.POST['freetext-challenge-name']
-            ChallengeExportFreetext.export_csv(response, challenge_name=challenge_name)
+            export_name = 'Challenge_Freetext'
+            unique_time = get_report_generation_time()
+            response['Content-Disposition'] = 'attachment;filename=' \
+                                              + export_name \
+                                              + unique_time \
+                                              + '.zip'
+            success, err = ChallengeExportFreetext.export_csv(request, response, export_name, unique_time, challenge_name=challenge_name)
+            if not success:
+                messages.error(request, err)
+                return redirect(reverse('content-admin:reports-challenges'))
             return response
     elif request.method == 'GET':
         context = {
@@ -100,20 +170,46 @@ def report_challenge_exports(request):
 def report_goal_exports(request):
 
     if request.method == 'POST':
-        response = HttpResponse(content_type='text/csv; charset=utf-8')
-        response['Content-Disposition'] = 'attachment;filename=export-' + str(timezone.now()) + '.csv'
+        response = StreamingHttpResponse(content_type='application/zip; charset=utf-8')
 
-        if request.POST.get('action') == 'EXPORT-ALL':
-            # TODO: Write all csv files, zip and send
-            return render(request, 'admin/reports/goals.html')
-        elif request.POST.get('action') == 'EXPORT-GOAL':
-            GoalReport.export_csv(response)
+        if request.POST.get('action') == 'EXPORT-GOAL':
+            export_name = 'Goal_Summary'
+            unique_time = get_report_generation_time()
+
+            response['Content-Disposition'] = 'attachment;filename=' \
+                                              + export_name \
+                                              + unique_time \
+                                              + '.zip'
+            success, err = GoalReport.export_csv(request, response, export_name, unique_time)
+            if not success:
+                messages.error(request, err)
+                return redirect(reverse('content-admin:reports-goals'))
             return response
         elif request.POST.get('action') == 'EXPORT-USER':
-            UserReport.export_csv(response)
+            export_name = 'User_Summary'
+            unique_time = get_report_generation_time()
+
+            response['Content-Disposition'] = 'attachment;filename=' \
+                                              + export_name \
+                                              + unique_time \
+                                              + '.zip'
+            success, err = UserReport.export_csv(request, response, export_name, unique_time)
+            if not success:
+                messages.error(request, err)
+                return redirect(reverse('content-admin:reports-goals'))
             return response
         elif request.POST.get('action') == 'EXPORT-SAVINGS':
-            SavingsReport.export_csv(response)
+            export_name = 'Savings_Summary'
+            unique_time = get_report_generation_time()
+
+            response['Content-Disposition'] = 'attachment;filename=' \
+                                              + export_name \
+                                              + unique_time \
+                                              + '.zip'
+            success, err = SavingsReport.export_csv(request, response, export_name, unique_time)
+            if not success:
+                messages.error(request, err)
+                return redirect(reverse('content-admin:reports-goals'))
             return response
     elif request.method == 'GET':
         return render(request, 'admin/reports/goals.html')
@@ -123,26 +219,85 @@ def report_goal_exports(request):
 def report_aggregate_exports(request):
 
     if request.method == 'POST':
-        response = HttpResponse(content_type='text/csv; charset=utf-8')
-        response['Content-Disposition'] = 'attachment;filename=export-' + str(timezone.now()) + '.csv'
+        response = StreamingHttpResponse(content_type='application/zip; charset=utf-8')
 
         if request.POST.get('action') == 'EXPORT-AGGREGATE-SUMMARY':
-            SummaryGoalData.export_csv(response)
+            export_name = 'Aggregate_Summary'
+            unique_time = get_report_generation_time()
+
+            response['Content-Disposition'] = 'attachment;filename=' \
+                                              + export_name \
+                                              + unique_time \
+                                              + '.zip'
+            success, err = SummaryGoalData.export_csv(request, response, export_name, unique_time)
+            if not success:
+                messages.error(request, err)
+                return redirect(reverse('content-admin:reports-aggregates'))
             return response
         elif request.POST.get('action') == 'EXPORT-AGGREGATE-GOAL-PER-CATEGORY':
-            GoalDataPerCategory.export_csv(response)
+            export_name = 'Aggregate_Goal_Per_Category'
+            unique_time = get_report_generation_time()
+
+            response['Content-Disposition'] = 'attachment;filename=' \
+                                              + export_name \
+                                              + unique_time \
+                                              + '.zip'
+            success, err = GoalDataPerCategory.export_csv(request, response, export_name, unique_time)
+            if not success:
+                messages.error(request, err)
+                return redirect(reverse('content-admin:reports-aggregates'))
             return response
         elif request.POST.get('action') == 'EXPORT-AGGREGATE-REWARDS-DATA':
-            RewardsData.export_csv(response)
+            export_name = 'Aggregate_Rewards_Data'
+            unique_time = get_report_generation_time()
+
+            response['Content-Disposition'] = 'attachment;filename=' \
+                                              + export_name \
+                                              + unique_time \
+                                              + '.zip'
+            success, err = RewardsData.export_csv(request, response, export_name, unique_time)
+            if not success:
+                messages.error(request, err)
+                return redirect(reverse('content-admin:reports-aggregates'))
             return response
         elif request.POST.get('action') == 'EXPORT-AGGREGATE-DATA-PER-BADGE':
-            RewardsDataPerBadge.export_csv(response)
+            export_name = 'Aggregate_Data_Per_Badge'
+            unique_time = get_report_generation_time()
+
+            response['Content-Disposition'] = 'attachment;filename=' \
+                                              + export_name \
+                                              + unique_time \
+                                              + '.zip'
+            success, err = RewardsDataPerBadge.export_csv(request, response, export_name, unique_time)
+            if not success:
+                messages.error(request, err)
+                return redirect(reverse('content-admin:reports-aggregates'))
             return response
         elif request.POST.get('action') == 'EXPORT-AGGREGATE-DATA-PER-STREAK':
-            RewardsDataPerStreak.export_csv(response)
+            export_name = 'Aggregate_Data_Per_Streak'
+            unique_time = get_report_generation_time()
+
+            response['Content-Disposition'] = 'attachment;filename=' \
+                                              + export_name \
+                                              + unique_time \
+                                              + '.zip'
+            success, err = RewardsDataPerStreak.export_csv(request, response, export_name, unique_time)
+            if not success:
+                messages.error(request, err)
+                return redirect(reverse('content-admin:reports-aggregates'))
             return response
         elif request.POST.get('action') == 'EXPORT-AGGREGATE-USER-TYPE':
-            UserTypeData.export_csv(response)
+            export_name = 'Aggregate_User_Type'
+            unique_time = get_report_generation_time()
+
+            response['Content-Disposition'] = 'attachment;filename=' \
+                                              + export_name \
+                                              + unique_time \
+                                              + '.zip'
+            success, err = UserTypeData.export_csv(request, response, export_name, unique_time)
+            if not success:
+                messages.error(request, err)
+                return redirect(reverse('content-admin:reports-aggregates'))
             return response
     elif request.method == 'GET':
         return render(request, 'admin/reports/aggregates.html')
@@ -152,23 +307,72 @@ def report_aggregate_exports(request):
 def report_survey_exports(request):
 
     if request.method == 'POST':
-        response = HttpResponse(content_type='text/csv; charset=utf-8')
-        response['Content-Disposition'] = 'attachment;filename=export-' + str(timezone.now()) + '.csv'
+        response = StreamingHttpResponse(content_type='application/zip; charset=utf-8')
 
         if request.POST.get('action') == 'EXPORT-SURVEY-SUMMARY':
-            SummarySurveyData.export_csv(response)
+            export_name = 'Survey_Summary'
+            unique_time = get_report_generation_time()
+
+            response['Content-Disposition'] = 'attachment;filename=' \
+                                              + export_name \
+                                              + unique_time \
+                                              + '.zip'
+            success, err = SummarySurveyData.export_csv(request, response, export_name, unique_time)
+            if not success:
+                messages.error(request, err)
+                return redirect(reverse('content-admin:reports-surveys'))
             return response
         elif request.POST.get('action') == 'EXPORT-BASELINE-SURVEY':
-            BaselineSurveyData.export_csv(response)
+            export_name = 'Baseline_Survey'
+            unique_time = get_report_generation_time()
+
+            response['Content-Disposition'] = 'attachment;filename=' \
+                                              + export_name \
+                                              + unique_time \
+                                              + '.zip'
+            success, err = BaselineSurveyData.export_csv(request, response, export_name, unique_time)
+            if not success:
+                messages.error(request, err)
+                return redirect(reverse('content-admin:reports-surveys'))
             return response
         elif request.POST.get('action') == 'EXPORT-EATOOL1-SURVEY':
-            EaTool1SurveyData.export_csv(response)
+            export_name = 'EATool1_Survey'
+            unique_time = get_report_generation_time()
+
+            response['Content-Disposition'] = 'attachment;filename=' \
+                                              + export_name \
+                                              + unique_time \
+                                              + '.zip'
+            success, err = EaTool1SurveyData.export_csv(request, response, export_name, unique_time)
+            if not success:
+                messages.error(request, err)
+                return redirect(reverse('content-admin:reports-surveys'))
             return response
         elif request.POST.get('action') == 'EXPORT-EATOOL2-SURVEY':
-            EaTool2SurveyData.export_csv(response)
+            export_name = 'EATool2_Survey'
+            unique_time = get_report_generation_time()
+
+            response['Content-Disposition'] = 'attachment;filename=' \
+                                              + export_name \
+                                              + unique_time \
+                                              + '.zip'
+            success, err = EaTool2SurveyData.export_csv(request, response, export_name, unique_time)
+            if not success:
+                messages.error(request, err)
+                return redirect(reverse('content-admin:reports-surveys'))
             return response
         elif request.POST.get('action') == 'EXPORT-ENDLINE-SURVEY':
-            EndlineSurveyData.export_csv(response)
+            export_name = 'Endline_Survey'
+            unique_time = get_report_generation_time()
+
+            response['Content-Disposition'] = 'attachment;filename=' \
+                                              + export_name \
+                                              + unique_time \
+                                              + '.zip'
+            success, err = EndlineSurveyData.export_csv(request, response, export_name, unique_time)
+            if not success:
+                messages.error(request, err)
+                return redirect(reverse('content-admin:reports-surveys'))
             return response
     elif request.method == 'GET':
         return render(request, 'admin/reports/surveys.html')

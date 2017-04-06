@@ -9,7 +9,8 @@ from django.apps import apps
 from django.contrib.auth.models import User
 from django.db import models
 from django.db.models import Count
-import datetime
+from django.shortcuts import reverse
+
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.html import format_html
@@ -26,6 +27,7 @@ from wagtail.wagtailimages import edit_handlers as wagtail_image_edit
 from wagtail.wagtailimages import models as wagtail_image_models
 
 from .storage import ChallengeStorage, GoalImgStorage, ParticipantPictureStorage
+from .edit_handlers import ReadOnlyPanel
 
 # ======== #
 # Settings #
@@ -366,8 +368,8 @@ class Challenge(modelcluster_fields.ClusterableModel):
     terms = models.ForeignKey(Agreement, related_name='+', blank=False, null=True, on_delete=models.DO_NOTHING)
 
     prize = models.TextField(_('prize'), blank=True,
-                                      # Translators: Help text on CMS
-                                      help_text=_('Prize for winning a challenge.'))
+                             # Translators: Help text on CMS
+                             help_text=_('Prize for winning a challenge.'))
 
     class Meta:
         # Translators: Collection name on CMS
@@ -1168,6 +1170,10 @@ class Goal(models.Model):
     @property
     def progress(self):
         """Returns the progress of the Goal's savings as percentage."""
+
+        if int(self.target) == 0:
+            return 0
+
         return int((self.value / self.target) * 100)
 
     @property
@@ -1234,6 +1240,27 @@ class Goal(models.Model):
         week_id = 0
         for trans in self.transactions.all().order_by('date'):
             if WeekCalc.day_diff(date, trans.date.date()) >= 7:
+                # Next weekly window
+                week_id += 1
+                date = (date + timedelta(days=7))
+
+            # Ignore savings after the deadline
+            if week_id >= len(agg):
+                break
+
+            agg[week_id] += trans.value
+
+        return agg
+
+    def get_weekly_aggregates_to_date(self):
+        date = self.start_date
+
+        # Ensure elements so weeks with no transactions will have 0
+        agg = [0 for _ in range(self.weeks)]
+
+        week_id = 0
+        for trans in self.transactions.all().order_by('date'):
+            if WeekCalc.day_diff(date, timezone.now()) >= 7:
                 # Next weekly window
                 week_id += 1
                 date = (date + timedelta(days=7))
@@ -1767,6 +1794,46 @@ class Feedback(models.Model):
         # Translators: Collection name on CMS
         verbose_name_plural = _('feedback entries')
 
+    def mark_is_read(self):
+        if self.is_read:
+            return format_html(
+                "<input type='checkbox' id='{}' class='feedback-mark-is-read' value='{}' checked='checked' />",
+                'feedback-is-read-%d' % self.id, self.id)
+        else:
+            return format_html("<input type='checkbox' id='{}' class='feedback-mark-is-read' value='{}' />",
+                               'feedback-is-read-%d' % self.id, self.id)
+
+    @property
+    def user_username(self):
+        return format_html(
+            "<a href='%s'>%s</a>" % (reverse('wagtailusers_users:edit', args=(self.user.pk,)), self.user.username)) \
+            if self.user else format_html("<span>%s</span>" % _("Unknown user"))
+
+    def get_user_fullname(self):
+        return self.user.get_full_name() if self.user else ''
+
+    def get_user_mobile(self):
+        return self.user.profile.mobile if self.user and self.user.profile else ''
+
+    def get_user_email(self):
+        return self.user.email if self.user else ''
+
+
+Feedback.panels = [
+    wagtail_edit_handlers.MultiFieldPanel([
+        ReadOnlyPanel('date_created'),
+        wagtail_edit_handlers.FieldPanel('is_read'),
+        ReadOnlyPanel('get_type_display', heading=_('Type')),
+    ], heading=_('Feedback Header')),
+    wagtail_edit_handlers.MultiFieldPanel([
+        ReadOnlyPanel('user_username', heading=_('User')),
+        ReadOnlyPanel('get_user_fullname', heading=_('Fullname')),
+        ReadOnlyPanel('get_user_mobile', heading=_('Mobile Number')),
+        ReadOnlyPanel('get_user_email', heading=_('Email Address'))
+    ], heading=_('User Details')),
+    ReadOnlyPanel('text', heading=_('Message')),
+]
+
 
 ########################
 # Ad Hoc Notification #
@@ -1821,6 +1888,7 @@ class ExpenseCategory(models.Model):
         # Translators: Object state
         (ACTIVE, _('Active')),
     ), default=INACTIVE)
+    order = models.IntegerField(default=0, help_text=_('The order in which this category will appear on the frontend'))
 
     class Meta:
         # Translators: Collection name on CMS
@@ -1837,22 +1905,56 @@ ExpenseCategory.panels = [
     wagtail_edit_handlers.FieldPanel('name'),
     wagtail_edit_handlers.FieldPanel('state'),
     wagtail_image_edit.ImageChooserPanel('image'),
+    wagtail_edit_handlers.FieldPanel('order'),
 ]
+
+
+def datetime_default():
+    """
+    In order for the unit tests to monkey patch the current datetime, now() has to be called after patching. When it's
+    assigned directly to default, monkey patching only happens later and doesn't affect fields with
+    `default=timezone.now`.
+
+    Lambdas are not serializable by makemigration, so it's wrap in this function, which can be serialized.
+    :return: Current datetime
+    """
+    return timezone.now()
 
 
 @python_2_unicode_compatible
 class Budget(modelcluster_fields.ClusterableModel):
     # The user's monthly income
     income = models.DecimalField(_('income'), max_digits=18, decimal_places=2, default=0)
+    original_income = models.DecimalField(_('original income'), max_digits=18, decimal_places=2,
+                                          null=True, editable=False)
+    income_modified = models.DateTimeField(_('income modified on'),
+                                           null=True, editable=False)
+    income_increased_count = models.IntegerField(_('income increase count'), default=0)
+    income_decreased_count = models.IntegerField(_('income decreased count'), default=0)
 
     # The user's monthly savings
     savings = models.DecimalField(_('savings'), max_digits=18, decimal_places=2, default=0)
+    original_savings = models.DecimalField(_('original savings'), max_digits=18, decimal_places=2,
+                                           null=True, editable=False)
+    savings_modified = models.DateTimeField(_('savings modified on'),
+                                            null=True, editable=False)
+    savings_increased_count = models.IntegerField(_('savings increased count'), default=0)
+    savings_decreased_count = models.IntegerField(_('savings decreased count'), default=0)
+
+    # The user's total expenses
+    original_expense = models.DecimalField(_('original total expenses'), max_digits=18, decimal_places=2,
+                                           null=True, editable=False)
+    expense_modified = models.DateTimeField(_('total expenses modified on'),
+                                            null=True, editable=False)
+    expense_increased_count = models.IntegerField(_('total expenses increased count'), default=0)
+    expense_decreased_count = models.IntegerField(_('total expenses decreased count'), default=0)
 
     user = models.OneToOneField(User, related_name='budget', on_delete=models.CASCADE)
 
     # Audit
-
-    created_on = models.DateTimeField(default=timezone.now, editable=False)
+    created_on = models.DateTimeField(default=datetime_default, editable=False)
+    modified_on = models.DateTimeField(blank=True, null=True, editable=False)
+    modified_count = models.IntegerField(default=0, editable=False)
 
     class Meta:
         # Translators: Collection name on CMS
@@ -1892,9 +1994,24 @@ Budget.panels = [
 
 @python_2_unicode_compatible
 class Expense(models.Model):
-    name = models.CharField(max_length=100)
+    INACTIVE = 0
+    ACTIVE = 1
+
+    name = models.CharField(max_length=100, blank=True)
+    state = models.IntegerField(choices=(
+        (INACTIVE, _('Inactive')),
+        (ACTIVE, _('Active')),
+    ), default=ACTIVE)
 
     value = models.DecimalField(_('value'), max_digits=18, decimal_places=2, default=0)
+    original_value = models.DecimalField(_('original value'), max_digits=18, decimal_places=2,
+                                         null=True, editable=False)
+    value_modified = models.DateTimeField(_('value modified on'),
+                                          null=True, editable=False)
+    value_increased_count = models.IntegerField(_('value increased count'),
+                                                editable=False, default=0)
+    value_decreased_count = models.IntegerField(_('value decreased count'),
+                                                editable=False, default=0)
 
     # A null category means the expense is custom
     category = models.ForeignKey(ExpenseCategory, related_name='+', on_delete=models.SET_NULL,
@@ -1904,8 +2021,8 @@ class Expense(models.Model):
                                              null=False)
 
     # Audit
-
-    created_on = models.DateTimeField(default=timezone.now, editable=False)
+    created_on = models.DateTimeField(default=datetime_default, editable=False)
+    modified_on = models.DateTimeField(null=True, editable=False)
 
     class Meta:
         # Translators: Collection name on CMS
@@ -1923,6 +2040,12 @@ class Expense(models.Model):
         else:
             # Translators: Default Expense name
             return _('Expense')
+
+    def save(self, **kwargs):
+        if self.id is not None:
+            # id is set when instance has been saved once
+            self.modified_on = timezone.now()
+        return super(Expense, self).save(**kwargs)
 
     def __str__(self):
         return 'Expense {} {}'.format(self.preferred_name, self.value)

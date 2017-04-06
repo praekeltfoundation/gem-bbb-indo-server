@@ -733,7 +733,7 @@ class ExpenseCategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = ExpenseCategory
-        fields = ('id', 'name', 'image_url')
+        fields = ('id', 'name', 'image_url', 'order')
 
     def get_image_url(self, obj):
         request = self.context['request']
@@ -745,14 +745,22 @@ class ExpenseCategorySerializer(serializers.ModelSerializer):
 
 class ExpenseSerializer(serializers.ModelSerializer):
     id = serializers.ReadOnlyField()
-    name = serializers.CharField()
+    name = serializers.SerializerMethodField()
     value = serializers.DecimalField(18, 2, coerce_to_string=False)
-    category = serializers.PrimaryKeyRelatedField(queryset=ExpenseCategory.objects.all(), allow_null=True,
-                                                  required=False)
+    category_id = serializers.PrimaryKeyRelatedField(queryset=ExpenseCategory.objects.all(), allow_null=True,
+                                                     required=False)
 
     class Meta:
         model = Expense
-        fields = ('id', 'name', 'value', 'category')
+        fields = ('id', 'name', 'value', 'category_id')
+
+    def get_name(self, obj):
+        if obj.name:
+            return obj.name
+        elif obj.category:
+            return obj.category.name
+        else:
+            return ''
 
 
 class BudgetSerializer(serializers.ModelSerializer):
@@ -766,19 +774,97 @@ class BudgetSerializer(serializers.ModelSerializer):
         model = Budget
         fields = ('id', 'income', 'savings', 'user', 'expenses')
 
+    @staticmethod
+    def _update_field(instance, field_name, now, audit_only=False, validated_data=None,
+                      old_value=None, new_value=None):
+        """Helper method to update a Budget field, increased or decrease its audit count, and update its modified date.
+
+        Expects the instance to have these fields:
+           instance.field_name
+           instance.field_name_increased_count
+           instance.field_name_decreased_count
+           instance.field_name_modified
+
+        :returns True if the field was modified, False if it wasn't
+        """
+        assert validated_data or new_value is not None
+
+        old_value = getattr(instance, field_name) if old_value is None else old_value
+        new_value = validated_data.pop(field_name, old_value) if validated_data else new_value
+
+        if new_value != old_value:
+            if new_value > old_value:
+                count_field = field_name + '_increased_count'
+                # x += 1
+                setattr(instance, count_field, getattr(instance, count_field) + 1)
+            elif new_value < old_value:
+                count_field = field_name + '_decreased_count'
+                # x += 1
+                setattr(instance, count_field, getattr(instance, count_field) + 1)
+
+            if not audit_only:
+                setattr(instance, field_name, new_value)
+
+            setattr(instance, field_name + '_modified', now)
+
+            return True
+        return False
+
     def create(self, validated_data):
         user = validated_data.pop('user')
 
-        budget, created = self.Meta.model.objects.get_or_create(user=user)
-        budget.income = validated_data.pop('income')
-        budget.savings = validated_data.pop('savings')
+        now = timezone.now()
 
+        budget, created = self.Meta.model.objects.get_or_create(user=user)
+
+        # The upsert always clears the user's expenses
+        old_expense = budget.expense
         budget.expenses.clear()
         for expense in validated_data.pop('expenses'):
+            expense['category'] = expense.pop('category_id', None)
             budget.expenses.create(**expense)
+
+        if created:
+            budget.income = validated_data.pop('income')
+            budget.savings = validated_data.pop('savings')
+        else:
+            self._update_field(budget, 'income', now, validated_data=validated_data)
+            self._update_field(budget, 'savings', now, validated_data=validated_data)
+            self._update_field(budget, 'expense', now, audit_only=True, old_value=old_expense, new_value=budget.expense)
+
+        if budget.original_income is None:
+            budget.original_income = budget.income
+
+        if budget.original_savings is None:
+            budget.original_savings = budget.savings
+
+        if budget.original_expense is None:
+            budget.original_expense = budget.expense
+
+        # Because the budget is upserted, it is always created and then immediately modified and saved. Determining
+        # whether it is modified is thus determined by the serializer.
+        if not created:
+            budget.modified_on = now
+            budget.modified_count += 1
 
         budget.save()
 
         return budget
 
+    def update(self, instance, validated_data):
 
+        now = timezone.now()
+        modified = False
+
+        if 'income' in validated_data:
+            modified = self._update_field(instance, 'income', now, validated_data=validated_data) or modified
+
+        if 'savings' in validated_data:
+            modified = self._update_field(instance, 'savings', now, validated_data=validated_data) or modified
+
+        if modified:
+            instance.modified_on = now
+            instance.modified_count += 1
+            instance.save()
+
+        return instance
