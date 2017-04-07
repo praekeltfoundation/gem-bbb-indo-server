@@ -8,6 +8,7 @@ from django.http.response import JsonResponse, StreamingHttpResponse
 
 from wagtail.wagtailadmin import messages
 
+from content.analytics_api import initialize_analytics_reporting, get_report, connect_ga_to_user
 from .reports import GoalReport, UserReport, SavingsReport, SummaryDataPerChallenge, \
     SummaryDataPerQuiz, ChallengeExportPicture, ChallengeExportQuiz, ChallengeExportFreetext, SummaryGoalData, \
     GoalDataPerCategory, RewardsData, RewardsDataPerBadge, RewardsDataPerStreak, UserTypeData, SummarySurveyData, \
@@ -299,6 +300,13 @@ def report_aggregate_exports(request):
                 messages.error(request, err)
                 return redirect(reverse('content-admin:reports-aggregates'))
             return response
+        elif request.POST.get('action') == 'RECONCILE-GA-CAMPAIGN':
+
+            print("Starting GA connection")
+            analytics = initialize_analytics_reporting()
+            response = get_report(analytics)
+            connect_ga_to_user(response)
+            print("Finished GA connection")
     elif request.method == 'GET':
         return render(request, 'admin/reports/aggregates.html')
 

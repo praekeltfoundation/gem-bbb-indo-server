@@ -111,13 +111,13 @@ def connect_ga_to_user(response):
                 if header == 'ga:medium':
                     medium = dimension
 
-                # If the user does not already have campaign information associated with them
-                if not CampaignInformation.objects.filter(user_uuid=user_uuid).exists():
-                    CampaignInformation.objects.create(user=user_uuid.user,
-                                                       user_uuid=user_uuid,
-                                                       campaign=campaign,
-                                                       source=source,
-                                                       medium=medium)
+            # If the user does not already have campaign information associated with them
+            if user_uuid is not None and not CampaignInformation.objects.filter(user_uuid=user_uuid).exists():
+                CampaignInformation.objects.create(user=user_uuid.user,
+                                                   user_uuid=user_uuid,
+                                                   campaign=campaign,
+                                                   source=source,
+                                                   medium=medium)
 
 
 def main():
