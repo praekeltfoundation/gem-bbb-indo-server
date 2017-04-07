@@ -130,12 +130,13 @@ class QuizParticipantAdmin(ModelAdmin):
     menu_icon = 'user'
     menu_order = 200
     add_to_settings_menu = False
-    list_display = ('participant_user', 'question_challenge', 'challenge_created_on', 'question', 'selected_option',
+    list_display = ('question_challenge', 'challenge_created_on', 'participant_user', 'question', 'selected_option',
                     'date_answered', 'read', 'shortlisted', 'winner')
     # list_filter = ('entry__participant__challenge__type=Challenge.CTP_QUIZ',)
-    list_filter = ('participant_user',)
-    search_fields = ('participant_user', 'question_challenge', 'question', 'selected_option')
-
+    list_filter = ('entry__participant__challenge', 'entry__participant__is_read', 'entry__participant__is_shortlisted',
+                   'entry__participant__is_winner')
+    # search_fields = ('entry__participant__user', 'question__challenge', 'question', 'selected_option')
+    search_fields = ('entry__participant__user__username', 'entry__participant__challenge__name',)
 
 class CompetitionsAdminGroup(ModelAdminGroup):
     # Translators: CMS menu name
