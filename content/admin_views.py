@@ -300,13 +300,13 @@ def report_aggregate_exports(request):
                 messages.error(request, err)
                 return redirect(reverse('content-admin:reports-aggregates'))
             return response
-        elif request.POST.get('action') == 'RECONCILE-GA-CAMPAIGN':
-
-            print("Starting GA connection")
-            analytics = initialize_analytics_reporting()
-            response = get_report(analytics)
-            connect_ga_to_user(response)
-            print("Finished GA connection")
+        # elif request.POST.get('action') == 'RECONCILE-GA-CAMPAIGN':
+        #
+        #     print("Starting GA connection")
+        #     analytics = initialize_analytics_reporting()
+        #     response = get_report(analytics)
+        #     connect_ga_to_user(response)
+        #     print("Finished GA connection")
     elif request.method == 'GET':
         return render(request, 'admin/reports/aggregates.html')
 
