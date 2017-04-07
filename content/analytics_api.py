@@ -58,7 +58,7 @@ def get_report(analytics):
             'reportRequests': [
                 {
                     'viewId': VIEW_ID,
-                    'dateRanges': [{'startDate': '365daysAgo', 'endDate': 'today'}],
+                    'dateRanges': [{'startDate': '90daysAgo', 'endDate': 'today'}],
                     'metrics': [{'expression': 'ga:newUsers'}],
                     'dimensions': [
                         {'name': 'ga:dimension1'},
