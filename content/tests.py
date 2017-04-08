@@ -23,7 +23,7 @@ from users.models import User, RegUser, Profile
 
 # content function imports
 from .models import award_challenge_win, QuizQuestion, FreeTextQuestion, PictureQuestion, QuestionOption, \
-    award_first_goal, CustomNotification, ParticipantPicture, Entry, ParticipantAnswer, ParticipantFreeText
+    award_first_goal, CustomNotification, ParticipantPicture, Entry, ParticipantAnswer, ParticipantFreeText, Expense
 
 # content model imports
 from .models import Badge, BadgeSettings, UserBadge
@@ -2968,6 +2968,31 @@ class TestExpenseAPI(APITestCase):
 
         # Delete the expense
         delete_response = self.client.delete(reverse('api:expenses-detail', kwargs={'pk': budget.expenses.all().first().pk}))
+
+        self.assertEqual(delete_response.status_code, status.HTTP_204_NO_CONTENT, "Delete request failed")
+
+        # Is it still returned in subsequent requests?
+        budget_response = self.client.get(reverse('api:budgets-detail', kwargs={'pk': budget.pk}))
+
+        self.assertEqual(len(budget_response.data['expenses']), 0, "Unexpected number of expenses returned")
+
+    def test_expense_multidelete(self):
+        user = create_test_regular_user()
+        budget = Budget.objects.create(
+            user=user,
+            income=100000,
+            savings=30000
+        )
+        budget.expenses.create(value=20000)
+        budget.expenses.create(value=50000)
+        budget.expenses.create(value=70000)
+        budget.save()
+
+        self.client.force_authenticate(user=user)
+
+        # Delete the expense
+        delete_response = self.client.delete(reverse('api:expenses-delete'),
+                                             data={'ids': [e.id for e in Expense.objects.filter(budget_id=budget.id)]})
 
         self.assertEqual(delete_response.status_code, status.HTTP_204_NO_CONTENT, "Delete request failed")
 
