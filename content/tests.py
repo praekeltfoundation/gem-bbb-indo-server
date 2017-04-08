@@ -2974,4 +2974,4 @@ class TestExpenseAPI(APITestCase):
         # Is it still returned in subsequent requests?
         budget_response = self.client.get(reverse('api:budgets-detail', kwargs={'pk': budget.pk}))
 
-        self.assertEqual(len(budget_response.data['expenses']), 0, "Unexpected numbder of expenses returned")
+        self.assertEqual(len(budget_response.data['expenses']), 0, "Unexpected number of expenses returned")
