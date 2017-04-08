@@ -14,7 +14,7 @@ from .reports import GoalReport, UserReport, SavingsReport, SummaryDataPerChalle
     GoalDataPerCategory, RewardsData, RewardsDataPerBadge, RewardsDataPerStreak, UserTypeData, SummarySurveyData, \
     EaTool1SurveyData, BaselineSurveyData, EaTool2SurveyData, EndlineSurveyData
 
-from .models import Challenge, Participant, Feedback
+from .models import Challenge, Participant, Feedback, ParticipantAnswer
 
 
 def participant_list_view(request):
@@ -384,3 +384,12 @@ def report_survey_exports(request):
             return response
     elif request.method == 'GET':
         return render(request, 'admin/reports/surveys.html')
+
+
+def quiz_challenge_entries(request):
+    if request.method == 'GET':
+        context = {
+            'quiz_challenges': list(Challenge.objects.filter(type=Challenge.CTP_QUIZ))
+        }
+
+        return render(request, 'admin/challenge/quizentries.html', context=context)
