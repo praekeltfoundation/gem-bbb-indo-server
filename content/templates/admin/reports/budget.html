@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Budget Reports</title>
 </head>
 <body>
 
@@ -40,6 +40,8 @@
                 lang: 'lang'
             });
         });
+
+
 
 
 
@@ -97,10 +99,23 @@
         <h1>budget per user</h1>
         <form method="post">
             {% csrf_token %}
-            <button name="action" value="EXPORT-BUDGET-USER"
-                    class="button icon-download bicolor icon right">
-                Budget Per User
-            </button>
+            <div>
+                <button name="action" value="EXPORT-BUDGET-USER"
+                        class="button icon-download bicolor icon right">
+                    Budget Per User
+                </button>
+            </div>
+        </form>
+
+        <h1>expense category aggregates</h1>
+        <form method="post">
+            {% csrf_token %}
+            <div>
+                <button name="action" value="EXPORT-BUDGET-EXPENSE-CATEGORY"
+                        class="button icon-download bicolor icon right">
+                    Expense Category Aggregates
+                </button>
+            </div>
         </form>
 
         <h1>budget aggregate</h1>

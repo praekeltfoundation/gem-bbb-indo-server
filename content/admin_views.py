@@ -11,7 +11,8 @@ from wagtail.wagtailadmin import messages
 from .reports import GoalReport, UserReport, SavingsReport, SummaryDataPerChallenge, \
     SummaryDataPerQuiz, ChallengeExportPicture, ChallengeExportQuiz, ChallengeExportFreetext, SummaryGoalData, \
     GoalDataPerCategory, RewardsData, RewardsDataPerBadge, RewardsDataPerStreak, UserTypeData, SummarySurveyData, \
-    EaTool1SurveyData, BaselineSurveyData, EaTool2SurveyData, EndlineSurveyData, BudgetUserData, BudgetAggregateData
+    EaTool1SurveyData, BaselineSurveyData, EaTool2SurveyData, EndlineSurveyData, BudgetUserData, BudgetAggregateData, \
+    BudgetExpenseCategoryData
 
 from .models import Challenge, Participant, Feedback
 
@@ -377,10 +378,13 @@ def report_survey_exports(request):
     elif request.method == 'GET':
         return render(request, 'admin/reports/surveys.html')
 
+
 # Budget exports
 def report_budget_exports(request):
+
     if request.method == 'POST':
         response = StreamingHttpResponse(content_type='application/zip; charset=utf-8')
+
         if request.POST.get('action') == 'EXPORT-BUDGET-USER':
             export_name = 'Budget_User'
             unique_time = get_report_generation_time()
@@ -392,7 +396,20 @@ def report_budget_exports(request):
             success, err = BudgetUserData.export_csv(request, response, export_name, unique_time)
             if not success:
                 messages.error(request, err)
-                return redirect(reverse('content-admin:reports-surveys'))
+                return redirect(reverse('content-admin:reports-budget'))
+            return response
+        elif request.POST.get('action') == 'EXPORT-BUDGET-EXPENSE-CATEGORY':
+            export_name = 'Budget_Expense_Category'
+            unique_time = get_report_generation_time()
+
+            response['Content-Disposition'] = 'attachment;filename=' \
+                                              + export_name \
+                                              + unique_time \
+                                              + '.zip'
+            success, err = BudgetExpenseCategoryData.export_csv(request, response, export_name, unique_time)
+            if not success:
+                messages.error(request, err)
+                return redirect(reverse('content-admin:reports-budget'))
             return response
         elif request.POST.get('action') == 'EXPORT-BUDGET-AGGREGATE':
             export_name = 'Budget_Aggregate'
@@ -405,7 +422,7 @@ def report_budget_exports(request):
             success, err = BudgetAggregateData.export_csv(request, response, export_name, unique_time)
             if not success:
                 messages.error(request, err)
-                return redirect(reverse('content-admin:reports-surveys'))
+                return redirect(reverse('content-admin:reports-budget'))
             return response
     elif request.method == 'GET':
         return render(request, 'admin/reports/budget.html')
