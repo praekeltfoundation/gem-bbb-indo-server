@@ -1,4 +1,13 @@
-{% extends "modeladmin/index.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+</body>
+</html>{% extends "modeladmin/index.html" %}
 {% load i18n modeladmin_tags %}
 
 {% block titletag %}{{ view.get_meta_title }}{% endblock %}
@@ -10,6 +19,36 @@
 
 {% block extra_js %}
 {{ view.media.js }}
+{% include "wagtailadmin/shared/datetimepicker_translations.html" %}
+
+<script>
+        $(function() {
+            $('#id_date_from').datetimepicker({
+                timepicker: false,
+                format: 'Y-m-d',
+                i18n: {
+                    lang: window.dateTimePickerTranslations
+                },
+                lang: 'lang'
+            });
+            $('#id_date_to').datetimepicker({
+                timepicker: false,
+                format: 'Y-m-d',
+                i18n: {
+                    lang: window.dateTimePickerTranslations
+                },
+                lang: 'lang'
+            });
+        });
+
+
+
+
+
+
+
+</script>
+
 {% endblock %}
 
 {% block content %}
@@ -55,15 +94,25 @@
 <div>
     <div class="row nice-padding">
         <!-- Export -->
-        <h1>data exports</h1>
+        <h1>budget per user</h1>
+        <form method="post">
+            {% csrf_token %}
+            <button name="action" value="EXPORT-BUDGET-USER"
+                    class="button icon-download bicolor icon right">
+                Budget Per User
+            </button>
+        </form>
 
-        <div>
-            <h3><a href="{% url 'content-admin:reports-goals' %}" class="button">Goal exports</a></h3>
-            <h3><a href="{% url 'content-admin:reports-challenges' %}" class="button">Challenge exports</a></h3>
-            <h3><a href="{% url 'content-admin:reports-surveys' %}" class="button">Survey exports</a></h3>
-            <h3><a href="{% url 'content-admin:reports-aggregates' %}" class="button">Aggregate exports</a></h3>
-            <h3><a href="{% url 'content-admin:reports-budget' %}" class="button">Budget exports</a></h3>
-        </div>
+        <h1>budget aggregate</h1>
+        <form method="post">
+            {% csrf_token %}
+            <div>
+                <button name="action" value="EXPORT-BUDGET-AGGREGATE"
+                        class="button icon-download bicolor icon right">
+                    Budget Aggregate Data
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock %}
