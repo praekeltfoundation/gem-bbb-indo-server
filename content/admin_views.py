@@ -11,7 +11,7 @@ from wagtail.wagtailadmin import messages
 from .reports import GoalReport, UserReport, SavingsReport, SummaryDataPerChallenge, \
     SummaryDataPerQuiz, ChallengeExportPicture, ChallengeExportQuiz, ChallengeExportFreetext, SummaryGoalData, \
     GoalDataPerCategory, RewardsData, RewardsDataPerBadge, RewardsDataPerStreak, UserTypeData, SummarySurveyData, \
-    EaTool1SurveyData, BaselineSurveyData, EaTool2SurveyData, EndlineSurveyData, BudgetUserData
+    EaTool1SurveyData, BaselineSurveyData, EaTool2SurveyData, EndlineSurveyData, BudgetUserData, BudgetAggregateData
 
 from .models import Challenge, Participant, Feedback
 
@@ -402,7 +402,7 @@ def report_budget_exports(request):
                                               + export_name \
                                               + unique_time \
                                               + '.zip'
-            success, err = BudgetUserData.export_csv(request, response, export_name, unique_time)
+            success, err = BudgetAggregateData.export_csv(request, response, export_name, unique_time)
             if not success:
                 messages.error(request, err)
                 return redirect(reverse('content-admin:reports-surveys'))
