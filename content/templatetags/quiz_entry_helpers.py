@@ -13,7 +13,7 @@ def get_challenge_participants(challenge):
     participants = Participant.objects.filter(user__is_staff=False, challenge=challenge)
 
     output = '<h1>' + challenge.name + '</h1>'
-    output += '<table class=style=" background-repeat:no-repeat; width:100%;margin:0;" border="1">'
+    output += '<table style="background-repeat:no-repeat; width:100%;margin:0;" border="1">'
     for participant in participants:
         entry = Entry.objects.filter(participant=participant)
         participant_answers = ParticipantAnswer.objects.filter(entry=entry)
