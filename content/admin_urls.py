@@ -1,7 +1,7 @@
 from django.conf.urls import url, include
 
 from .admin_views import participant_mark_read, report_goal_exports, report_challenge_exports, report_aggregate_exports, \
-    report_index_page, report_survey_exports, feedback_mark_read
+    report_index_page, report_survey_exports, feedback_mark_read, report_budget_exports
 
 from .admin_views import participant_mark_shortlisted
 from .admin_views import participant_mark_winner
@@ -18,6 +18,7 @@ urlpatterns = [
     url(r'^reports/challenges/$', report_challenge_exports, name='reports-challenges'),
     url(r'^reports/aggregates/$', report_aggregate_exports, name='reports-aggregates'),
     url(r'^reports/surveys/$', report_survey_exports, name='reports-surveys'),
+    url(r'^reports/budget/$', report_budget_exports, name='reports-budget'),
 
     # Feedback controls
     url(r'^feedback/mark-read/(?P<feedback_pk>\d+)/$', feedback_mark_read, name='feedback-mark-read'),
