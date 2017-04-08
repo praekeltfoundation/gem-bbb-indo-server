@@ -9,8 +9,7 @@ from content.utilities import zip_and_encrypt, append_to_csv, create_csv, passwo
 from survey.models import CoachSurveySubmission, CoachSurvey, CoachSurveySubmissionDraft
 from users.models import Profile, CampaignInformation
 from .models import Goal, Badge, UserBadge, GoalTransaction, Challenge, Participant, QuizQuestion, QuestionOption, \
-    ParticipantAnswer, ParticipantFreeText, GoalPrototype, Budget
-
+    ParticipantAnswer, ParticipantFreeText, GoalPrototype, Budget, ExpenseCategory, Expense
 
 SUCCESS_MESSAGE_EMAIL_SENT = _('Password has been sent in an email.')
 ERROR_MESSAGE_NO_EMAIL = _('No email address associated with this account.')
@@ -1930,6 +1929,44 @@ class BudgetUserData:
         return True, SUCCESS_MESSAGE_EMAIL_SENT
 
 
+class BudgetExpenseCategoryData:
+    fields = ()
+
+    @classmethod
+    def export_csv(cls, request, stream, export_name, unique_time):
+
+        filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
+        create_csv(filename)
+
+        with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
+            append_to_csv(('expense_category', 'total_users'),
+                          csvfile)
+
+            expense_categories = ExpenseCategory.objects.all()
+            for expense_category in expense_categories:
+                num_expense_category = Expense.objects.filter(category=expense_category).count()
+                data = [
+                    expense_category.name,
+                    num_expense_category
+                ]
+
+                append_to_csv(data, csvfile)
+
+        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
+
+        if not success:
+            return False, message
+
+        try:
+            fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
+        except FileNotFoundError:
+            return False, ERROR_MESSAGE_DATA_CLEANUP
+
+        stream.streaming_content = fsock
+
+        return True, SUCCESS_MESSAGE_EMAIL_SENT
+
+
 class BudgetAggregateData:
     fields = ()
 
@@ -1944,7 +1981,7 @@ class BudgetAggregateData:
                            'num_budget_income_increased', 'num_budget_income_decreased',
                            'num_budget_savings_increased', 'num_budget_savings_decreased',
                            'num_budget_expense_increased', 'num_budget_savings_decreased',
-                           'total_users_per_expense_category'),
+                           ),
                           csvfile)
 
             budgets = Budget.objects.all()
@@ -1956,7 +1993,6 @@ class BudgetAggregateData:
             num_budget_savings_decreased = Budget.objects.all().exclude(savings_decreased_count=0).count()
             num_budget_expense_increased = Budget.objects.all().exclude(expense_increased_count=0).count()
             num_budget_expense_decreased = Budget.objects.all().exclude(expense_decreased_count=0).count()
-            total_users_per_expense_category = 0
 
             data = [
                 budgets.count(),
@@ -1966,10 +2002,8 @@ class BudgetAggregateData:
                 num_budget_savings_increased,
                 num_budget_savings_decreased,
                 num_budget_expense_increased,
-                num_budget_expense_decreased,
-                total_users_per_expense_category
+                num_budget_expense_decreased
             ]
-
 
             append_to_csv(data, csvfile)
 
