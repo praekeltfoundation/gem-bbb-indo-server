@@ -104,6 +104,11 @@ def register_reports_menu_item():
 def view_restricted_page():
     return Permission.objects.filter(codename="access_reports")
 
+
+@hooks.register('construct_main_menu')
+def register_quiz_entry_menu_item(request, menu_items):
+    menu_items.append(MenuItem('Quiz Submissions', reverse('content-admin:challenge-quizentries'), classnames='icon icon-user', order=10001))
+
 # ===== #
 # Goals #
 # ===== #
