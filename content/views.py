@@ -18,7 +18,7 @@ from wagtail.wagtailcore.models import Site
 
 from .exceptions import ImageNotFound
 
-from .models import award_entry_badge, CustomNotification
+from .models import award_entry_badge, CustomNotification, award_budget_create, UserBadge
 from .models import AchievementStat
 from .models import Badge, Challenge, Entry
 from .models import BadgeSettings, award_challenge_win
@@ -33,7 +33,7 @@ from .models import award_weekly_target_badge, WEEKLY_TARGET_2, WEEKLY_TARGET_4,
 from .models import ExpenseCategory, Budget, Expense
 
 from .permissions import IsAdminOrOwner, IsUserSelf
-from .serializers import AchievementStatSerializer, UserBadgeSerializer, CustomNotificationSerializer
+from .serializers import AchievementStatSerializer, UserBadgeSerializer, CustomNotificationSerializer, BadgeSerializer
 from .serializers import ChallengeSerializer, EntrySerializer
 from .serializers import FeedbackSerializer
 from .serializers import GoalPrototypeSerializer, GoalSerializer, GoalTransactionSerializer
@@ -799,9 +799,17 @@ class BudgetView(viewsets.ModelViewSet):
         if serializer.is_valid(raise_exception=True):
             budget = serializer.save()
 
+            badge = award_budget_create(request, serializer.instance)
+            #badges = UserBadge.objects.filter(id=badge.id)
+
+            #temp = UserBadgeSerializer(instance=badges, many=True).data
+            #print(temp)
+
+            user_badge = UserBadgeSerializer(instance=badge, context=self.get_serializer_context()).data
+
             return Response({
                 'budget': self.get_serializer(instance=budget).data,
-                'badges': []
+                'badges': [user_badge]
             }, status=status.HTTP_201_CREATED)
 
     def list(self, request, *args, **kwargs):

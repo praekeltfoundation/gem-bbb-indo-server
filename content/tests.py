@@ -1534,6 +1534,7 @@ class TestBadgeAwarding(APITestCase):
         cls.weekly_target_2 = Badge.objects.create(name='2 Weekly Target Streak of 2')
         cls.challenge_entry = Badge.objects.create(name='Challenge Participation')
         cls.challenge_win = Badge.objects.create(name='Challenge Win')
+        cls.budget_creation = Badge.objects.create(name='Budget Creation')
 
         site = Site.objects.get(is_default_site=True)
         BadgeSettings.objects.create(
@@ -1546,7 +1547,8 @@ class TestBadgeAwarding(APITestCase):
             streak_2=cls.streak_2,
             challenge_entry=cls.challenge_entry,
             weekly_target_2=cls.weekly_target_2,
-            challenge_win=cls.challenge_win
+            challenge_win=cls.challenge_win,
+            budget_creation=cls.budget_creation
         )
 
     # ------------------------ #
