@@ -1865,13 +1865,42 @@ class BudgetUserData:
         create_csv(filename)
 
         with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
+
             append_to_csv(('headers'),
                           csvfile)
 
-            data = [
-                'qwerty'
-            ]
-            append_to_csv(data, csvfile)
+            users = User.objects.filter(is_staff=False)
+
+            for user in users:
+                budget_exists = Budget.objects.filter(user=user).exists()
+
+                if not budget_exists:
+                    data = [
+                        user,
+                        budget_exists,
+                    ]
+                else:
+                    budget = Budget.objects.get(user=user)
+                    data = [
+                        user,
+                        budget_exists,
+                        budget.modified_on,
+                        budget.modified_count,
+                        budget.income_increased_count,
+                        budget.income_decreased_count,
+                        budget.savings_increased_count,
+                        budget.savings_decreased_count,
+                        budget.expense_increased_count,
+                        budget.expense_decreased_count,
+                        budget.original_expense,
+                        budget.original_income,
+                        budget.original_savings,
+                        budget.expense,
+                        budget.income,
+                        budget.savings
+                    ]
+
+                    append_to_csv(data, csvfile)
 
         success, message = pass_zip_encrypt_email(request, export_name, unique_time)
 
@@ -1889,7 +1918,6 @@ class BudgetUserData:
 
 
 class BudgetAggregateData:
-    # TODO: Refactor this report to remove code repetition
     fields = ()
 
     @classmethod
