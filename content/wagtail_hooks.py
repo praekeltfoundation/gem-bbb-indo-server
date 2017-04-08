@@ -91,8 +91,8 @@ class FreeTextParticipantAdmin(ModelAdmin):
     menu_icon = 'user'
     menu_order = 200
     add_to_settings_menu = False
-    list_display = ('participant_user','challenge', 'challenge_created_on', 'question','text','date_answered',
-                    'read','shortlisted','winner')
+    list_display = ('participant_user','challenge', 'challenge_created_on', 'question', 'text', 'date_answered',
+                    'read', 'shortlisted', 'winner')
     list_filter = ('participant__date_created', 'participant__challenge',
                    'participant__is_read', 'participant__is_shortlisted', 'participant__is_winner')
     search_fields = ('participant__user__id', 'participant__challenge__name',)
@@ -111,32 +111,12 @@ class PictureParticipantAdmin(ModelAdmin):
     menu_icon = 'user'
     menu_order = 200
     add_to_settings_menu = False
-    list_display = ('participant_user','challenge', 'challenge_created_on', 'display_picture','caption','date_answered',
-                    'read','shortlisted','winner')
+    list_display = ('participant_user', 'challenge', 'challenge_created_on', 'display_picture', 'caption',
+                    'date_answered', 'read', 'shortlisted', 'winner')
     list_filter = ('participant__date_created', 'participant__challenge',
                    'participant__is_read', 'participant__is_shortlisted', 'participant__is_winner')
     search_fields = ('participant__user__id', 'participant__challenge__name',)
 
-
-# ================== #
-# QuizParticipant #
-# ================== #
-
-class QuizParticipantAdmin(ModelAdmin):
-    index_view_extra_js = ['js/js.cookie.js', 'js/admin_participant_index.js']
-    model = ParticipantAnswer
-    # Translators: CMS menu name
-    menu_label = _('Quiz Submissions')
-    menu_icon = 'user'
-    menu_order = 200
-    add_to_settings_menu = False
-    list_display = ('question_challenge', 'challenge_created_on', 'participant_user', 'question', 'selected_option',
-                    'date_answered', 'read', 'shortlisted', 'winner')
-    # list_filter = ('entry__participant__challenge__type=Challenge.CTP_QUIZ',)
-    list_filter = ('entry__participant__challenge', 'entry__participant__is_read', 'entry__participant__is_shortlisted',
-                   'entry__participant__is_winner')
-    # search_fields = ('entry__participant__user', 'question__challenge', 'question', 'selected_option')
-    search_fields = ('entry__participant__user__username', 'entry__participant__challenge__name',)
 
 class CompetitionsAdminGroup(ModelAdminGroup):
     # Translators: CMS menu name
@@ -144,7 +124,7 @@ class CompetitionsAdminGroup(ModelAdminGroup):
     menu_icon = 'folder-open-inverse'
     menu_order = 200
     items = (ChallengeAdmin, ParticipantAdmin,
-             FreeTextParticipantAdmin, PictureParticipantAdmin, QuizParticipantAdmin,
+             FreeTextParticipantAdmin, PictureParticipantAdmin,
              FreeTextQuestionAdmin, PictureQuestionAdmin, QuizQuestionAdmin)
 
 
