@@ -826,8 +826,11 @@ class ExpenseView(viewsets.ModelViewSet):
 
     @list_route(['delete'])
     def delete(self, request, *args, **kwargs):
-        delete_list = request.data()
-        for id in delete_list:
-            obj = Expense.objects.get(id=id)
+        delete_list = request.data.getlist('ids')
+        print('delete_list')
+        print(delete_list)
+        for expense_id in delete_list:
+            obj = Expense.objects.get(id=expense_id)
             self.check_object_permissions(request, obj)
+        Expense.objects.filter(id__in=delete_list).delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
