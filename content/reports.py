@@ -9,7 +9,7 @@ from content.utilities import zip_and_encrypt, append_to_csv, create_csv, passwo
 from survey.models import CoachSurveySubmission, CoachSurvey, CoachSurveySubmissionDraft
 from users.models import Profile, CampaignInformation
 from .models import Goal, Badge, UserBadge, GoalTransaction, Challenge, Participant, QuizQuestion, QuestionOption, \
-    ParticipantAnswer, ParticipantFreeText, GoalPrototype
+    ParticipantAnswer, ParticipantFreeText, GoalPrototype, Budget
 
 
 SUCCESS_MESSAGE_EMAIL_SENT = _('Password has been sent in an email.')
@@ -1838,6 +1838,98 @@ class EndlineSurveyData:
                            # Survey questions
                            ),
                           csvfile)
+
+        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
+
+        if not success:
+            return False, message
+
+        try:
+            fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
+        except FileNotFoundError:
+            return False, ERROR_MESSAGE_DATA_CLEANUP
+
+        stream.streaming_content = fsock
+
+        return True, SUCCESS_MESSAGE_EMAIL_SENT
+
+
+class BudgetUserData:
+    # TODO: Refactor this report to remove code repetition
+    fields = ()
+
+    @classmethod
+    def export_csv(cls, request, stream, export_name, unique_time):
+
+        filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
+        create_csv(filename)
+
+        with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
+            append_to_csv(('headers'),
+                          csvfile)
+
+            data = [
+                'qwerty'
+            ]
+            append_to_csv(data, csvfile)
+
+        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
+
+        if not success:
+            return False, message
+
+        try:
+            fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
+        except FileNotFoundError:
+            return False, ERROR_MESSAGE_DATA_CLEANUP
+
+        stream.streaming_content = fsock
+
+        return True, SUCCESS_MESSAGE_EMAIL_SENT
+
+
+class BudgetAggregateData:
+    # TODO: Refactor this report to remove code repetition
+    fields = ()
+
+    @classmethod
+    def export_csv(cls, request, stream, export_name, unique_time):
+
+        filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
+        create_csv(filename)
+
+        with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
+            append_to_csv(('total_budgets_created', 'num_users_budget_edited',
+                           'num_budget_income_increased', 'num_budget_income_decreased',
+                           'num_budget_savings_increased', 'num_budget_savings_decreased',
+                           'num_budget_expense_increased', 'num_budget_savings_decreased',
+                           'total_users_per_expense_category'),
+                          csvfile)
+
+            budgets = Budget.objects.all()
+            num_users_edited = Budget.objects.filter(modified_count__not=0).count()
+            num_budget_income_increased = Budget.objects.filter(income_increased_count__not=0).count()
+            num_budget_income_decreased = Budget.objects.filter(income_decreased_count__not=0).count()
+            num_budget_savings_increased = Budget.objects.filter(savings_increased_count__not=0).count()
+            num_budget_savings_decreased = Budget.objects.filter(savings_decreased_count__not=0).count()
+            num_budget_expense_increased = Budget.objects.filter(expense_increased_count__not=0).count()
+            num_budget_expense_decreased = Budget.objects.filter(expense_decreased_count__not=0).count()
+            total_users_per_expense_category = 0
+
+            data = [
+                budgets.count(),
+                num_users_edited,
+                num_budget_income_increased,
+                num_budget_income_decreased,
+                num_budget_savings_increased,
+                num_budget_savings_decreased,
+                num_budget_expense_increased,
+                num_budget_expense_decreased,
+                total_users_per_expense_category
+            ]
+
+
+            append_to_csv(data, csvfile)
 
         success, message = pass_zip_encrypt_email(request, export_name, unique_time)
 
