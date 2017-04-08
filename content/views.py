@@ -823,3 +823,11 @@ class ExpenseView(viewsets.ModelViewSet):
     def check_object_permissions(self, request, obj):
         if not IsAdminOrOwner().has_object_permission(request, self, obj.budget):
             raise PermissionDenied("Users can only access their own expenses.")
+
+    @list_route(['delete'])
+    def delete(self, request, *args, **kwargs):
+        delete_list = request.data()
+        for id in delete_list:
+            obj = Expense.objects.get(id=id)
+            self.check_object_permissions(request, obj)
+        return Response(status=status.HTTP_204_NO_CONTENT)
