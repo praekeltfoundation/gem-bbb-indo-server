@@ -1866,7 +1866,20 @@ class BudgetUserData:
 
         with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
 
-            append_to_csv(('headers'),
+            append_to_csv(('user', 'budget_created', 'budget_last_modified',
+                           'budget_modified_count',
+                           'budget_income_increased_count',
+                           'budget_income_decreaed_count',
+                           'budget_savings_increaed_count',
+                           'budget_savings_decreaed_count',
+                           'budget_expense_increased_count',
+                           'budget_expense_decreased_count',
+                           'budget_original_expense',
+                           'budget_original_income',
+                           'budget_original_savings',
+                           'budget_current_expense',
+                           'budget_current_income',
+                           'budget_current_savings'),
                           csvfile)
 
             users = User.objects.filter(is_staff=False)
@@ -1900,7 +1913,7 @@ class BudgetUserData:
                         budget.savings
                     ]
 
-                    append_to_csv(data, csvfile)
+                append_to_csv(data, csvfile)
 
         success, message = pass_zip_encrypt_email(request, export_name, unique_time)
 
@@ -1935,13 +1948,14 @@ class BudgetAggregateData:
                           csvfile)
 
             budgets = Budget.objects.all()
-            num_users_edited = Budget.objects.filter(modified_count__not=0).count()
-            num_budget_income_increased = Budget.objects.filter(income_increased_count__not=0).count()
-            num_budget_income_decreased = Budget.objects.filter(income_decreased_count__not=0).count()
-            num_budget_savings_increased = Budget.objects.filter(savings_increased_count__not=0).count()
-            num_budget_savings_decreased = Budget.objects.filter(savings_decreased_count__not=0).count()
-            num_budget_expense_increased = Budget.objects.filter(expense_increased_count__not=0).count()
-            num_budget_expense_decreased = Budget.objects.filter(expense_decreased_count__not=0).count()
+
+            num_users_edited = Budget.objects.all().exclude(modified_count=0).count()
+            num_budget_income_increased = Budget.objects.all().exclude(income_increased_count=0).count()
+            num_budget_income_decreased = Budget.objects.all().exclude(income_decreased_count=0).count()
+            num_budget_savings_increased = Budget.objects.all().exclude(savings_increased_count=0).count()
+            num_budget_savings_decreased = Budget.objects.all().exclude(savings_decreased_count=0).count()
+            num_budget_expense_increased = Budget.objects.all().exclude(expense_increased_count=0).count()
+            num_budget_expense_decreased = Budget.objects.all().exclude(expense_decreased_count=0).count()
             total_users_per_expense_category = 0
 
             data = [
