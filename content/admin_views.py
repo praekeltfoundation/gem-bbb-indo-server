@@ -8,12 +8,13 @@ from django.http.response import JsonResponse, StreamingHttpResponse
 
 from wagtail.wagtailadmin import messages
 
+from content.analytics_api import initialize_analytics_reporting, get_report, connect_ga_to_user
 from .reports import GoalReport, UserReport, SavingsReport, SummaryDataPerChallenge, \
     SummaryDataPerQuiz, ChallengeExportPicture, ChallengeExportQuiz, ChallengeExportFreetext, SummaryGoalData, \
     GoalDataPerCategory, RewardsData, RewardsDataPerBadge, RewardsDataPerStreak, UserTypeData, SummarySurveyData, \
     EaTool1SurveyData, BaselineSurveyData, EaTool2SurveyData, EndlineSurveyData
 
-from .models import Challenge, Participant, Feedback
+from .models import Challenge, Participant, Feedback, ParticipantAnswer
 
 
 def participant_list_view(request):
@@ -299,6 +300,13 @@ def report_aggregate_exports(request):
                 messages.error(request, err)
                 return redirect(reverse('content-admin:reports-aggregates'))
             return response
+        # elif request.POST.get('action') == 'RECONCILE-GA-CAMPAIGN':
+        #
+        #     print("Starting GA connection")
+        #     analytics = initialize_analytics_reporting()
+        #     response = get_report(analytics)
+        #     connect_ga_to_user(response)
+        #     print("Finished GA connection")
     elif request.method == 'GET':
         return render(request, 'admin/reports/aggregates.html')
 
@@ -376,3 +384,12 @@ def report_survey_exports(request):
             return response
     elif request.method == 'GET':
         return render(request, 'admin/reports/surveys.html')
+
+
+def quiz_challenge_entries(request):
+    if request.method == 'GET':
+        context = {
+            'quiz_challenges': list(Challenge.objects.filter(type=Challenge.CTP_QUIZ))
+        }
+
+        return render(request, 'admin/challenge/quizentries.html', context=context)

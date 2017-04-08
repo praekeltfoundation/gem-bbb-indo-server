@@ -138,8 +138,20 @@
             </div>
         </form>
 
+        <!--<h1>download google analytics information</h1>-->
+        <!--<form method="post">-->
+            <!--{% csrf_token %}-->
+            <!--<div>-->
+                <!--<button name="action" value="RECONCILE-GA-CAMPAIGN"-->
+                        <!--class="button icon-download bicolor icon right">-->
+                    <!--Reconcile Google Analytics campaign information-->
+                <!--</button>-->
+            <!--</div>-->
+        <!--</form>-->
+
         <h1>user type data</h1>
         <form method="post">
+            <!--<p style="strong">Note: Please run the Reconcile Google Analytics function first</p>-->
             {% csrf_token %}
             <div>
                 <button name="action" value="EXPORT-AGGREGATE-USER-TYPE"
