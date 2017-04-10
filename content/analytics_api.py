@@ -96,6 +96,22 @@ def connect_ga_to_user(response):
             try:
                 user_uuid = UserUUID.objects.get(gaid=dimensions[0])
                 print('Found user with corresponding UUID')
+
+                campaign = dimensions[1]
+                source = dimensions[2]
+                medium = dimensions[3]
+
+                print("C: " + campaign + "  S: " + source + "  M: " + medium)
+
+                if CampaignInformation.objects.filter(user_uuid=user_uuid).exists():
+                    print("User already has campaign info linked with their user")
+                else:
+                    print("Setting campaign info for user")
+                    CampaignInformation.objects.create(user=user_uuid.user,
+                                                       user_uuid=user_uuid,
+                                                       campaign=campaign,
+                                                       source=source,
+                                                       medium=medium)
             except:
                 continue
 
