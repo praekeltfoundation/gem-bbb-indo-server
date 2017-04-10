@@ -106,9 +106,12 @@ def connect_ga_to_user(response):
                 if CampaignInformation.objects.filter(user_uuid=user_uuid).exists():
                     print("User already has campaign info linked with their user, updating...")
                     ci = CampaignInformation.objects.get(user_uuid=user_uuid)
-                    ci.campaign = dimensions[1]
-                    ci.source = dimensions[2]
-                    ci.medium = dimensions[3]
+                    if ci.campaign == '':
+                        ci.campaign = dimensions[1]
+                    if ci.source == '':
+                        ci.source = dimensions[2]
+                    if ci.medium == '':
+                        ci.medium = dimensions[3]
                     ci.save()
                 else:
                     print("Setting campaign info for user")
@@ -120,17 +123,17 @@ def connect_ga_to_user(response):
             except:
                 continue
 
-            campaign = dimensions[1]
-            source = dimensions[2]
-            medium = dimensions[3]
-
-            if user_uuid is not None and not CampaignInformation.objects.filter(user_uuid=user_uuid).exists():
-                print('Connecting user with their campaign information')
-                CampaignInformation.objects.create(user=user_uuid.user,
-                                                   user_uuid=user_uuid,
-                                                   campaign=campaign,
-                                                   source=source,
-                                                   medium=medium)
+            # campaign = dimensions[1]
+            # source = dimensions[2]
+            # medium = dimensions[3]
+            #
+            # if user_uuid is not None and not CampaignInformation.objects.filter(user_uuid=user_uuid).exists():
+            #     print('Connecting user with their campaign information')
+            #     CampaignInformation.objects.create(user=user_uuid.user,
+            #                                        user_uuid=user_uuid,
+            #                                        campaign=campaign,
+            #                                        source=source,
+            #                                        medium=medium)
 
 # def connect_ga_to_user(response):
 #     """Reads the data return from the Analytics API
