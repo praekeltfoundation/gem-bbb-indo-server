@@ -1204,7 +1204,7 @@ class Goal(models.Model):
 
         week_id = 0
         for trans in self.transactions.all().order_by('date'):
-            if WeekCalc.day_diff(date, timezone.now()) >= 7:
+            if WeekCalc.day_diff(date, timezone.now().date()) >= 7:
                 # Next weekly window
                 week_id += 1
                 date = (date + timedelta(days=7))
