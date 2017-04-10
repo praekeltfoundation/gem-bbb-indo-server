@@ -813,3 +813,24 @@ class BudgetView(viewsets.ModelViewSet):
         if serializer.is_valid(raise_exception=True):
             serializer.save()
             return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+
+class ExpenseView(viewsets.ModelViewSet):
+    queryset = Expense.objects.all()
+    permission_classes = (IsAuthenticated, IsAdminOrOwner)
+    http_method_names = ('delete',)
+
+    def check_object_permissions(self, request, obj):
+        if not IsAdminOrOwner().has_object_permission(request, self, obj.budget):
+            raise PermissionDenied("Users can only access their own expenses.")
+
+    @list_route(['delete'])
+    def delete(self, request, *args, **kwargs):
+        delete_list = request.data.getlist('ids')
+        print('delete_list')
+        print(delete_list)
+        for expense_id in delete_list:
+            obj = Expense.objects.get(id=expense_id)
+            self.check_object_permissions(request, obj)
+        Expense.objects.filter(id__in=delete_list).delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
