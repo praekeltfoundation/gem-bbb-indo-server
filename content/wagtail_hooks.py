@@ -8,8 +8,7 @@ from wagtail.wagtailadmin.menu import MenuItem
 from wagtail.wagtailcore import hooks
 
 from content.menu import ReportMenuItem
-from .models import Challenge, Participant, CustomNotification, Feedback, ParticipantAnswer
-from users.models import Profile
+from .models import Feedback
 from .models import Challenge, Participant, CustomNotification, ParticipantFreeText, ParticipantPicture
 from .models import FreeTextQuestion, PictureQuestion, QuizQuestion
 from .models import GoalPrototype
@@ -152,8 +151,10 @@ def view_restricted_page():
 def register_quiz_entry_menu_item(request, menu_items):
     for menu_item in menu_items:
         if menu_item.name == 'competitions':
-            menu_item.menu.registered_menu_items.append(MenuItem('Quiz Submissions', reverse('content-admin:challenge-quizentries'), classnames='icon icon-user', order=10001))
-            
+            menu_item.menu.registered_menu_items.append(MenuItem('Quiz Submissions',
+                                                                 reverse('content-admin:challenge-quizentries'),
+                                                                 classnames='icon icon-user', order=10001))
+
 # ===== #
 # Goals #
 # ===== #
