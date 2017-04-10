@@ -104,7 +104,12 @@ def connect_ga_to_user(response):
                 print("C: " + campaign + "  S: " + source + "  M: " + medium)
 
                 if CampaignInformation.objects.filter(user_uuid=user_uuid).exists():
-                    print("User already has campaign info linked with their user")
+                    print("User already has campaign info linked with their user, updating...")
+                    ci = CampaignInformation.objects.get(user_uuid=user_uuid)
+                    ci.campaign = dimensions[1]
+                    ci.source = dimensions[2]
+                    ci.medium = dimensions[3]
+                    ci.save()
                 else:
                     print("Setting campaign info for user")
                     CampaignInformation.objects.create(user=user_uuid.user,
