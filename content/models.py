@@ -1734,7 +1734,11 @@ def award_budget_create(request, budget):
 
     if Budget.objects.filter(user=budget.user).count() >= 1:
         user_badge, created = UserBadge.objects.get_or_create(user=budget.user, badge=badge_settings.budget_creation)
-        return user_badge
+
+        if not created:
+            return award_budget_edit(request, budget)
+        else:
+            return user_badge
 
     return None
 
@@ -1751,9 +1755,8 @@ def award_budget_edit(request, budget):
 
     if Budget.objects.filter(user=budget.user).exists():
         budget = Budget.objects.get(user=budget.user)
-        if budget.modified_count is not 0:
-            user_badge, created = UserBadge.objects.get_or_create(user=budget.user, badge=badge_settings.budget_edit)
-            return user_badge
+        user_badge, created = UserBadge.objects.get_or_create(user=budget.user, badge=badge_settings.budget_edit)
+        return user_badge
     else:
         return None
 
