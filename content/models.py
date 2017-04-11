@@ -1749,7 +1749,7 @@ def award_budget_edit(request, budget):
     if budget.pk is None:
         raise ValueError(_('Budget instance must be saved before it can be awarded badges'))
 
-    if Budget.objects.get(user=budget.user).exists():
+    if Budget.objects.filter(user=budget.user).exists():
         budget = Budget.objects.get(user=budget.user)
         if budget.modified_count is not 0:
             user_badge, created = UserBadge.objects.get_or_create(user=budget.user, badge=badge_settings.budget_edit)
