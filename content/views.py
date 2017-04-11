@@ -18,7 +18,7 @@ from wagtail.wagtailcore.models import Site
 
 from .exceptions import ImageNotFound
 
-from .models import award_entry_badge, CustomNotification, award_budget_create, UserBadge
+from .models import award_entry_badge, CustomNotification, award_budget_create, UserBadge, award_budget_edit
 from .models import AchievementStat
 from .models import Badge, Challenge, Entry
 from .models import BadgeSettings, award_challenge_win
@@ -799,11 +799,10 @@ class BudgetView(viewsets.ModelViewSet):
         if serializer.is_valid(raise_exception=True):
             budget = serializer.save()
 
-            badge = award_budget_create(request, serializer.instance)
-            #badges = UserBadge.objects.filter(id=badge.id)
-
-            #temp = UserBadgeSerializer(instance=badges, many=True).data
-            #print(temp)
+            if budget.is_update:
+                badge = award_budget_edit(request, serializer.instance)
+            else:
+                badge = award_budget_create(request, serializer.instance)
 
             user_badge = UserBadgeSerializer(instance=badge, context=self.get_serializer_context()).data
 
