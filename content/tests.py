@@ -1535,6 +1535,7 @@ class TestBadgeAwarding(APITestCase):
         cls.challenge_entry = Badge.objects.create(name='Challenge Participation')
         cls.challenge_win = Badge.objects.create(name='Challenge Win')
         cls.budget_creation = Badge.objects.create(name='Budget Creation')
+        cls.budget_edit = Badge.objects.create(name='Budget Edit')
 
         site = Site.objects.get(is_default_site=True)
         BadgeSettings.objects.create(
@@ -1548,7 +1549,8 @@ class TestBadgeAwarding(APITestCase):
             challenge_entry=cls.challenge_entry,
             weekly_target_2=cls.weekly_target_2,
             challenge_win=cls.challenge_win,
-            budget_creation=cls.budget_creation
+            budget_creation=cls.budget_creation,
+            budget_edit=cls.budget_edit
         )
 
     # ------------------------ #
@@ -2757,7 +2759,8 @@ class TestBudgetAPI(APITestCase):
             'income': new_income
         }, format='json')
 
-        self.assertEqual(response.status_code, status.HTTP_200_OK, "Budget update request failed.")
+        # 201 Created because a budget edit badge is awarded with every budget
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, "Budget update request failed.")
 
         updated_budget = Budget.objects.get(pk=budget.pk)
         self.assertEqual(updated_budget.income, new_income, "Budget income not updated")

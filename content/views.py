@@ -18,7 +18,7 @@ from wagtail.wagtailcore.models import Site
 
 from .exceptions import ImageNotFound
 
-from .models import award_entry_badge, CustomNotification, award_budget_create, UserBadge
+from .models import award_entry_badge, CustomNotification, award_budget_create, UserBadge, award_budget_edit
 from .models import AchievementStat
 from .models import Badge, Challenge, Entry
 from .models import BadgeSettings, award_challenge_win
@@ -800,10 +800,6 @@ class BudgetView(viewsets.ModelViewSet):
             budget = serializer.save()
 
             badge = award_budget_create(request, serializer.instance)
-            #badges = UserBadge.objects.filter(id=badge.id)
-
-            #temp = UserBadgeSerializer(instance=badges, many=True).data
-            #print(temp)
 
             user_badge = UserBadgeSerializer(instance=badge, context=self.get_serializer_context()).data
 
@@ -819,8 +815,19 @@ class BudgetView(viewsets.ModelViewSet):
     def partial_update(self, request, pk=None, *args, **kwargs):
         serializer = self.get_serializer(instance=self.get_object(), data=request.data, partial=True)
         if serializer.is_valid(raise_exception=True):
-            serializer.save()
-            return Response(data=serializer.data, status=status.HTTP_200_OK)
+            # serializer.save()
+            # return Response(data=serializer.data, status=status.HTTP_200_OK)
+
+            budget = serializer.save()
+
+            badge = award_budget_edit(request, serializer.instance)
+
+            user_badge = UserBadgeSerializer(instance=badge, context=self.get_serializer_context()).data
+
+            return Response({
+                'budget': self.get_serializer(instance=budget).data,
+                'badges': [user_badge]
+            }, status=status.HTTP_201_CREATED)
 
 
 class ExpenseView(viewsets.ModelViewSet):

@@ -1799,7 +1799,7 @@ def award_challenge_win(site, user, participant):
 
 
 def award_budget_create(request, budget):
-    """Awarded to users when they create their first Goal."""
+    """Awarded to users when they create their first Budget."""
     badge_settings = BadgeSettings.for_site(request.site)
 
     # TODO: Refactor repeated None guards into reusable function
@@ -1814,9 +1814,34 @@ def award_budget_create(request, budget):
 
     if Budget.objects.filter(user=budget.user).count() >= 1:
         user_badge, created = UserBadge.objects.get_or_create(user=budget.user, badge=badge_settings.budget_creation)
-        return user_badge
+
+        if not created:
+            return award_budget_edit(request, budget)
+        else:
+            return user_badge
 
     return None
+
+
+def award_budget_edit(request, budget):
+    """Awarded to users when they edit their Budget."""
+    badge_settings = BadgeSettings.for_site(request.site)
+
+    if badge_settings.budget_edit is None:
+        return None
+
+    if not badge_settings.budget_edit.is_active:
+        return None
+
+    if budget.pk is None:
+        raise ValueError(_('Budget instance must be saved before it can be awarded badges'))
+
+    if Budget.objects.filter(user=budget.user).exists():
+        budget = Budget.objects.get(user=budget.user)
+        user_badge, created = UserBadge.objects.get_or_create(user=budget.user, badge=badge_settings.budget_edit)
+        return user_badge
+    else:
+        return None
 
 
 ############
