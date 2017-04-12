@@ -74,7 +74,7 @@ def get_report(analytics):
 def connect_ga_to_user(response):
     """Reads the data return from the Analytics API
     Collects the campaign, source and medium information and creates a CampaignInformation
-    linking to the user.    
+    linking to the user.
     """
 
     if response is None:
@@ -93,31 +93,107 @@ def connect_ga_to_user(response):
             source = ''
             medium = ''
 
-            for header, dimension in zip(dimension_headers, dimensions):
-                # Custom dimension GAID
-                if header == 'ga:dimension1':
-                    try:
-                        user_uuid = UserUUID.objects.get(gaid=dimension)
-                    except:
-                        # No UserUUID information for this user'
-                        break
+            try:
+                user_uuid = UserUUID.objects.get(gaid=dimensions[0])
+                print('Found user with corresponding UUID')
 
-                if header == 'ga:campaign':
-                    campaign = dimension
+                campaign = dimensions[1]
+                source = dimensions[2]
+                medium = dimensions[3]
 
-                if header == 'ga:source':
-                    source = dimension
+                print("C: " + campaign + "  S: " + source + "  M: " + medium)
 
-                if header == 'ga:medium':
-                    medium = dimension
+                if CampaignInformation.objects.filter(user_uuid=user_uuid).exists():
+                    print("User already has campaign info linked with their user, updating...")
+                    ci = CampaignInformation.objects.get(user_uuid=user_uuid)
+                    if ci.campaign == '':
+                        ci.campaign = dimensions[1]
+                    if ci.source == '':
+                        ci.source = dimensions[2]
+                    if ci.medium == '':
+                        ci.medium = dimensions[3]
+                    ci.save()
+                else:
+                    print("Setting campaign info for user")
+                    CampaignInformation.objects.create(user=user_uuid.user,
+                                                       user_uuid=user_uuid,
+                                                       campaign=campaign,
+                                                       source=source,
+                                                       medium=medium)
+            except:
+                continue
 
-            # If the user does not already have campaign information associated with them
-            if user_uuid is not None and not CampaignInformation.objects.filter(user_uuid=user_uuid).exists():
-                CampaignInformation.objects.create(user=user_uuid.user,
-                                                   user_uuid=user_uuid,
-                                                   campaign=campaign,
-                                                   source=source,
-                                                   medium=medium)
+            # campaign = dimensions[1]
+            # source = dimensions[2]
+            # medium = dimensions[3]
+            #
+            # if user_uuid is not None and not CampaignInformation.objects.filter(user_uuid=user_uuid).exists():
+            #     print('Connecting user with their campaign information')
+            #     CampaignInformation.objects.create(user=user_uuid.user,
+            #                                        user_uuid=user_uuid,
+            #                                        campaign=campaign,
+            #                                        source=source,
+            #                                        medium=medium)
+
+# def connect_ga_to_user(response):
+#     """Reads the data return from the Analytics API
+#     Collects the campaign, source and medium information and creates a CampaignInformation
+#     linking to the user.
+#     """
+#
+#     if response is None:
+#         return
+#
+#     for report in response.get('reports', []):
+#         column_header = report.get('columnHeader', {})
+#         dimension_headers = column_header.get('dimensions', [])
+#         rows = report.get('data', {}).get('rows', [])
+#
+#         for row in rows:
+#             dimensions = row.get('dimensions', [])
+#
+#             user_uuid = None
+#             campaign = ''
+#             source = ''
+#             medium = ''
+#
+#             for header, dimension in zip(dimension_headers, dimensions):
+#                 # Custom dimension GAID
+#                 if header == 'ga:dimension1':
+#                     print("Dimension1: " + dimension)
+#                     try:
+#                         user_uuid = UserUUID.objects.get(gaid=dimension)
+#                     except:
+#                         # No UserUUID information for this user'
+#                         pass
+#
+#                 if header == 'ga:campaign':
+#                     campaign = dimension
+#
+#                 if header == 'ga:source':
+#                     source = dimension
+#
+#                 if header == 'ga:medium':
+#                     medium = dimension
+#
+#                 print("Campaign info count: " + str(CampaignInformation.objects.all().count()))
+#
+#                 try:
+#                     for user_u in UserUUID.objects.all():
+#                         if user_u.gaid == dimension:
+#                             print("User UUID: " + user_u)
+#                             print("Dimension: " + dimension)
+#                             print("It's a match!")
+#                 except:
+#                     pass
+#
+#             # If the user does not already have campaign information associated with them
+#             if user_uuid is not None and not CampaignInformation.objects.filter(user_uuid=user_uuid).exists():
+#                 CampaignInformation.objects.create(user=user_uuid.user,
+#                                                    user_uuid=user_uuid,
+#                                                    campaign=campaign,
+#                                                    source=source,
+#                                                    medium=medium)
 
 
 def main():

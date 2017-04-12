@@ -31,6 +31,7 @@ router.register(r'goal-prototypes', content_views.GoalPrototypeView, base_name='
 router.register(r'notifications', content_views.CustomNotificationViewSet, base_name='notifications')
 router.register(r'expense-categories', content_views.ExpenseCategoryView, base_name='expense-categories')
 router.register(r'budgets', content_views.BudgetView, base_name='budgets')
+router.register(r'expenses', content_views.ExpenseView, base_name='expenses')
 
 api_urls = [
     # authentication endpoints

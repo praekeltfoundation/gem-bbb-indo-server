@@ -1,4 +1,13 @@
-{% extends "modeladmin/index.html" %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Budget Reports</title>
+</head>
+<body>
+
+</body>
+</html>{% extends "modeladmin/index.html" %}
 {% load i18n modeladmin_tags %}
 
 {% block titletag %}{{ view.get_meta_title }}{% endblock %}
@@ -31,6 +40,8 @@
                 lang: 'lang'
             });
         });
+
+
 
 
 
@@ -85,78 +96,35 @@
 <div>
     <div class="row nice-padding">
         <!-- Export -->
-        <h1>summary goal data</h1>
-        <form method="post">
-            {% csrf_token %}
-            <button name="action" value="EXPORT-AGGREGATE-SUMMARY"
-                    class="button icon-download bicolor icon right">
-                Total Goal Data
-            </button>
-        </form>
-
-        <h1>goal data per category</h1>
+        <h1>budget per user</h1>
         <form method="post">
             {% csrf_token %}
             <div>
-                <button name="action" value="EXPORT-AGGREGATE-GOAL-PER-CATEGORY"
+                <button name="action" value="EXPORT-BUDGET-USER"
                         class="button icon-download bicolor icon right">
-                    Goal Data Per Category
+                    Budget Per User
                 </button>
             </div>
         </form>
 
-        <h1>rewards data</h1>
+        <h1>expense category aggregates</h1>
         <form method="post">
             {% csrf_token %}
             <div>
-                <button name="action" value="EXPORT-AGGREGATE-REWARDS-DATA"
+                <button name="action" value="EXPORT-BUDGET-EXPENSE-CATEGORY"
                         class="button icon-download bicolor icon right">
-                    Rewards Data
+                    Expense Category Aggregates
                 </button>
             </div>
         </form>
 
-        <h1>rewards data per badge name</h1>
+        <h1>budget aggregate</h1>
         <form method="post">
             {% csrf_token %}
             <div>
-                <button name="action" value="EXPORT-AGGREGATE-DATA-PER-BADGE"
+                <button name="action" value="EXPORT-BUDGET-AGGREGATE"
                         class="button icon-download bicolor icon right">
-                    Rewards Data Per Badge Name
-                </button>
-            </div>
-        </form>
-
-        <h1>rewards data per streak type</h1>
-        <form method="post">
-            {% csrf_token %}
-            <div>
-                <button name="action" value="EXPORT-AGGREGATE-DATA-PER-STREAK"
-                        class="button icon-download bicolor icon right">
-                    Rewards Data Per Streak Type
-                </button>
-            </div>
-        </form>
-
-        <h1>download google analytics information</h1>
-        <form method="post">
-            {% csrf_token %}
-            <div>
-                <button name="action" value="RECONCILE-GA-CAMPAIGN"
-                        class="button icon-download bicolor icon right">
-                    Reconcile Google Analytics campaign information
-                </button>
-            </div>
-        </form>
-
-        <h1>user type data</h1>
-        <form method="post">
-            <!--<p style="strong">Note: Please run the Reconcile Google Analytics function first</p>-->
-            {% csrf_token %}
-            <div>
-                <button name="action" value="EXPORT-AGGREGATE-USER-TYPE"
-                        class="button icon-download bicolor icon right">
-                    User Type Data
+                    Budget Aggregate Data
                 </button>
             </div>
         </form>

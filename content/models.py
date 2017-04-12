@@ -161,6 +161,24 @@ class BadgeSettings(BaseSetting):
         blank=False, null=True
     )
 
+    budget_creation = models.ForeignKey(
+        'Badge',
+        verbose_name=_('Budget Creation'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded when a user has created a budget."),
+        blank=False, null=True
+    )
+
+    budget_edit = models.ForeignKey(
+        'Badge',
+        verbose_name=_('Budget Edit'),
+        related_name='+',
+        on_delete=models.SET_NULL,
+        help_text=_("Awarded when a user has edited a budget."),
+        blank=False, null=True
+    )
+
     class Meta:
         verbose_name = 'Badge Setup'
 
@@ -215,6 +233,14 @@ BadgeSettings.panels = [
     ],
         # Translators: Admin field name
         heading=_("challenge badges")),
+
+    wagtail_edit_handlers.MultiFieldPanel([
+        wagtail_edit_handlers.FieldPanel('budget_creation'),
+        wagtail_edit_handlers.FieldPanel('budget_edit'),
+    ],
+
+        # Translators: Admin field name
+        heading=_("budget badges")),
 ]
 
 
@@ -1284,7 +1310,7 @@ class Goal(models.Model):
 
         week_id = 0
         for trans in self.transactions.all().order_by('date'):
-            if WeekCalc.day_diff(date, timezone.now()) >= 7:
+            if WeekCalc.day_diff(date, timezone.now().date()) >= 7:
                 # Next weekly window
                 week_id += 1
                 date = (date + timedelta(days=7))
@@ -1467,6 +1493,8 @@ class Badge(models.Model):
     WEEKLY_TARGET_6 = 11
     CHALLENGE_ENTRY = 12
     CHALLENGE_WIN = 13
+    BUDGET_CREATE = 14
+    BUDGET_EDIT = 15
 
     BADGE_TYPES = (
         (NONE, _('None')),
@@ -1482,7 +1510,9 @@ class Badge(models.Model):
         (WEEKLY_TARGET_4, _('4 Week On Target')),
         (WEEKLY_TARGET_6, _('6 Week On Target')),
         (CHALLENGE_ENTRY, _('Challenge Participation')),
-        (CHALLENGE_WIN, _('Challenge Winner'))
+        (CHALLENGE_WIN, _('Challenge Winner')),
+        (BUDGET_CREATE, _('Budget Creation')),
+        (BUDGET_EDIT, _('Budget Edit'))
     )
 
     name = models.CharField(max_length=255)
@@ -1763,6 +1793,27 @@ def award_challenge_win(site, user, participant):
 
     if participant.is_winner:
         user_badge, created = participant.badges.get_or_create(user=user, badge=badge)
+        return user_badge
+
+    return None
+
+
+def award_budget_create(request, budget):
+    """Awarded to users when they create their first Goal."""
+    badge_settings = BadgeSettings.for_site(request.site)
+
+    # TODO: Refactor repeated None guards into reusable function
+    if badge_settings.budget_creation is None:
+        return None
+
+    if not badge_settings.budget_creation.is_active:
+        return None
+
+    if budget.pk is None:
+        raise ValueError(_('Budget instance must be saved before it can be awarded badges.'))
+
+    if Budget.objects.filter(user=budget.user).count() >= 1:
+        user_badge, created = UserBadge.objects.get_or_create(user=budget.user, badge=badge_settings.budget_creation)
         return user_badge
 
     return None

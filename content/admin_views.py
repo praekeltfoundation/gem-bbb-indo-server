@@ -12,7 +12,8 @@ from content.analytics_api import initialize_analytics_reporting, get_report, co
 from .reports import GoalReport, UserReport, SavingsReport, SummaryDataPerChallenge, \
     SummaryDataPerQuiz, ChallengeExportPicture, ChallengeExportQuiz, ChallengeExportFreetext, SummaryGoalData, \
     GoalDataPerCategory, RewardsData, RewardsDataPerBadge, RewardsDataPerStreak, UserTypeData, SummarySurveyData, \
-    EaTool1SurveyData, BaselineSurveyData, EaTool2SurveyData, EndlineSurveyData
+    EaTool1SurveyData, BaselineSurveyData, EaTool2SurveyData, EndlineSurveyData, BudgetUserData, BudgetAggregateData, \
+    BudgetExpenseCategoryData
 
 from .models import Challenge, Participant, Feedback, ParticipantAnswer
 
@@ -300,13 +301,21 @@ def report_aggregate_exports(request):
                 messages.error(request, err)
                 return redirect(reverse('content-admin:reports-aggregates'))
             return response
-        # elif request.POST.get('action') == 'RECONCILE-GA-CAMPAIGN':
-        #
-        #     print("Starting GA connection")
-        #     analytics = initialize_analytics_reporting()
-        #     response = get_report(analytics)
-        #     connect_ga_to_user(response)
-        #     print("Finished GA connection")
+        elif request.POST.get('action') == 'RECONCILE-GA-CAMPAIGN':
+            print("Starting GA connection")
+            # print("Initializing analytics reporting")
+            analytics = initialize_analytics_reporting()
+            # print(analytics)
+            # print("Finished initialisation")
+            # print("Getting report")
+            response = get_report(analytics)
+            # print(response)
+            # print("Finished getting report")
+            # print("Connecting GA to user")
+            connect_ga_to_user(response)
+            # print("Finished connecting GA to user")
+            print("Finished GA connection")
+            return render(request, 'admin/reports/aggregates.html')
     elif request.method == 'GET':
         return render(request, 'admin/reports/aggregates.html')
 
@@ -393,3 +402,51 @@ def quiz_challenge_entries(request):
         }
 
         return render(request, 'admin/challenge/quizentries.html', context=context)
+
+# Budget exports
+def report_budget_exports(request):
+
+    if request.method == 'POST':
+        response = StreamingHttpResponse(content_type='application/zip; charset=utf-8')
+
+        if request.POST.get('action') == 'EXPORT-BUDGET-USER':
+            export_name = 'Budget_User'
+            unique_time = get_report_generation_time()
+
+            response['Content-Disposition'] = 'attachment;filename=' \
+                                              + export_name \
+                                              + unique_time \
+                                              + '.zip'
+            success, err = BudgetUserData.export_csv(request, response, export_name, unique_time)
+            if not success:
+                messages.error(request, err)
+                return redirect(reverse('content-admin:reports-budget'))
+            return response
+        elif request.POST.get('action') == 'EXPORT-BUDGET-EXPENSE-CATEGORY':
+            export_name = 'Budget_Expense_Category'
+            unique_time = get_report_generation_time()
+
+            response['Content-Disposition'] = 'attachment;filename=' \
+                                              + export_name \
+                                              + unique_time \
+                                              + '.zip'
+            success, err = BudgetExpenseCategoryData.export_csv(request, response, export_name, unique_time)
+            if not success:
+                messages.error(request, err)
+                return redirect(reverse('content-admin:reports-budget'))
+            return response
+        elif request.POST.get('action') == 'EXPORT-BUDGET-AGGREGATE':
+            export_name = 'Budget_Aggregate'
+            unique_time = get_report_generation_time()
+
+            response['Content-Disposition'] = 'attachment;filename=' \
+                                              + export_name \
+                                              + unique_time \
+                                              + '.zip'
+            success, err = BudgetAggregateData.export_csv(request, response, export_name, unique_time)
+            if not success:
+                messages.error(request, err)
+                return redirect(reverse('content-admin:reports-budget'))
+            return response
+    elif request.method == 'GET':
+        return render(request, 'admin/reports/budget.html')

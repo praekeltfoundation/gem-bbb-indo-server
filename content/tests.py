@@ -23,7 +23,7 @@ from users.models import User, RegUser, Profile
 
 # content function imports
 from .models import award_challenge_win, QuizQuestion, FreeTextQuestion, PictureQuestion, QuestionOption, \
-    award_first_goal, CustomNotification, ParticipantPicture, Entry, ParticipantAnswer, ParticipantFreeText
+    award_first_goal, CustomNotification, ParticipantPicture, Entry, ParticipantAnswer, ParticipantFreeText, Expense
 
 # content model imports
 from .models import Badge, BadgeSettings, UserBadge
@@ -1534,6 +1534,7 @@ class TestBadgeAwarding(APITestCase):
         cls.weekly_target_2 = Badge.objects.create(name='2 Weekly Target Streak of 2')
         cls.challenge_entry = Badge.objects.create(name='Challenge Participation')
         cls.challenge_win = Badge.objects.create(name='Challenge Win')
+        cls.budget_creation = Badge.objects.create(name='Budget Creation')
 
         site = Site.objects.get(is_default_site=True)
         BadgeSettings.objects.create(
@@ -1546,7 +1547,8 @@ class TestBadgeAwarding(APITestCase):
             streak_2=cls.streak_2,
             challenge_entry=cls.challenge_entry,
             weekly_target_2=cls.weekly_target_2,
-            challenge_win=cls.challenge_win
+            challenge_win=cls.challenge_win,
+            budget_creation=cls.budget_creation
         )
 
     # ------------------------ #
@@ -2763,7 +2765,6 @@ class TestBudgetAPI(APITestCase):
 
 
 class TestBudgetAuditing(APITestCase):
-
     def test_budget_create(self):
         """Ensures that the initial state of a created Budget is correct."""
 
@@ -2952,3 +2953,52 @@ class TestBudgetAuditing(APITestCase):
             # Budget
             self.assertEqual(budget.modified_on, dt1, "Budget modified datetime not updated")
             self.assertEqual(budget.modified_count, 1, "Budget modified count not updated")
+
+
+class TestExpenseAPI(APITestCase):
+    def test_expense_delete(self):
+        user = create_test_regular_user()
+        budget = Budget.objects.create(
+            user=user,
+            income=100000,
+            savings=30000
+        )
+        budget.expenses.create(value=20000)
+        budget.save()
+
+        self.client.force_authenticate(user=user)
+
+        # Delete the expense
+        delete_response = self.client.delete(reverse('api:expenses-detail', kwargs={'pk': budget.expenses.all().first().pk}))
+
+        self.assertEqual(delete_response.status_code, status.HTTP_204_NO_CONTENT, "Delete request failed")
+
+        # Is it still returned in subsequent requests?
+        budget_response = self.client.get(reverse('api:budgets-detail', kwargs={'pk': budget.pk}))
+
+        self.assertEqual(len(budget_response.data['expenses']), 0, "Unexpected number of expenses returned")
+
+    def test_expense_multidelete(self):
+        user = create_test_regular_user()
+        budget = Budget.objects.create(
+            user=user,
+            income=100000,
+            savings=30000
+        )
+        budget.expenses.create(value=20000)
+        budget.expenses.create(value=50000)
+        budget.expenses.create(value=70000)
+        budget.save()
+
+        self.client.force_authenticate(user=user)
+
+        # Delete the expense
+        delete_response = self.client.delete(reverse('api:expenses-delete'),
+                                             data={'ids': [e.id for e in Expense.objects.filter(budget_id=budget.id)]})
+
+        self.assertEqual(delete_response.status_code, status.HTTP_204_NO_CONTENT, "Delete request failed")
+
+        # Is it still returned in subsequent requests?
+        budget_response = self.client.get(reverse('api:budgets-detail', kwargs={'pk': budget.pk}))
+
+        self.assertEqual(len(budget_response.data['expenses']), 0, "Unexpected number of expenses returned")
