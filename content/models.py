@@ -1747,6 +1747,9 @@ def award_budget_edit(request, budget):
     """Awarded to users when they edit their Budget."""
     badge_settings = BadgeSettings.for_site(request.site)
 
+    if badge_settings.budget_edit is None:
+        return None
+
     if not badge_settings.budget_edit.is_active:
         return None
 
