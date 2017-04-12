@@ -149,11 +149,14 @@ def view_restricted_page():
 
 @hooks.register('construct_main_menu')
 def register_quiz_entry_menu_item(request, menu_items):
+    custom_menu_item = MenuItem('Quiz Submissions', reverse('content-admin:challenge-quizentries'), classnames='icon icon-user', order=10001)
     for menu_item in menu_items:
         if menu_item.name == 'competitions':
-            menu_item.menu.registered_menu_items.append(MenuItem('Quiz Submissions',
-                                                                 reverse('content-admin:challenge-quizentries'),
-                                                                 classnames='icon icon-user', order=10001))
+            for reg_menu_item in menu_item.menu.registered_menu_items:
+                if reg_menu_item.name == 'quiz-submissions':
+                    return
+
+            menu_item.menu.registered_menu_items.append(custom_menu_item)
 
 # ===== #
 # Goals #
