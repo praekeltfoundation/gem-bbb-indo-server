@@ -138,16 +138,19 @@
             </div>
         </form>
 
-        <h1>download google analytics information</h1>
-        <form method="post">
-            {% csrf_token %}
-            <div>
-                <button name="action" value="RECONCILE-GA-CAMPAIGN"
-                        class="button icon-download bicolor icon right">
-                    Reconcile Google Analytics campaign information
-                </button>
-            </div>
-        </form>
+        <!--<h1>download google analytics information</h1>-->
+        <!--<form method="post">-->
+            <!--{% csrf_token %}-->
+            <!--<div>-->
+                <!--<p>This button does not start any download. It forces the backend-->
+                <!--to query Google Analytics for campaign information from the last-->
+                <!--90 days, and links it to the user.</p>-->
+                <!--<button name="action" value="RECONCILE-GA-CAMPAIGN"-->
+                        <!--class="button icon-download bicolor icon right">-->
+                    <!--Reconcile Google Analytics campaign information-->
+                <!--</button>-->
+            <!--</div>-->
+        <!--</form>-->
 
         <h1>user type data</h1>
         <form method="post">
