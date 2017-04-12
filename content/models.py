@@ -816,6 +816,30 @@ class ParticipantAnswer(models.Model):
     # Translators: CMS field name (refers to dates)
     date_saved = models.DateTimeField(_('saved on'), default=timezone.now)
 
+    @property
+    def participant_user(self):
+        return self.entry.participant.user
+
+    @property
+    def question_challenge(self):
+        return self.question.challenge
+
+    @property
+    def challenge_created_on(self):
+        return self.entry.participant.date_created
+
+    @property
+    def read(self):
+        return self.entry.participant.mark_is_read()
+
+    @property
+    def shortlisted(self):
+        return self.entry.participant.mark_is_shortlisted()
+
+    @property
+    def winner(self):
+        return self.entry.participant.mark_is_winner()
+
     class Meta:
         # Translators: Collection name on CMS
         verbose_name = _('participant answer')
@@ -844,6 +868,38 @@ class ParticipantPicture(models.Model):
 
     caption = models.CharField(_('caption'), max_length=255, null=True, blank=True)
 
+    @property
+    def participant_user(self):
+        return self.participant.user
+
+    @property
+    def challenge(self):
+        return self.participant.challenge
+
+    @property
+    def challenge_created_on(self):
+        return self.participant.date_created
+
+    @property
+    def read(self):
+        return self.participant.mark_is_read()
+
+    @property
+    def shortlisted(self):
+        return self.participant.mark_is_shortlisted()
+
+    @property
+    def winner(self):
+        return self.participant.mark_is_winner()
+
+    @property
+    def challenge_question(self):
+        return self.question.text_truncted
+
+    @property
+    def display_picture(self):
+        return format_html(
+                "<img style='width:100px;height:100px' src='/media" + self.picture.url + "'/>", self.picture)
     # Translators: CMS field name (refers to dates)
     date_answered = models.DateTimeField(_('answered on'), default=timezone.now)
 
@@ -868,6 +924,30 @@ class ParticipantFreeText(models.Model):
     text = models.TextField(_('text'), blank=True)
     date_answered = models.DateTimeField(_('answered on'))
     date_saved = models.DateTimeField(_('saved on'), default=timezone.now)
+
+    @property
+    def participant_user(self):
+        return self.participant.user
+
+    @property
+    def challenge(self):
+        return self.participant.challenge
+
+    @property
+    def challenge_created_on(self):
+        return self.participant.date_created
+
+    @property
+    def read(self):
+        return self.participant.mark_is_read();
+
+    @property
+    def shortlisted(self):
+        return self.participant.mark_is_shortlisted();
+
+    @property
+    def winner(self):
+        return self.participant.mark_is_winner();
 
     class Meta:
         # Translators: Collection name on CMS
