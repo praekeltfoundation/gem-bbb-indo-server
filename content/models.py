@@ -900,7 +900,7 @@ class ParticipantPicture(models.Model):
     def display_picture(self):
         url = reverse('api:participantpicture-picture', kwargs={'pk': self.pk})
         return format_html(
-            "<img style='width:100px;height:100px' src='" + url + "'/>", self.picture)
+            '<a href="{0:s}"><img style="width:100px;height:100px" src="{0:s}"/></a>'.format(url), self.picture)
 
     # Translators: CMS field name (refers to dates)
     date_answered = models.DateTimeField(_('answered on'), default=timezone.now)
