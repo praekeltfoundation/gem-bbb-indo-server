@@ -350,6 +350,7 @@ class ParticipantPictureViewSet(viewsets.ModelViewSet):
     @detail_route(['get'])
     def picture(self, request, pk=None, *args, **kwargs):
         participantpicture = get_object_or_404(self.get_queryset(), pk=pk)
+        self.check_object_permissions(request, participantpicture.participant)
         if not participantpicture.picture:
             raise ImageNotFound()
         return sendfile(request, participantpicture.picture.path)
