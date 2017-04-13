@@ -347,6 +347,13 @@ class ParticipantPictureViewSet(viewsets.ModelViewSet):
             raise ImageNotFound()
         return sendfile(request, participantpicture.picture.path)
 
+    @detail_route(['get'])
+    def picture(self, request, pk=None, *args, **kwargs):
+        participantpicture = get_object_or_404(self.get_queryset(), pk=pk)
+        if not participantpicture.picture:
+            raise ImageNotFound()
+        return sendfile(request, participantpicture.picture.path)
+
     @detail_route(methods=['post'])
     def caption(self, request, pk=None, *args, **kwargs):
         participant = get_object_or_404(Participant, pk=pk)
