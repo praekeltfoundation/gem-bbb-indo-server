@@ -848,7 +848,7 @@ class ParticipantAnswer(models.Model):
         verbose_name_plural = _('participant answers')
 
     def __str__(self):
-        return str(self.participant.user.username)[:8] + str(self.question.text[:8]) + str(
+        return str(self.entry.participant.user.username)[:8] + str(self.question.text[:8]) + str(
             self.selected_option.text[:8])
 
 
@@ -914,7 +914,7 @@ class ParticipantPicture(models.Model):
         verbose_name_plural = _('picture answers')
 
     def __str__(self):
-        return str(self.user.username)[:8] + ': Pic'
+        return str(self.participant.user.username)[:8] + ': Pic'
 
 
 @python_2_unicode_compatible
