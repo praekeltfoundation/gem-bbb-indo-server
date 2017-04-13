@@ -15,7 +15,7 @@ def get_challenge_participants(challenge):
     output = '<h1>' + challenge.name + '</h1>'
     output += '<table style="background-repeat:no-repeat; width:100%;margin:0;" border="1">'
     for participant in participants:
-        entry = Entry.objects.filter(participant=participant)
+        entry = Entry.objects.filter(participant=participant).first()
         participant_answers = ParticipantAnswer.objects.filter(entry=entry)
 
         output += '<tr>'
