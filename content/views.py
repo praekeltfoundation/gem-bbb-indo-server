@@ -328,6 +328,10 @@ class ParticipantPictureViewSet(viewsets.ModelViewSet):
         if not IsAdminOrOwner().has_object_permission(request, self, obj):
             raise PermissionDenied("Users can only access their own goal images.")
 
+    def check_obj_permissions(self, request, obj):
+        if not IsUserSelf().has_object_permission(request, self, obj):
+            raise PermissionDenied("Users can only access their own goal images.")
+
     def get_serializer_context(self):
         return {'request': self.request}
 
@@ -350,7 +354,10 @@ class ParticipantPictureViewSet(viewsets.ModelViewSet):
     @detail_route(['get'])
     def picture(self, request, pk=None, *args, **kwargs):
         participantpicture = get_object_or_404(self.get_queryset(), pk=pk)
-        self.check_object_permissions(request, participantpicture.participant)
+
+        if not request.user.has_perm('content.add_participantpicture'):
+            raise PermissionDenied("You do not have permission to view this image.")
+
         if not participantpicture.picture:
             raise ImageNotFound()
         return sendfile(request, participantpicture.picture.path)
