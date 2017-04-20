@@ -328,10 +328,6 @@ class ParticipantPictureViewSet(viewsets.ModelViewSet):
         if not IsAdminOrOwner().has_object_permission(request, self, obj):
             raise PermissionDenied("Users can only access their own goal images.")
 
-    def check_obj_permissions(self, request, obj):
-        if not IsUserSelf().has_object_permission(request, self, obj):
-            raise PermissionDenied("Users can only access their own goal images.")
-
     def get_serializer_context(self):
         return {'request': self.request}
 
