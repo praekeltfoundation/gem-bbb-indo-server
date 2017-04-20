@@ -84,6 +84,7 @@ class ParticipantAdmin(ModelAdmin):
 class FreeTextParticipantAdmin(ModelAdmin):
     # index_template_name = 'modeladmin/participant/index.html'
     index_view_extra_js = ['js/js.cookie.js', 'js/admin_participant_index.js']
+    index_view_extra_css = ['css/word_wrapping.css']
     model = ParticipantFreeText
     # Translators: CMS menu name
     menu_label = _('Free Text Submissions')
