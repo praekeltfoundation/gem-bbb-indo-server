@@ -951,6 +951,10 @@ class ParticipantFreeText(models.Model):
     def winner(self):
         return self.participant.mark_is_winner();
 
+    @property
+    def view_text(self):
+        return format_html('<a href="#" data-featherlight="<p>' + str(self.text) + '</p>">View</a>')
+
     class Meta:
         # Translators: Collection name on CMS
         verbose_name = _('free-text answer')
