@@ -744,6 +744,16 @@ class Participant(models.Model):
     def get_winning_status(self):
         return {"winner": self.is_winner}
 
+    def get_participant_mobile(self):
+        """Returns the participants mobile number"""
+        from users.models import Profile
+        try:
+            profile = Profile.objects.get(user=self.user)
+        except Profile.DoesNotExist:
+            return ""
+
+        return profile.mobile or ""
+
     class Meta:
         # Translators: Collection name on CMS
         verbose_name = _('participant')
@@ -873,6 +883,11 @@ class ParticipantPicture(models.Model):
         return self.participant.user
 
     @property
+    def participant_mobile(self):
+        """Returns the participants mobile number"""
+        return self.participant.get_participant_mobile()
+
+    @property
     def challenge(self):
         return self.participant.challenge
 
@@ -930,6 +945,11 @@ class ParticipantFreeText(models.Model):
     @property
     def participant_user(self):
         return self.participant.user
+
+    @property
+    def participant_mobile(self):
+        """Returns the participants mobile number"""
+        return self.participant.get_participant_mobile()
 
     @property
     def challenge(self):
