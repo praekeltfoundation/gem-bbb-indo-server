@@ -84,15 +84,15 @@ class ParticipantAdmin(ModelAdmin):
 class FreeTextParticipantAdmin(ModelAdmin):
     # index_template_name = 'modeladmin/participant/index.html'
     index_view_extra_js = ['js/js.cookie.js', 'js/admin_participant_index.js', 'js/featherlight.min.js']
-    index_view_extra_css = ['css/word_wrapping.css', 'css/featherlight.min.css', 'css/text_submission.css']
+    index_view_extra_css = ['css/word_wrapping.css', 'css/featherlight.min.css', 'css/submission_wrapping.css']
     model = ParticipantFreeText
     # Translators: CMS menu name
     menu_label = _('Free Text Submissions')
     menu_icon = 'user'
     menu_order = 200
     add_to_settings_menu = False
-    list_display = ('participant_user','challenge', 'challenge_created_on', 'question', 'view_text', 'date_answered',
-                    'read', 'shortlisted', 'winner')
+    list_display = ('participant_user', 'participant_mobile', 'challenge', 'challenge_created_on', 'question',
+                    'view_text', 'date_answered', 'read', 'shortlisted', 'winner')
     list_filter = ('participant__date_created', 'participant__challenge',
                    'participant__is_read', 'participant__is_shortlisted', 'participant__is_winner')
     search_fields = ('participant__user__id', 'participant__challenge__name',)
@@ -105,15 +105,15 @@ class FreeTextParticipantAdmin(ModelAdmin):
 class PictureParticipantAdmin(ModelAdmin):
     # index_template_name = 'modeladmin/participant/index.html'
     index_view_extra_js = ['js/js.cookie.js', 'js/admin_participant_index.js', 'js/featherlight.min.js']
-    index_view_extra_css = ['css/featherlight.min.css']
+    index_view_extra_css = ['css/featherlight.min.css', 'css/submission_wrapping.css']
     model = ParticipantPicture
     # Translators: CMS menu name
     menu_label = _('Picture Submissions')
     menu_icon = 'user'
     menu_order = 200
     add_to_settings_menu = False
-    list_display = ('participant_user', 'challenge', 'challenge_created_on', 'display_picture', 'caption',
-                    'date_answered', 'read', 'shortlisted', 'winner')
+    list_display = ('participant_user', 'participant_mobile', 'challenge', 'challenge_created_on', 'display_picture',
+                    'caption', 'date_answered', 'read', 'shortlisted', 'winner')
     list_filter = ('participant__date_created', 'participant__challenge',
                    'participant__is_read', 'participant__is_shortlisted', 'participant__is_winner')
     search_fields = ('participant__user__id', 'participant__challenge__name',)

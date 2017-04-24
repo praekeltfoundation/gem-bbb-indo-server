@@ -13,13 +13,15 @@ def get_challenge_participants(challenge):
     participants = Participant.objects.filter(user__is_staff=False, challenge=challenge)
 
     output = '<h1>' + challenge.name + '</h1>'
-    output += '<table style="background-repeat:no-repeat; width:100%;margin:0;" border="1">'
+
     for participant in participants:
+        output += '<table style="background-repeat:no-repeat; width:100%;margin:0;" border="1">'
         entry = Entry.objects.filter(participant=participant).first()
         participant_answers = ParticipantAnswer.objects.filter(entry=entry)
 
         output += '<tr>'
         output += '<th>Participant Name</th>'
+        output += '<th>Mobile</th>'
         output += '<th>Challenge</th>'
         output += '<th>Created On</th>'
         output += '<th>Completed On</th>'
@@ -30,6 +32,7 @@ def get_challenge_participants(challenge):
 
         output += '<tr>'
         output += '<td>' + str(participant.user) + '</td>'
+        output += '<td>' + str(participant.get_participant_mobile()) + '</td>'
         output += '<td>' + str(challenge.name) + '</td>'
         output += '<td>' + str(challenge.activation_date) + '</td>'
         output += '<td>' + str(participant.date_completed) + '</td>'
@@ -77,6 +80,6 @@ def get_challenge_participants(challenge):
             output += '</td>'
             output += '</tr>'
 
-    output += '</table>'
+        output += '</table><br/>'
 
     return output
