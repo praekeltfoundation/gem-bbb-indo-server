@@ -12,6 +12,7 @@ class ProfileInlineForm(admin.StackedInline):
 class UserProfileAdmin(UserAdmin):
     fieldsets = UserAdmin.fieldsets
     inlines = [ProfileInlineForm]
+    list_display = ['username', 'profile', 'email', 'first_name', 'last_name', 'is_staff']
 
 
 @admin.register(SysAdminUser)
