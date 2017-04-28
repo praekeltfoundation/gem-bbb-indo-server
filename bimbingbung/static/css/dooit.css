@@ -17,7 +17,8 @@ body {
 	background-image : url("/static/img/pattern_02_grey.png");
 	background-color : #F2F2F2;
 	background-position : top;
-	background-size : 100%auto;
+	background-size : 100%;
+	background-size : auto;
 	background-repeat : repeat;
 }
 
