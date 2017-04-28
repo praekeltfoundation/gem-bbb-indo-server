@@ -316,7 +316,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
 
         if challenge is None:
             '''Returns True so the challenge pop up is not shown'''
-            return Response({'participated': True})
+            return Response({'participated': True, 'challenge': None})
 
         challenge_data = ChallengeSerializer(instance=challenge, context=self.get_serializer_context()).data
 
