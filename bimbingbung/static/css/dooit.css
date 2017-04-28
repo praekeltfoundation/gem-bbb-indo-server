@@ -7,7 +7,7 @@
 	overflow : auto;
 }
 
-// Fixes text bottom being cut off
+/* Fixes text bottom being cut off */
 .rich-text {
 	padding-bottom : 0.2em;
 }
@@ -44,7 +44,6 @@ h3 {
 h5 {
 	font-size : 0.8em;
 	margin-bottom : 1em;
-	//color : #828282;
 	color : #333;
 }
 
