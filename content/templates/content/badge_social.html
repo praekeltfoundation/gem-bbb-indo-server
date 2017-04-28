@@ -36,8 +36,10 @@
 {% endblock %}
 
 {% block content %}
-<div>
-    {% image badge.image original %}
+<div class="badge-container">
+    <div class="img-container">
+        {% image badge.image original %}
+    </div>
     <h1>{{ badge.name }}</h1>
     <h3>{{ badge.intro }}</h3>
 </div>
