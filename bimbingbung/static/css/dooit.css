@@ -96,3 +96,23 @@ p {
     width: auto;
     max-width: 100%;
 }
+
+
+/*
+ * Badges
+ */
+.badge-container .image-container {
+    text-align: center;
+}
+
+.img-container img {
+    display: block;
+    height: auto;
+    margin: auto;
+    max-width: 100%;
+    width: 400px;
+}
+
+.badge-container h1, .badge-container h3 {
+    text-align: center;
+}
