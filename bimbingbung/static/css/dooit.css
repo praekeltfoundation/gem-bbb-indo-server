@@ -7,7 +7,7 @@
 	overflow : auto;
 }
 
-// Fixes text bottom being cut off
+/* Fixes text bottom being cut off */
 .rich-text {
 	padding-bottom : 0.2em;
 }
@@ -17,7 +17,8 @@ body {
 	background-image : url("/static/img/pattern_02_grey.png");
 	background-color : #F2F2F2;
 	background-position : top;
-	background-size : 100%auto;
+	background-size : 100%;
+	background-size : auto;
 	background-repeat : repeat;
 }
 
@@ -44,7 +45,6 @@ h3 {
 h5 {
 	font-size : 0.8em;
 	margin-bottom : 1em;
-	//color : #828282;
 	color : #333;
 }
 
@@ -95,4 +95,27 @@ p {
 
     width: auto;
     max-width: 100%;
+}
+
+
+/*
+ * Badges
+ */
+.badge-container .img-container {
+    text-align: center;
+    margin-bottom: 1em;
+}
+
+.img-container img {
+    display: block;
+    height: auto;
+    margin: auto;
+    max-width: 100%;
+    width: 400px;
+}
+
+.badge-container h1, .badge-container h3 {
+    padding-left: 16px;
+    padding-right: 16px;
+    text-align: center;
 }
