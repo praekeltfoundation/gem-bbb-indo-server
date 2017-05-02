@@ -303,6 +303,26 @@ class ParticipantViewSet(viewsets.ModelViewSet):
             serial = self.get_serializer(participant)
             return Response(data=serial.data)
 
+    @list_route(methods=['get'])
+    def check_participation(self, request, *args, **kwargs):
+        self.check_permissions(request)
+
+        challenge = Challenge.objects\
+            .filter(state=Challenge.CST_PUBLISHED,
+                    activation_date__lte=timezone.now(),
+                    deactivation_date__gte=timezone.now())\
+            .order_by('activation_date')\
+            .first()
+
+        if challenge is None:
+            '''Returns True so the challenge pop up is not shown'''
+            return Response({'participated': True, 'challenge': None})
+
+        challenge_data = ChallengeSerializer(instance=challenge, context=self.get_serializer_context()).data
+
+        return Response({"participated": Participant.objects.filter(user=request.user, challenge=challenge).exists(),
+                         "challenge": challenge_data})
+
 
 class ParticipantAnswerViewSet(viewsets.ModelViewSet):
     queryset = ParticipantAnswer.objects.all()
