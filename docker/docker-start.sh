@@ -5,6 +5,7 @@ source ve/bin/activate
 
 ./manage.py migrate --noinput
 ./manage.py collectstatic --noinput
+./manage.py compilemessages -l id
 
 echo "from django.contrib.auth.models import User
 if not User.objects.filter(username='admin').count():
