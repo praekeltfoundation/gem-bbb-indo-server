@@ -2438,6 +2438,8 @@ class TestNotification(APITestCase):
 
         user = create_test_regular_user('anon')
 
+        goal = create_goal('Goal 1', user, 1000)
+
         self.client.force_authenticate(user=user)
         response = self.client.get(reverse('api:challenges-participation'), format='json')
 
