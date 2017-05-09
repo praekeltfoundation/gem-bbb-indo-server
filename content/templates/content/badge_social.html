@@ -35,7 +35,18 @@
 
 {% endblock %}
 
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/badge_social.css' %}" />
+{% endblock %}
+
 {% block content %}
+<div class="banner">
+    <div class="logo-container"><img src="{% static 'img/logo_small.png' %}" /></div>
+    <div class="banner-description">
+        Are you still having to borrow money from your parents to get the things that you want?
+        Life is more awesome when you save money and reach goals on your own. Let Dooit help!
+    </div>
+</div>
 <div class="badge-container">
     <div class="img-container">
         {% image badge.image original %}
