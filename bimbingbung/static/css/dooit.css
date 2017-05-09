@@ -56,6 +56,10 @@ i {
 	font-style : italic;
 }
 
+.center {
+    text-align: center;
+}
+
 /*
  * Article
  */
