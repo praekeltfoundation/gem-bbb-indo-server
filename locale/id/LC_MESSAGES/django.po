@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-05-04 13:52+0000\n"
+"POT-Creation-Date: 2017-05-09 12:35+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -1010,7 +1010,16 @@ msgstr ""
 msgid "Report generation ran during data cleanup - try again"
 msgstr ""
 
-#: content/templates/content/tip.html:37
+#: content/templates/content/badge_social.html:47
+msgid ""
+"Are you still having to borrow money from your parents to get the things "
+"that you want? Life is more awesome when you save money and reach goals on "
+"your own. Let Dooit help!"
+msgstr ""
+"Masih suka minta uang sama orangtua buat beli barang-barang yang lagi "
+"kamu pengen? Lebih baik kamu nabung sendiri dengan bantuan Dooit!"
+
+#: content/templates/content/tip.html:41
 msgid "Written for you, by Bina."
 msgstr "Ditulis untukmu oleh Bina."
 
