@@ -19,8 +19,11 @@ def remove_report_archives():
     print("Starting removal")
     for filename in os.listdir(settings.SENDFILE_ROOT):
         if filename.endswith('.csv') or filename.endswith('.zip'):
-            print("Removing: " + settings.SENDFILE_ROOT + '\\' + filename)
-            os.remove(settings.SENDFILE_ROOT + '\\' + filename)
+            try:
+                os.remove(settings.SENDFILE_ROOT + '\\' + filename)
+            except FileNotFoundError:
+                # Do nothing as there is no file to delete, name has changed
+                pass
 
 
 @app.task(ignore_result=True, max_retries=10, default_retry_delay=10)
