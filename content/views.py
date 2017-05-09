@@ -160,7 +160,12 @@ class ChallengeViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def participation(self, request, *args, **kwargs):
-        """Returns true if notification should be shown, and false otherwise"""
+        """Checks if a user has not participated in a challenge that has been active for more than two days
+        and they have no goals set. Returns true if the notification should be shown, false otherwise"""
+
+        '''Don't tell users about the challenge if they have no goals set'''
+        if not Goal.objects.filter(user=request.user).exists():
+            return Response({"available": False})
 
         try:
             challenge = Challenge.objects.get(state=Challenge.CST_PUBLISHED,
@@ -305,7 +310,12 @@ class ParticipantViewSet(viewsets.ModelViewSet):
 
     @list_route(methods=['get'])
     def check_participation(self, request, *args, **kwargs):
+        """Conditions for true: User has not participated in the current challenge and has no goals set"""
         self.check_permissions(request)
+
+        '''Don't show popup if user has no goals set'''
+        if not Goal.objects.filter(user=request.user).exists():
+            return Response({"available": False, "challenge": None})
 
         challenge = Challenge.objects\
             .filter(state=Challenge.CST_PUBLISHED,
@@ -314,13 +324,13 @@ class ParticipantViewSet(viewsets.ModelViewSet):
             .order_by('activation_date')\
             .first()
 
+        '''Returns True so the challenge pop up is not shown'''
         if challenge is None:
-            '''Returns True so the challenge pop up is not shown'''
-            return Response({'participated': True, 'challenge': None})
+            return Response({'available': False, 'challenge': None})
 
         challenge_data = ChallengeSerializer(instance=challenge, context=self.get_serializer_context()).data
 
-        return Response({"participated": Participant.objects.filter(user=request.user, challenge=challenge).exists(),
+        return Response({"available": not Participant.objects.filter(user=request.user, challenge=challenge).exists(),
                          "challenge": challenge_data})
 
 
