@@ -31,6 +31,10 @@ prefix="og: http://ogp.me/ns# fb: http://ogp.me/ns/fb# article: http://ogp.me/ns
 <!-- END: Facebook -->
 {% endblock %}
 
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/tips.css' %}" />
+{% endblock %}
+
 {% block content %}
     <div id="article">
         <h1 style="overflow-wrap: break-word;">{{ page.title.upper }}</h1>
