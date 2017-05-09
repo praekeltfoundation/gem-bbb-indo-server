@@ -13,7 +13,7 @@
 }
 
 body {
-	font-family : 'Lato';
+	font-family : 'Lato', 'sans-serif';
 	background-image : url("/static/img/pattern_02_grey.png");
 	background-color : #F2F2F2;
 	background-position : top;
@@ -27,7 +27,7 @@ body {
  */
 
 h1 {
-	font-family : 'Londrina Solid', 'san-serif';
+	font-family : 'Londrina Solid', 'sans-serif';
 	font-size : 2.2em;
 	line-height : 1em;
 	margin-bottom : 0.3em;
