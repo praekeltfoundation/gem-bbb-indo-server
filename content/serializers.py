@@ -95,7 +95,7 @@ def validate_participant(data, errors):
     Requires keys: participant OR user and challenge
     Returns: participant OR None
     """
-    print(data)
+
     user = data.pop('user', None)
     challenge = data.pop('challenge', None)
 
