@@ -13,6 +13,7 @@
     <link rel="stylesheet" href="{% static 'css/dooit.css' %}" />
     <link rel="stylesheet" href="{% static 'css/agreements.css' %}" />
     <link rel="stylesheet" href="{% static 'css/tips.css' %}" />
+    {% block extra_css %}{% endblock %}
 
     {% block meta %}{% endblock %}
 
@@ -23,6 +24,7 @@ Raven.config('{% sentry_public_dsn %}').install()
 <body>
 
     {% block content %}{% endblock %}
+    {% block extra_js %}{% endblock %}
 
 </body>
 </html>
