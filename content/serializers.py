@@ -545,6 +545,7 @@ class GoalSerializer(serializers.ModelSerializer):
     start_date = serializers.DateField()
     end_date = serializers.DateField()
     value = serializers.ReadOnlyField()
+    initial_savings = serializers.DecimalField(18, 2, coerce_to_string=False)
     target = serializers.DecimalField(18, 2, coerce_to_string=False)
 
     # TODO: Calculated week and target values will be done on the frontend. They can be removed in the future when frontend installs no longer rely on them
@@ -552,7 +553,7 @@ class GoalSerializer(serializers.ModelSerializer):
     week_count_to_now = serializers.SerializerMethodField()
     weekly_average = serializers.ReadOnlyField()
     weekly_target = serializers.DecimalField(18, 2, coerce_to_string=False)
-    # default=Goal.calculate_weekly_target(start_date, end_date, target))
+    # default=Goal.calculate_weekly_target(start_date, end_date, target, initial_value))
 
     user = serializers.PrimaryKeyRelatedField(read_only=True, default=serializers.CurrentUserDefault())
     image_url = serializers.SerializerMethodField()
@@ -613,6 +614,7 @@ class GoalSerializer(serializers.ModelSerializer):
         goal = Goal.objects.create(**validated_data)
 
         # Store original goal data
+        goal.initial_savings = validated_data.get('initial_savings', 0)
         goal.original_target = validated_data['target']
         goal.original_end_date = validated_data['end_date']
         goal.original_weekly_target = validated_data['weekly_target']
