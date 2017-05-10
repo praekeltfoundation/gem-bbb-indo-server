@@ -498,7 +498,9 @@ class ParticipantFreeTextViewSet(viewsets.ModelViewSet):
         # participant must map user to challenge 1:1, so do a get if only one challenge
         result = self.get_queryset().filter(participant__user_id=user_id)
         if challenge_id:
-            result = result.get(participant__challenge_id=challenge_id)
+            result = result.filter(participant__challenge_id=challenge_id).first()
+            if not result:
+                return Response(data={}, status=status.HTTP_404_NOT_FOUND)
         serial = self.get_serializer(result, many=not challenge_id)
 
         return Response(data=serial.data)
