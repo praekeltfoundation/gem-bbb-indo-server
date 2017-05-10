@@ -545,7 +545,7 @@ class GoalSerializer(serializers.ModelSerializer):
     start_date = serializers.DateField()
     end_date = serializers.DateField()
     value = serializers.ReadOnlyField()
-    initial_savings = serializers.DecimalField(18, 2, coerce_to_string=False)
+    initial_savings = serializers.DecimalField(18, 2, coerce_to_string=False, required=False)
     target = serializers.DecimalField(18, 2, coerce_to_string=False)
 
     # TODO: Calculated week and target values will be done on the frontend. They can be removed in the future when frontend installs no longer rely on them
