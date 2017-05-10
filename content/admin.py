@@ -151,7 +151,7 @@ class GoalAdmin(admin.ModelAdmin):
                        'weekly_average',)
     fieldsets = (
         (None, {
-            'fields': ('name', 'state', 'start_date', 'end_date', 'target', 'image', 'user')
+            'fields': ('name', 'state', 'start_date', 'end_date', 'target', 'image', 'user', 'initial_value',)
         }),
         ('Calculated', {
             'fields': ('value', 'weeks', 'weeks_to_now', 'weeks_left', 'days_left', 'weekly_target',
