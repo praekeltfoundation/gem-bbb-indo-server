@@ -8,6 +8,10 @@
     {{ page.title }}
 {% endblock %}
 
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/agreements.css' %}" />
+{% endblock %}
+
 {% block content %}
     <div id="article" class="agreement-article">
         <h1>{{ page.title }}</h1>

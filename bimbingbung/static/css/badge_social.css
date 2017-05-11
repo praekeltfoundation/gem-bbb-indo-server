@@ -1,0 +1,41 @@
+.banner {
+    background-color: #1d1d1d;
+    color: #ffffff;
+    font-family: 'Lato', 'sans-serif';
+    min-height: 36px;
+    padding: 16px;
+    width: 100%;
+}
+@media screen and (min-width: 400px) {
+    .banner {
+        min-height: 72px;
+    }
+}
+
+.logo-container {
+    display: inline-block;
+    display: table-cell;
+    height: 100%;
+    padding-right: 16px;
+    vertical-align: middle;
+}
+
+.logo-container img {
+    border-radius: 4px;
+    height: 36px;
+    width: 36px;
+}
+@media screen and (min-width: 400px) {
+    .logo-container img {
+        border-radius: 8px;
+        height: 72px;
+        width: 72px;
+    }
+}
+
+.banner-description {
+    display: inline;
+    display: table-cell;
+    vertical-align: middle;
+    width: auto;
+}
