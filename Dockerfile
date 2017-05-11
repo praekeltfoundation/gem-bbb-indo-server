@@ -12,10 +12,10 @@ ENV PROJECT_ROOT /app/ \
 # adding custom nginx.conf (inherited from django-bootstrap)
 COPY docker.nginx.conf /etc/nginx/conf.d/django.conf
 
-RUN LANGUAGE_CODE=en django-admin compilemessages -l id && \
-    django-admin collectstatic --noinput
-
 COPY requirements.txt /requirements.txt
 RUN pip install -r /requirements.txt
+
+RUN LANGUAGE_CODE=en django-admin compilemessages -l id && \
+    django-admin collectstatic --noinput
 
 CMD ["bimbingbung.wsgi:application", "--timeout", "1800"]
