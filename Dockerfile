@@ -1,4 +1,4 @@
-FROM praekeltfoundation/django-bootstrap:py3
+FROM praekeltfoundation/django-bootstrap:py3-onbuild
 
 # Install gettext for translations
 RUN apt-get-install.sh libjpeg-dev zlib1g-dev libxslt1-dev libpq-dev libffi-dev gettext p7zip-full
