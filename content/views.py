@@ -532,7 +532,7 @@ class TipViewSet(viewsets.ModelViewSet):
         return self.get_serializer_class().setup_prefetch_related(queryset)
 
     def list(self, request, *args, **kwargs):
-        serializer = self.get_serializer(self.get_queryset().order_by('-first_published_at').filter(live=True),
+        serializer = self.get_serializer(self.get_queryset().order_by('-latest_revision_created_at').filter(live=True),
                                          many=True)
         return Response(serializer.data)
 
