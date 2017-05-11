@@ -170,27 +170,12 @@ EMAIL_HOST_USER = environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = environ.get('DEFAULT_FROM_EMAIL', 'halo@ayodooit.com')
 
-
-# Redis configuration
-REDIS_PORT = 6379
-REDIS_HOST = "127.0.0.1"
-REDIS_DB = 0
-REDIS_CONNECT_RETRY = True
-
-# Broker configuration
-BROKER_HOST = "127.0.0.1"
-BROKER_BACKEND = "redis"
-BROKER_USER = ""
-BROKER_PASSWORD = ""
-BROKER_VHOST = "0"
-
 # Celery Redis configuration
 CELERY_SEND_EVENTS = True
-CELERY_RESULT_BACKEND = 'redis'
 # CELERY_REDIS_HOST = '127.0.0.1'
-CELERY_REDIS_HOST = environ.get('BROKER_URL', 'redis://localhost:6379/0')
-CELERY_REDIS_PORT = 6379
-CELERY_REDIS_DB = 0
+BROKER_URL = environ.get('BROKER_URL', 'redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = environ.get(
+    'CELERY_RESULT_BACKEND', BROKER_URL)
 CELERY_ACCEPT_CONTENT = ['json']
 CELERY_TASK_SERIALIZER = 'json'
 CELERY_RESULT_SERIALIZER = 'json'
