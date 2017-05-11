@@ -1183,6 +1183,7 @@ class Goal(models.Model):
         # Translators: Object state
         (ACTIVE, _('Active')),
     ), default=ACTIVE)
+    initial_savings = models.DecimalField(max_digits=18, decimal_places=2, default=0)
     target = models.DecimalField(max_digits=18, decimal_places=2)
     original_target = models.DecimalField(max_digits=18, decimal_places=2, blank=True, null=True)
     weekly_target = models.DecimalField(max_digits=18, decimal_places=2)
@@ -1296,7 +1297,8 @@ class Goal(models.Model):
 
     def get_calculated_weekly_target(self):
         weeks = self.weeks
-        return self.target if weeks == 0 else ceil(self.target / weeks)
+        prior_savings = self.initial_savings if self.initial_savings else 0
+        return (self.target if weeks == 0 else ceil(self.target / weeks)) - prior_savings
 
     @staticmethod
     def _monday(d):
@@ -1350,9 +1352,10 @@ class Goal(models.Model):
         return agg
 
     @classmethod
-    def calculate_weekly_target(cls, start_date, end_date, target):
+    def calculate_weekly_target(cls, start_date, end_date, target, initial_savings):
         weeks = WeekCalc.week_diff(start_date, end_date, WeekCalc.Rounding.UP) or 1
-        return target if weeks == 0 else ceil(target / weeks)
+        prior_savings = initial_savings if initial_savings else 0
+        return target if weeks == 0 else ceil(target / weeks) - initial_savings
 
     @classmethod
     def get_current_streak(cls, user, now=None, weeks_back=6):
