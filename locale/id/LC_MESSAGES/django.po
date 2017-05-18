@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-05-18 09:50+0000\n"
+"POT-Creation-Date: 2017-05-18 11:10+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -404,7 +404,7 @@ msgstr "User Interface untuk Coach"
 #. Translators: Admin field name
 #: content/models.py:509
 msgid "Free Text Question"
-msgstr "pertanyaan bebas"
+msgstr "Pertanyaan Bebas"
 
 #. Translators: Admin field help
 #: content/models.py:511
@@ -414,7 +414,7 @@ msgstr "Hanya relevan untuk Teks Bebas bertipe Tantangan."
 #. Translators: Admin field name
 #: content/models.py:519
 msgid "Picture Question"
-msgstr "pertanyaan gambar"
+msgstr "Pertanyaan Gambar"
 
 #. Translators: Admin field help
 #: content/models.py:521
@@ -502,7 +502,7 @@ msgstr "pertanyaan gambar"
 #. Translators: Admin field name
 #: content/models.py:656 content/wagtail_hooks.py:44
 msgid "Picture Questions"
-msgstr "pertanyaan gambar"
+msgstr "Pertanyaan Gambar"
 
 #. Translators: Collection name on CMS
 #: content/models.py:669
@@ -517,7 +517,7 @@ msgstr "pertanyaan bebas"
 #. Translators: Admin field name
 #: content/models.py:688
 msgid "Free Text Questions"
-msgstr "pertanyaan bebas"
+msgstr "Pertanyaan Bebas"
 
 #. Translators: CMS field name (refers to dates)
 #: content/models.py:699
@@ -558,11 +558,11 @@ msgstr "peserta"
 #. Translators: Admin field name
 #: content/models.py:775
 msgid "Participant"
-msgstr "peserta"
+msgstr "Peserta"
 
 #: content/models.py:791
 msgid "Status"
-msgstr "status"
+msgstr "Status"
 
 #. Translators: CMS field name (refers to dates)
 #: content/models.py:801 content/models.py:827 content/models.py:924
@@ -948,16 +948,22 @@ msgid "total expenses decreased count"
 msgstr ""
 
 #. Translators: Collection name on CMS
-#. Translators: Plural collection name on CMS
-#: content/models.py:2090 content/models.py:2093
+#: content/models.py:2090
 msgid "budget"
-msgstr ""
+msgstr "anggaran"
+
+#. Translators: Plural collection name on CMS
+#: content/models.py:2093
+#, fuzzy
+#| msgid "budget"
+msgid "budgets"
+msgstr "anggaran"
 
 #. Translators: Admin field name
 #. Translators: CMS menu name
 #: content/models.py:2112 content/wagtail_hooks.py:256
 msgid "Budget"
-msgstr ""
+msgstr "Anggaran"
 
 #. Translators: Admin field name
 #: content/models.py:2120
@@ -1023,7 +1029,7 @@ msgstr "Ditulis untukmu oleh Bina."
 #. Translators: CMS menu name
 #: content/wagtail_hooks.py:70
 msgid "Participants"
-msgstr "peserta"
+msgstr "Peserta"
 
 #. Translators: CMS menu name
 #: content/wagtail_hooks.py:90
