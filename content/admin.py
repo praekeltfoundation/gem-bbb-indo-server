@@ -43,9 +43,9 @@ class ChallengeAdmin(admin.ModelAdmin):
     fieldsets = [
         (None,
          {'fields': ['name', 'type', 'state', 'end_processed']}),
-        ('Dates',
+        (_('Dates'),
          {'fields': ['activation_date', 'deactivation_date']}),
-        ('Images',
+        (_('Images'),
          {'fields': ['picture']}),
     ]
     list_display = ('name', 'type', 'state', 'activation_date', 'deactivation_date')
@@ -153,7 +153,7 @@ class GoalAdmin(admin.ModelAdmin):
         (None, {
             'fields': ('name', 'state', 'start_date', 'end_date', 'target', 'image', 'user', 'initial_savings',)
         }),
-        ('Calculated', {
+        (_('Calculated'), {
             'fields': ('value', 'weeks', 'weeks_to_now', 'weeks_left', 'days_left', 'weekly_target',
                        'weekly_average',)
         })
