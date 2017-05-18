@@ -14,7 +14,7 @@ from django.shortcuts import reverse
 from django.utils import timezone
 from django.utils.encoding import python_2_unicode_compatible
 from django.utils.html import format_html
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 from modelcluster import fields as modelcluster_fields
 from modelcluster.contrib.taggit import ClusterTaggableManager
 from taggit.models import TaggedItemBase
