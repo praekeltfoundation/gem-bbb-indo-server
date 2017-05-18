@@ -2090,7 +2090,7 @@ class Budget(modelcluster_fields.ClusterableModel):
         verbose_name = _('budget')
 
         # Translators: Plural collection name on CMS
-        verbose_name_plural = _('budget')
+        verbose_name_plural = _('budgets')
 
     @property
     def expense(self):
