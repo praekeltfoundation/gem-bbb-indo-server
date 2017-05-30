@@ -1460,7 +1460,7 @@ class SummarySurveyData:
 
             # Counts number of first conversation no responses, others checks to see if they have no consent
             for survey in submitted_survey_drafts:
-                if survey.has_submission():
+                if survey.has_submission:
                     submission_data = json.loads(survey.submission_data)
                     try:
                         if submission_data['survey_baseline_intro'] == '0':
@@ -1473,6 +1473,8 @@ class SummarySurveyData:
             submitted_surveys = CoachSurveySubmission.objects.filter(
                 user__is_staff=False,
                 survey__bot_conversation=CoachSurvey.BASELINE)
+
+
 
             for survey in submitted_surveys:
                 survey_data = survey.get_data()
