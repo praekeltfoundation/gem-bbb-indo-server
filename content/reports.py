@@ -9,7 +9,7 @@ from content.utilities import zip_and_encrypt, append_to_csv, create_csv, passwo
 from survey.models import CoachSurveySubmission, CoachSurvey, CoachSurveySubmissionDraft
 from users.models import Profile, CampaignInformation
 from .models import Goal, Badge, UserBadge, GoalTransaction, Challenge, Participant, QuizQuestion, QuestionOption, \
-    ParticipantAnswer, ParticipantFreeText, GoalPrototype, Budget, ExpenseCategory, Expense
+    ParticipantAnswer, ParticipantFreeText, GoalPrototype, Budget, ExpenseCategory, Expense, ParticipantPicture
 
 SUCCESS_MESSAGE_EMAIL_SENT = _('Password has been sent in an email.')
 ERROR_MESSAGE_NO_EMAIL = _('No email address associated with this account.')
@@ -682,6 +682,8 @@ class ChallengeExportPicture:
 
                 for participant in participants:
                     profile = Profile.objects.get(user=participant.user)
+                    participant_picture = ParticipantPicture.objects.filter(participant=participant).first()
+
                     try:
                         campaign_info = CampaignInformation.objects.get(user=profile.user)
                         user_type = campaign_info.source + '/' + campaign_info.medium
@@ -697,7 +699,7 @@ class ChallengeExportPicture:
                         profile.age,
                         user_type,  # user type
                         profile.user.date_joined,
-                        challenge.call_to_action
+                        challenge.call_to_action + ' ' + str(participant_picture.date_answered)
                     ]
 
                     append_to_csv(data, csvfile)
