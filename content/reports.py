@@ -30,9 +30,10 @@ def pass_zip_encrypt_email(request, export_name, unique_time):
     if request.user.email is None or request.user.email is '':
         return False, ERROR_MESSAGE_NO_EMAIL
 
-    send_password_email(request, export_name, unique_time, password)
-
-    return True, SUCCESS_MESSAGE_EMAIL_SENT
+    if send_password_email(request, export_name, unique_time, password):
+        return True, SUCCESS_MESSAGE_EMAIL_SENT
+    else:
+        return False, ERROR_MESSAGE_DATA_CLEANUP
 
 
 #####################
