@@ -94,4 +94,6 @@ def send_password_email(request, export_name, unique_time, password):
 
         email.send()
     else:
-        pass
+        return False
+
+    return True
