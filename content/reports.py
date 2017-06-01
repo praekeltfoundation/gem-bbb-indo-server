@@ -9,7 +9,7 @@ from content.utilities import zip_and_encrypt, append_to_csv, create_csv, passwo
 from survey.models import CoachSurveySubmission, CoachSurvey, CoachSurveySubmissionDraft
 from users.models import Profile, CampaignInformation
 from .models import Goal, Badge, UserBadge, GoalTransaction, Challenge, Participant, QuizQuestion, QuestionOption, \
-    ParticipantAnswer, ParticipantFreeText, GoalPrototype, Budget, ExpenseCategory, Expense
+    ParticipantAnswer, ParticipantFreeText, GoalPrototype, Budget, ExpenseCategory, Expense, ParticipantPicture
 
 SUCCESS_MESSAGE_EMAIL_SENT = _('Password has been sent in an email.')
 ERROR_MESSAGE_NO_EMAIL = _('No email address associated with this account.')
@@ -627,24 +627,32 @@ class SummaryDataPerQuiz:
         create_csv(filename)
 
         with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
-            append_to_csv(('quiz_name', 'quiz_question', 'number_of_options', 'attempts'), csvfile)
+            append_to_csv(('quiz_name', 'quiz_question', 'number_of_options', 'avg_attempts'), csvfile)
 
             for challenge in challenges:
                 quiz_questions = QuizQuestion.objects.filter(challenge=challenge)
 
+                quiz_question_data = []
                 for quiz_question in quiz_questions:
                     question_options = QuestionOption.objects.filter(question=quiz_question)
 
-                    attempts = ParticipantAnswer.objects.filter(question=quiz_question).count()
+                    unique_user_attempts = ParticipantAnswer.objects.filter(question=quiz_question).values('entry__participant').distinct().count()
+                    total_attempts = ParticipantAnswer.objects.filter(question=quiz_question).count()
 
-                    data = [
-                        challenge.name,
-                        quiz_question.text,
-                        question_options.count(),
-                        attempts
-                    ]
+                    if total_attempts != 0:
+                        avg_no_of_attempts = total_attempts / unique_user_attempts
+                    else:
+                        avg_no_of_attempts = 0
 
-                    append_to_csv(data, csvfile)
+                    quiz_question_data.extend([quiz_question.text, question_options.count(), avg_no_of_attempts],)
+
+                data = [
+                    challenge.name,
+                ]
+
+                data.extend(quiz_question_data)
+
+                append_to_csv(data, csvfile)
 
         success, message = pass_zip_encrypt_email(request, export_name, unique_time)
 
@@ -682,6 +690,8 @@ class ChallengeExportPicture:
 
                 for participant in participants:
                     profile = Profile.objects.get(user=participant.user)
+                    participant_picture = ParticipantPicture.objects.filter(participant=participant).first()
+
                     try:
                         campaign_info = CampaignInformation.objects.get(user=profile.user)
                         user_type = campaign_info.source + '/' + campaign_info.medium
@@ -697,7 +707,7 @@ class ChallengeExportPicture:
                         profile.age,
                         user_type,  # user type
                         profile.user.date_joined,
-                        challenge.call_to_action
+                        challenge.call_to_action + ' ' + str(participant_picture.date_answered)
                     ]
 
                     append_to_csv(data, csvfile)
@@ -729,7 +739,7 @@ class ChallengeExportQuiz:
 
         with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
             append_to_csv(('username', 'name', 'mobile', 'email', 'gender', 'age', 'user_type_source_medium',
-                           'date_joined', 'submission_date', 'question', 'number_of_attempts'),
+                           'date_joined', 'submission_date', 'selected_option', 'number_of_attempts'),
                           csvfile)
 
             for challenge in challenges:
@@ -744,10 +754,6 @@ class ChallengeExportQuiz:
                     except:
                         user_type = ''
 
-                    attempts = quiz_questions.annotate(num_attempts=Count('answers__id')) \
-                        .values('id', 'text', 'num_attempts') \
-                        .order_by('order')
-
                     data = [
                         participant.user.username,
                         participant.user.first_name,
@@ -757,12 +763,14 @@ class ChallengeExportQuiz:
                         profile.age,
                         user_type,  # user type
                         participant.user.date_joined,
-                        participant.date_completed,
+                        ParticipantAnswer.objects.filter(entry__participant=participant).reverse()[0].date_saved,
                     ]
 
-                    question_data = []
-                    for attempt in attempts:
-                        question_data = [attempt['text'], (attempt['num_attempts'])]
+                    correct_answers = ParticipantAnswer.objects.filter(entry__participant=participant, selected_option__correct=True)
+                    all_answers = ParticipantAnswer.objects.filter(entry__participant=participant)
+                    for correct_answer in correct_answers:
+                        question_data = [correct_answer.selected_option.text,
+                                         all_answers.filter(question=correct_answer.question).count()]
                         data.extend(question_data)
 
                     append_to_csv(data, csvfile)
