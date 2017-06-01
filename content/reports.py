@@ -754,6 +754,13 @@ class ChallengeExportQuiz:
                     except:
                         user_type = ''
 
+                    all_answers = ParticipantAnswer.objects.filter(entry__participant=participant)
+
+                    if len(all_answers.reverse()) > 0:
+                        date_completed = all_answers.reverse()[0].date_saved
+                    else:
+                        date_completed = 'incomplete'
+
                     data = [
                         participant.user.username,
                         participant.user.first_name,
@@ -763,11 +770,10 @@ class ChallengeExportQuiz:
                         profile.age,
                         user_type,  # user type
                         participant.user.date_joined,
-                        ParticipantAnswer.objects.filter(entry__participant=participant).reverse()[0].date_saved,
+                        date_completed,
                     ]
 
                     correct_answers = ParticipantAnswer.objects.filter(entry__participant=participant, selected_option__correct=True)
-                    all_answers = ParticipantAnswer.objects.filter(entry__participant=participant)
                     for correct_answer in correct_answers:
                         question_data = [correct_answer.selected_option.text,
                                          all_answers.filter(question=correct_answer.question).count()]
