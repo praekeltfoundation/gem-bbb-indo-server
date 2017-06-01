@@ -1293,27 +1293,53 @@ class RewardsDataPerStreak:
 
         with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
 
-            append_to_csv(('streak_type', 'total_streaks_by_all_users', 'total_users_at_least_one_streak',
+            append_to_csv(('streak_type', 'total_streaks_by_all_users', 'total_users_who_have_earned_a_streak',
                            'total_users_reached_weekly_savings_amount', 'total_users_not_reached_weekly_savings_amount'),
                           csvfile)
 
-            badges = Badge.objects.all()
+            # badges = Badge.objects.all()
+            #
+            # badge_generator = (badge for badge in badges
+            #                    if (badge.badge_type is Badge.STREAK_2
+            #                        or badge.badge_type is Badge.STREAK_4
+            #                        or badge.badge_type is Badge.STREAK_6
+            #                        or badge.badge_type is Badge.WEEKLY_TARGET_2
+            #                        or badge.badge_type is Badge.WEEKLY_TARGET_4
+            #                        or badge.badge_type is Badge.WEEKLY_TARGET_6))
 
-            badge_generator = (badge for badge in badges
-                               if (badge.badge_type is Badge.STREAK_2
-                                   or badge.badge_type is Badge.STREAK_4
-                                   or badge.badge_type is Badge.STREAK_6
-                                   or badge.badge_type is Badge.WEEKLY_TARGET_2
-                                   or badge.badge_type is Badge.WEEKLY_TARGET_4
-                                   or badge.badge_type is Badge.WEEKLY_TARGET_6))
+            # for badge in badge_generator:
+            #     data = [
+            #         badge.name,
+            #         cls.total_streak_badges(badge),
+            #         cls.total_streak_badges_at_least_one_user(badge),
+            #         cls.total_users_reached_weekly_savings_for_weeks(),
+            #         # TODO: Total users who have reached their weekly target savings amount
+            #         # TODO: Total users who have not reached their weekly target savings amount
+            #     ]
+            #
+            #     append_to_csv(data, csvfile)
 
-            for badge in badge_generator:
+            for i in range(0, 6):
+                week = ''
+                if i == 0:
+                    week = '1 week'
+                if i == 1:
+                    week = '2 weeks'
+                if i == 2:
+                    week = '3 weeks'
+                if i == 3:
+                    week = '4 weeks'
+                if i == 4:
+                    week = '5 weeks'
+                if i == 5:
+                    week = '6 weeks'
+
                 data = [
-                    badge.name,
-                    cls.total_streak_badges(badge),
-                    cls.total_streak_badges_at_least_one_user(badge),
-                    cls.total_on_track_badges(badge),
-                    cls.total_on_track_badges_at_least_one_user(badge)
+                    week,
+                    '0',  # cls.total_streak_badges(badge),
+                    '0',  # cls.total_streak_badges_at_least_one_user(badge),
+                    cls.total_users_reached_weekly_savings_for_weeks(i+1),
+                    '0'
                 ]
 
                 append_to_csv(data, csvfile)
@@ -1335,38 +1361,68 @@ class RewardsDataPerStreak:
     @classmethod
     def total_streak_badges(cls, badge):
         """Returns the number of given streak badges awarded to all users"""
-        badge_type = badge.badge_type
-        if badge_type is Badge.STREAK_2 or badge_type is Badge.STREAK_4 or badge_type is Badge.STREAK_6:
-            return UserBadge.objects.filter(user__is_staff=False, badge=badge).count()
-        else:
-            return 0
+        return UserBadge.objects.filter(user__is_staff=False, badge=badge).count()
 
     @classmethod
     def total_streak_badges_at_least_one_user(cls, badge):
         """"Returns the number given streak badges by earned by at least one user"""
-        badge_type = badge.badge_type
-        if badge_type is Badge.STREAK_2 or badge_type is Badge.STREAK_4 or badge_type is Badge.STREAK_6:
-            return UserBadge.objects.filter(user__is_staff=False, badge=badge).values('user').distinct().count()
-        else:
-            return 0
+        return UserBadge.objects.filter(user__is_staff=False, badge=badge).values('user').distinct().count()
 
     @classmethod
-    def total_on_track_badges(cls, badge):
-        """Return the number of given 'on track' badges for given badge, else 0, awarded to all users"""
-        badge_type = badge.badge_type
-        if badge_type is Badge.WEEKLY_TARGET_2 or badge_type is Badge.WEEKLY_TARGET_4 or badge_type is Badge.WEEKLY_TARGET_6:
-            return UserBadge.objects.filter(user__is_staff=False, badge=badge).count()
-        else:
-            return 0
+    def total_users_reached_weekly_savings_for_weeks(cls, num_weeks):
+        reached_weeks = {
+            'one': 0,
+            'two': 0,
+            'three': 0,
+            'four': 0,
+            'five': 0,
+            'six': 0
+        }
+
+        goals = Goal.objects.all()
+
+        for goal in goals:
+            goal_weekly_agg = goal.get_weekly_aggregates()
+            streak = 0
+            for week_value in goal_weekly_agg:
+                if week_value >= goal.weekly_target:
+                    # streak started
+                    streak += 1
+                else:
+                    # Streak broken, reset to 0
+                    streak = 0
+
+                # Streaks aren't cumulative, so a six week streak != 6 one week streaks
+                if streak == 1:
+                    reached_weeks['one'] += 1
+                if streak == 2:
+                    reached_weeks['two'] += 1
+                if streak == 3:
+                    reached_weeks['three'] += 1
+                if streak == 4:
+                    reached_weeks['four'] += 1
+                if streak == 5:
+                    reached_weeks['five'] += 1
+                if streak == 6:
+                    reached_weeks['six'] += 1
+
+        if num_weeks == 1:
+            return reached_weeks['one']
+        if num_weeks == 2:
+            return reached_weeks['two']
+        if num_weeks == 3:
+            return reached_weeks['three']
+        if num_weeks == 4:
+            return reached_weeks['four']
+        if num_weeks == 5:
+            return reached_weeks['five']
+        if num_weeks == 6:
+            return reached_weeks['six']
+
 
     @classmethod
-    def total_on_track_badges_at_least_one_user(cls, badge):
-        """Return the number of given 'on track' badges for given badge, else 0, earned by at least one user"""
-        badge_type = badge.badge_type
-        if badge_type is Badge.WEEKLY_TARGET_2 or badge_type is Badge.WEEKLY_TARGET_4 or badge_type is Badge.WEEKLY_TARGET_6:
-            return UserBadge.objects.filter(user__is_staff=False, badge=badge).values('user').distinct().count()
-        else:
-            return 0
+    def total_users_not_reached_weekly_savings_for_weeks(cls, week_num):
+        pass
 
 
 class UserTypeData:
