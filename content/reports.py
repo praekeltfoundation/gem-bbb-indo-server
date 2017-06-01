@@ -1337,7 +1337,7 @@ class RewardsDataPerStreak:
         """Returns the number of given streak badges awarded to all users"""
         badge_type = badge.badge_type
         if badge_type is Badge.STREAK_2 or badge_type is Badge.STREAK_4 or badge_type is Badge.STREAK_6:
-            return UserBadge.objects.filter(badge=badge).count()
+            return UserBadge.objects.filter(user__is_staff=False, badge=badge).count()
         else:
             return 0
 
@@ -1345,9 +1345,7 @@ class RewardsDataPerStreak:
     def total_streak_badges_at_least_one_user(cls, badge):
         """"Returns the number given streak badges by earned by at least one user"""
         badge_type = badge.badge_type
-        if badge_type is Badge.STREAK_2 \
-                or badge_type is Badge.STREAK_4 \
-                or badge_type is Badge.STREAK_6:
+        if badge_type is Badge.STREAK_2 or badge_type is Badge.STREAK_4 or badge_type is Badge.STREAK_6:
             return UserBadge.objects.filter(user__is_staff=False, badge=badge).values('user').distinct().count()
         else:
             return 0
@@ -1356,9 +1354,7 @@ class RewardsDataPerStreak:
     def total_on_track_badges(cls, badge):
         """Return the number of given 'on track' badges for given badge, else 0, awarded to all users"""
         badge_type = badge.badge_type
-        if badge_type is Badge.WEEKLY_TARGET_2 \
-            or badge_type is Badge.WEEKLY_TARGET_4 \
-            or badge_type is Badge.WEEKLY_TARGET_6:
+        if badge_type is Badge.WEEKLY_TARGET_2 or badge_type is Badge.WEEKLY_TARGET_4 or badge_type is Badge.WEEKLY_TARGET_6:
             return UserBadge.objects.filter(user__is_staff=False, badge=badge).count()
         else:
             return 0
@@ -1367,9 +1363,7 @@ class RewardsDataPerStreak:
     def total_on_track_badges_at_least_one_user(cls, badge):
         """Return the number of given 'on track' badges for given badge, else 0, earned by at least one user"""
         badge_type = badge.badge_type
-        if badge_type is Badge.WEEKLY_TARGET_2 \
-                or badge_type is Badge.WEEKLY_TARGET_4 \
-                or badge_type is Badge.WEEKLY_TARGET_6:
+        if badge_type is Badge.WEEKLY_TARGET_2 or badge_type is Badge.WEEKLY_TARGET_4 or badge_type is Badge.WEEKLY_TARGET_6:
             return UserBadge.objects.filter(user__is_staff=False, badge=badge).values('user').distinct().count()
         else:
             return 0
@@ -1886,7 +1880,10 @@ class BudgetUserData:
 
         with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
 
-            append_to_csv(('user', 'budget_created', 'budget_last_modified',
+            append_to_csv(('user',
+                           'budget_created',
+                           'budget_created_date',
+                           'budget_last_modified',
                            'budget_modified_count',
                            'budget_income_increased_count',
                            'budget_income_decreaed_count',
@@ -1917,6 +1914,7 @@ class BudgetUserData:
                     data = [
                         user,
                         budget_exists,
+                        budget.created_on,
                         budget.modified_on,
                         budget.modified_count,
                         budget.income_increased_count,
