@@ -731,7 +731,7 @@ class ChallengeExportQuiz:
 
         with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
             append_to_csv(('username', 'name', 'mobile', 'email', 'gender', 'age', 'user_type_source_medium',
-                           'date_joined', 'submission_date', 'question', 'number_of_attempts'),
+                           'date_joined', 'submission_date', 'selected_option', 'number_of_attempts'),
                           csvfile)
 
             for challenge in challenges:
@@ -746,10 +746,6 @@ class ChallengeExportQuiz:
                     except:
                         user_type = ''
 
-                    attempts = quiz_questions.annotate(num_attempts=Count('answers__id')) \
-                        .values('id', 'text', 'num_attempts') \
-                        .order_by('order')
-
                     data = [
                         participant.user.username,
                         participant.user.first_name,
@@ -759,12 +755,14 @@ class ChallengeExportQuiz:
                         profile.age,
                         user_type,  # user type
                         participant.user.date_joined,
-                        participant.date_completed,
+                        ParticipantAnswer.objects.filter(entry__participant=participant).reverse()[0].date_saved,
                     ]
 
-                    question_data = []
-                    for attempt in attempts:
-                        question_data = [attempt['text'], (attempt['num_attempts'])]
+                    correct_answers = ParticipantAnswer.objects.filter(entry__participant=participant, selected_option__correct=True)
+                    all_answers = ParticipantAnswer.objects.filter(entry__participant=participant)
+                    for correct_answer in correct_answers:
+                        question_data = [correct_answer.selected_option.text,
+                                         all_answers.filter(question=correct_answer.question).count()]
                         data.extend(question_data)
 
                     append_to_csv(data, csvfile)
