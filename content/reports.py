@@ -627,24 +627,32 @@ class SummaryDataPerQuiz:
         create_csv(filename)
 
         with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
-            append_to_csv(('quiz_name', 'quiz_question', 'number_of_options', 'attempts'), csvfile)
+            append_to_csv(('quiz_name', 'quiz_question', 'number_of_options', 'avg_attempts'), csvfile)
 
             for challenge in challenges:
                 quiz_questions = QuizQuestion.objects.filter(challenge=challenge)
 
+                quiz_question_data = []
                 for quiz_question in quiz_questions:
                     question_options = QuestionOption.objects.filter(question=quiz_question)
 
-                    attempts = ParticipantAnswer.objects.filter(question=quiz_question).count()
+                    unique_user_attempts = ParticipantAnswer.objects.filter(question=quiz_question).values('entry__participant').distinct().count()
+                    total_attempts = ParticipantAnswer.objects.filter(question=quiz_question).count()
 
-                    data = [
-                        challenge.name,
-                        quiz_question.text,
-                        question_options.count(),
-                        attempts
-                    ]
+                    if total_attempts != 0:
+                        avg_no_of_attempts = total_attempts / unique_user_attempts
+                    else:
+                        avg_no_of_attempts = 0
 
-                    append_to_csv(data, csvfile)
+                    quiz_question_data.extend([quiz_question.text, question_options.count(), avg_no_of_attempts],)
+
+                data = [
+                    challenge.name,
+                ]
+
+                data.extend(quiz_question_data)
+
+                append_to_csv(data, csvfile)
 
         success, message = pass_zip_encrypt_email(request, export_name, unique_time)
 
