@@ -1886,7 +1886,10 @@ class BudgetUserData:
 
         with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
 
-            append_to_csv(('user', 'budget_created', 'budget_last_modified',
+            append_to_csv(('user',
+                           'budget_created',
+                           'budget_created_date',
+                           'budget_last_modified',
                            'budget_modified_count',
                            'budget_income_increased_count',
                            'budget_income_decreaed_count',
@@ -1917,6 +1920,7 @@ class BudgetUserData:
                     data = [
                         user,
                         budget_exists,
+                        budget.created_on,
                         budget.modified_on,
                         budget.modified_count,
                         budget.income_increased_count,
