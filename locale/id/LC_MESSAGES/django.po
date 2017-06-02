@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-05-09 12:35+0000\n"
+"POT-Creation-Date: 2017-05-18 11:10+0000\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -32,6 +32,19 @@ msgid ""
 "Editing of challenges is disallowed when participants have already answered."
 msgstr "Maaf, kamu sudah pernah menjawab dan tidak bisa mengganti tantangan."
 
+#. Translators: Admin field name
+#: content/admin.py:46 content/models.py:501 content/models.py:783
+msgid "Dates"
+msgstr "Tanggal"
+
+#: content/admin.py:48
+msgid "Images"
+msgstr "Gambar"
+
+#: content/admin.py:156
+msgid "Calculated"
+msgstr ""
+
 #: content/edit_handlers.py:30
 msgid ":"
 msgstr ""
@@ -50,96 +63,108 @@ msgstr "Hasil pencarian tidak ditemukan"
 msgid "Image file not found"
 msgstr "Gambar tidak ditemukan"
 
-#: content/models.py:49 content/models.py:1527
+#: content/models.py:49 content/models.py:1530
 msgid "First Goal Created"
-msgstr ""
+msgstr "Target pertama telah dibuat"
 
 #: content/models.py:52
 msgid "Awarded to users when they create their first Goal."
 msgstr ""
+"Diberikan kepada pengguna saat mereka menciptakan target pertama mereka"
 
-#: content/models.py:58 content/models.py:1528
+#: content/models.py:58 content/models.py:1531
 msgid "First Goal Half Way"
-msgstr ""
+msgstr "Setengah jalan menuju target pertama"
 
 #: content/models.py:61
 msgid "Awarded to users when they are half-way through their first Goal."
-msgstr ""
+msgstr "Diberikan kepada pengguna saat mereka hampir mencapai target pertama "
 
-#: content/models.py:67 content/models.py:1529
+#: content/models.py:67 content/models.py:1532
 msgid "One Week Left"
-msgstr ""
+msgstr "Satu minggu lagi"
 
 #: content/models.py:70
 msgid ""
 "Awarded to users when they have one week left to save on their first Goal."
 msgstr ""
+"Diberikan kepada pengguna saat mereka memiliki sisa 1 minggu menuju target "
+"pertama"
 
-#: content/models.py:76 content/models.py:1530
+#: content/models.py:76 content/models.py:1533
 msgid "First Goal Done"
-msgstr ""
+msgstr "Target pertama selesai"
 
 #: content/models.py:79
 msgid "Awarded to users when they reach their first Goal."
-msgstr ""
+msgstr "Diberikan kepada pengguna saat mereka sukses meraih target pertama"
 
-#: content/models.py:85 content/models.py:1531
+#: content/models.py:85 content/models.py:1534
 msgid "First Saving"
-msgstr ""
+msgstr "Tabungan pertama"
 
 #: content/models.py:88
 msgid "Awarded to users when they create their first savings transaction."
-msgstr ""
+msgstr "Diberikan kepada pengguna saat mereka membuat tabungan pertama."
 
-#: content/models.py:94 content/models.py:1532
+#: content/models.py:94 content/models.py:1535
 msgid "2 Week Streak"
-msgstr ""
+msgstr "2 minggu berturut-turut"
 
 #: content/models.py:97
 msgid "Awarded when a user has saved for 2 weeks."
 msgstr ""
+"Diberikan saat pengguna berhasil menabung selama 2 minggu berturut-turut."
 
-#: content/models.py:103 content/models.py:1533
+#: content/models.py:103 content/models.py:1536
 msgid "4 Week Streak"
-msgstr ""
+msgstr "4 minggu berturut-turut"
 
 #: content/models.py:106
 msgid "Awarded when a user has saved for 4 weeks."
 msgstr ""
+"Diberikan saat pengguna berhasil menabung selama 4 minggu berturut-turut."
 
-#: content/models.py:112 content/models.py:1534
+#: content/models.py:112 content/models.py:1537
 msgid "6 Week Streak"
-msgstr ""
+msgstr "6 minggu berturut-turut"
 
 #: content/models.py:115
 msgid "Awarded when a user has save for 6 weeks."
 msgstr ""
+"Diberikan saat pengguna berhasil menabung selama 6 minggu berturut-turut."
 
-#: content/models.py:121 content/models.py:1535
+#: content/models.py:121 content/models.py:1538
 msgid "2 Week On Target"
-msgstr ""
+msgstr "2 minggu sesuai target"
 
 #: content/models.py:124
 msgid "Awarded when a user has reached their weekly target 2 weeks in a row."
 msgstr ""
+"Diberikan saat pengguna telah mencapai target mingguan mereka 2 minggu "
+"berturut-turut."
 
-#: content/models.py:130 content/models.py:1536
+#: content/models.py:130 content/models.py:1539
 msgid "4 Week On Target"
-msgstr ""
+msgstr "4 minggu sesuai target"
 
 #: content/models.py:133
 msgid "Awarded when a user has reached their weekly target 4 weeks in a row."
 msgstr ""
+"Diberikan saat pengguna telah mencapai target mingguan mereka 4 minggu "
+"berturut-turut."
 
-#: content/models.py:139 content/models.py:1537
+#: content/models.py:139 content/models.py:1540
 msgid "6 Week On Target"
-msgstr ""
+msgstr "6 minggu sesuai target"
 
 #: content/models.py:142
 msgid "Awarded when a user has reached their weekly target 6 weeks in a row."
 msgstr ""
+"Diberikan saat pengguna telah mencapai target mingguan mereka 6 minggu "
+"berturut-turut."
 
-#: content/models.py:148 content/models.py:1538
+#: content/models.py:148 content/models.py:1541
 msgid "Challenge Participation"
 msgstr ""
 
@@ -147,17 +172,15 @@ msgstr ""
 msgid "Awarded when a user has participated in a Challenge."
 msgstr ""
 
-#: content/models.py:157 content/models.py:1539
-#, fuzzy
-#| msgid "challenge name"
+#: content/models.py:157 content/models.py:1542
 msgid "Challenge Winner"
-msgstr "nama tantangan"
+msgstr "pemenang tantangan"
 
 #: content/models.py:160
 msgid "Awarded when a user has won a Challenge."
 msgstr ""
 
-#: content/models.py:166 content/models.py:1540
+#: content/models.py:166 content/models.py:1543
 msgid "Budget Creation"
 msgstr ""
 
@@ -165,7 +188,7 @@ msgstr ""
 msgid "Awarded when a user has created a budget."
 msgstr ""
 
-#: content/models.py:175 content/models.py:1541
+#: content/models.py:175 content/models.py:1544
 msgid "Budget Edit"
 msgstr ""
 
@@ -200,17 +223,17 @@ msgstr ""
 #. Translators: Field name on CMS
 #: content/models.py:251
 msgid "Facebook App Id"
-msgstr ""
+msgstr "ID Aplikasi Facebook"
 
 #. Translators: Help text on CMS
 #: content/models.py:254
 msgid "The App Id provided by Facebook via the Developer Console."
-msgstr ""
+msgstr "App Id yang disediakan oleh Facebook melalui Developer Console."
 
 #. Translators: Admin field name
 #: content/models.py:267
 msgid "Facebook"
-msgstr ""
+msgstr "Facebook"
 
 #. Translators: Collection name on CMS
 #: content/models.py:286
@@ -235,7 +258,7 @@ msgstr "subtitle"
 #. Translators: Field name on CMS
 #. Translators: CMS field name
 #. Translators: Field name on CMS
-#: content/models.py:330 content/models.py:1005 content/models.py:1559
+#: content/models.py:330 content/models.py:1005 content/models.py:1562
 #: survey/models.py:45
 msgid "intro dialogue"
 msgstr "introduksi"
@@ -315,7 +338,7 @@ msgstr "Selesai"
 
 #. Translators: Field name on challenge CMS (type of object)
 #. Translators: CMS field
-#: content/models.py:373 content/models.py:1898
+#: content/models.py:373 content/models.py:1901
 msgid "type"
 msgstr "tipe"
 
@@ -374,42 +397,29 @@ msgid "Instructional Text"
 msgstr "Teks Perintah"
 
 #. Translators: Admin field name
-#: content/models.py:493 content/models.py:1601 survey/models.py:174
+#: content/models.py:493 content/models.py:1604 survey/models.py:174
 msgid "Coach UI"
 msgstr "User Interface untuk Coach"
 
 #. Translators: Admin field name
-#: content/models.py:501 content/models.py:783
-msgid "Dates"
-msgstr "Tanggal"
-
-#. Translators: Admin field name
 #: content/models.py:509
-#, fuzzy
-#| msgid "free text question"
 msgid "Free Text Question"
-msgstr "pertanyaan bebas"
+msgstr "Pertanyaan Bebas"
 
 #. Translators: Admin field help
 #: content/models.py:511
-#, fuzzy
-#| msgid "Only relevant for Quiz type Challenges."
 msgid "Only relevant for Freeform type Challenges."
-msgstr "Hanya relevan untuk Kuis bertipe Tantangan."
+msgstr "Hanya relevan untuk Teks Bebas bertipe Tantangan."
 
 #. Translators: Admin field name
 #: content/models.py:519
-#, fuzzy
-#| msgid "picture question"
 msgid "Picture Question"
-msgstr "pertanyaan gambar"
+msgstr "Pertanyaan Gambar"
 
 #. Translators: Admin field help
 #: content/models.py:521
-#, fuzzy
-#| msgid "Only relevant for Quiz type Challenges."
 msgid "Only relevant for Picture type Challenges."
-msgstr "Hanya relevan untuk Kuis bertipe Tantangan."
+msgstr "Hanya relevan untuk Gambar bertipe Tantangan."
 
 #. Translators: Admin field name
 #: content/models.py:529 content/wagtail_hooks.py:53
@@ -430,7 +440,7 @@ msgstr "urutan"
 #. Translators: CMS field name
 #. Translators: CMS field
 #: content/models.py:543 content/models.py:613 content/models.py:633
-#: content/models.py:665 content/models.py:941 content/models.py:1894
+#: content/models.py:665 content/models.py:941 content/models.py:1897
 msgid "text"
 msgstr "teks"
 
@@ -491,10 +501,8 @@ msgstr "pertanyaan gambar"
 
 #. Translators: Admin field name
 #: content/models.py:656 content/wagtail_hooks.py:44
-#, fuzzy
-#| msgid "picture questions"
 msgid "Picture Questions"
-msgstr "pertanyaan gambar"
+msgstr "Pertanyaan Gambar"
 
 #. Translators: Collection name on CMS
 #: content/models.py:669
@@ -508,10 +516,8 @@ msgstr "pertanyaan bebas"
 
 #. Translators: Admin field name
 #: content/models.py:688
-#, fuzzy
-#| msgid "free text questions"
 msgid "Free Text Questions"
-msgstr "pertanyaan bebas"
+msgstr "Pertanyaan Bebas"
 
 #. Translators: CMS field name (refers to dates)
 #: content/models.py:699
@@ -525,15 +531,15 @@ msgstr "dilengkapi pada"
 
 #: content/models.py:705
 msgid "is read"
-msgstr ""
+msgstr "sudah dibaca"
 
 #: content/models.py:706
 msgid "is shortlisted"
-msgstr ""
+msgstr "terpilih"
 
 #: content/models.py:707
 msgid "is winner"
-msgstr ""
+msgstr "pemenang"
 
 #: content/models.py:710
 msgid "has_been_notified"
@@ -551,14 +557,12 @@ msgstr "peserta"
 
 #. Translators: Admin field name
 #: content/models.py:775
-#, fuzzy
-#| msgid "participant"
 msgid "Participant"
-msgstr "peserta"
+msgstr "Peserta"
 
 #: content/models.py:791
 msgid "Status"
-msgstr ""
+msgstr "Status"
 
 #. Translators: CMS field name (refers to dates)
 #: content/models.py:801 content/models.py:827 content/models.py:924
@@ -651,14 +655,14 @@ msgid "tip favourites"
 msgstr "tips favorit"
 
 #. Translators: Object state
-#: content/models.py:1131 content/models.py:1182 content/models.py:1566
-#: content/models.py:2013 content/models.py:2128
+#: content/models.py:1131 content/models.py:1182 content/models.py:1569
+#: content/models.py:2016 content/models.py:2131
 msgid "Inactive"
 msgstr "Non Aktif"
 
 #. Translators: Object state
-#: content/models.py:1133 content/models.py:1184 content/models.py:1567
-#: content/models.py:2015 content/models.py:2129
+#: content/models.py:1133 content/models.py:1184 content/models.py:1570
+#: content/models.py:2018 content/models.py:2132
 msgid "Active"
 msgstr "Aktif"
 
@@ -673,328 +677,327 @@ msgid "goal prototypes"
 msgstr "draft tujuan"
 
 #. Translators: Collection name on CMS
-#: content/models.py:1203
+#: content/models.py:1204
 msgid "goal"
 msgstr "tujuan"
 
 #. Translators: Plural collection name on CMS
-#: content/models.py:1206
+#: content/models.py:1207
 msgid "goals"
 msgstr "tujuan"
 
-#: content/models.py:1473
+#: content/models.py:1476
 msgid "date"
-msgstr ""
+msgstr "tanggal"
 
-#: content/models.py:1474 content/models.py:2132
+#: content/models.py:1477 content/models.py:2135
 msgid "value"
-msgstr ""
+msgstr "value"
 
 #. Translators: Collection name on CMS
-#: content/models.py:1479
+#: content/models.py:1482
 msgid "goal transaction"
 msgstr "tujuan transaksi"
 
 #. Translators: Plural collection name on CMS
-#: content/models.py:1482
+#: content/models.py:1485
 msgid "goal transactions"
 msgstr "tujuan transaksi"
 
-#: content/models.py:1526
+#: content/models.py:1529
 msgid "None"
-msgstr ""
+msgstr "tidak ada"
 
 #. Translators: CMS field name
-#: content/models.py:1550
+#: content/models.py:1553
 msgid "slug"
-msgstr ""
+msgstr "slug"
 
 #. Translators: Help text on CMS
-#: content/models.py:1554
+#: content/models.py:1557
 msgid ""
 "The name of the page as it will appear in URLs e.g http://domain.com/blog/"
 "[my-slug]/"
-msgstr ""
+msgstr "slug"
 
 #. Translators: Help text on CMS
-#: content/models.py:1561
-#, fuzzy
-#| msgid ""
-#| "The opening line said by the Coach when telling the user about the "
-#| "Challenge."
+#: content/models.py:1564
 msgid ""
 "The opening line said by the Coach when presenting the user with their Badge."
-msgstr ""
-"Kalimat yang diucapkan oleh Coach ketika menjelaskan tentang Tantangan."
+msgstr "Kalimat yang diucapkan oleh Coach ketika menjelaskan tentang Badge."
 
 #. Translators: Collection name on CMS
-#: content/models.py:1574
+#: content/models.py:1577
 msgid "badge"
-msgstr ""
+msgstr "badge"
 
 #. Translators: Plural collection name on CMS
-#: content/models.py:1577
+#: content/models.py:1580
 msgid "badges"
-msgstr ""
+msgstr "badge"
 
 #. Translators: Admin field name
-#: content/models.py:1596
+#: content/models.py:1599
 msgid "Badge"
-msgstr ""
-
-#. Translators: Collection name on CMS
-#: content/models.py:1613
-msgid "user badge"
-msgstr ""
+msgstr "badge"
 
 #. Translators: Collection name on CMS
 #: content/models.py:1616
-msgid "user badges"
-msgstr ""
+msgid "user badge"
+msgstr "badge user"
 
-#: content/models.py:1657 content/models.py:1679 content/models.py:1702
-#: content/models.py:1722 content/models.py:1744
+#. Translators: Collection name on CMS
+#: content/models.py:1619
+msgid "user badges"
+msgstr "badge user"
+
+#: content/models.py:1660 content/models.py:1682 content/models.py:1705
+#: content/models.py:1725 content/models.py:1747
 msgid "Goal instance must be saved before it can be awarded badges."
 msgstr ""
 
-#: content/models.py:1839
+#: content/models.py:1842
 msgid "Budget instance must be saved before it can be awarded badges."
 msgstr ""
 
-#: content/models.py:1863
+#: content/models.py:1866
 msgid "Budget instance must be saved before it can be awarded badges"
 msgstr ""
 
 #. Translators: CMS field
-#: content/models.py:1888
-#, fuzzy
-#| msgid "created on"
+#: content/models.py:1891
 msgid "date created"
 msgstr "dibuat pada"
 
 #. Translators: CMS field
-#: content/models.py:1891
+#: content/models.py:1894
 msgid "has been read"
-msgstr ""
+msgstr "telah dibaca"
 
 #. Translators: Feedback type
-#: content/models.py:1902
+#: content/models.py:1905
 #, fuzzy
 #| msgid "question"
 msgid "Ask a question"
 msgstr "pertanyaan"
 
 #. Translators: Feedback type
-#: content/models.py:1904
+#: content/models.py:1907
 msgid "Report a problem"
-msgstr ""
+msgstr "Laporkan kendala"
 
 #. Translators: Feedback type
-#: content/models.py:1906
+#: content/models.py:1909
 msgid "General feedback"
-msgstr ""
+msgstr "Feedback umum"
 
 #. Translators: Feedback type
-#: content/models.py:1908
+#: content/models.py:1911
 msgid "Sponsorship and partnership requests"
-msgstr ""
-
-#. Translators: Collection name on CMS
-#: content/models.py:1918
-msgid "feedback entry"
-msgstr ""
+msgstr "Permintaan sponsor dan kerjasama"
 
 #. Translators: Collection name on CMS
 #: content/models.py:1921
+msgid "feedback entry"
+msgstr "Entri feedback"
+
+#. Translators: Collection name on CMS
+#: content/models.py:1924
 #, fuzzy
 #| msgid "entries"
 msgid "feedback entries"
 msgstr "daftar nama"
 
-#: content/models.py:1936
+#: content/models.py:1939
 msgid "Unknown user"
 msgstr ""
 
-#: content/models.py:1952
+#: content/models.py:1955
 msgid "Type"
 msgstr ""
 
-#: content/models.py:1953
+#: content/models.py:1956
 msgid "Feedback Header"
 msgstr ""
 
-#: content/models.py:1955
+#: content/models.py:1958
 msgid "User"
 msgstr ""
 
-#: content/models.py:1956
+#: content/models.py:1959
 msgid "Fullname"
 msgstr ""
 
-#: content/models.py:1957 survey/models.py:94
+#: content/models.py:1960 survey/models.py:94
 msgid "Mobile Number"
 msgstr ""
 
-#: content/models.py:1958
+#: content/models.py:1961
 msgid "Email Address"
 msgstr ""
 
-#: content/models.py:1959
+#: content/models.py:1962
 msgid "User Details"
 msgstr ""
 
-#: content/models.py:1960
+#: content/models.py:1963
 msgid "Message"
 msgstr ""
 
-#: content/models.py:1970
+#: content/models.py:1973
 msgid "message"
 msgstr ""
 
-#: content/models.py:1970
+#: content/models.py:1973
 msgid "The message shown to the user"
 msgstr ""
 
-#: content/models.py:1971
+#: content/models.py:1974
 #, fuzzy
 #| msgid "Published"
 msgid "publish date"
 msgstr "Diterbitkan"
 
-#: content/models.py:1972
+#: content/models.py:1975
 msgid "The date the notification should start displaying"
 msgstr ""
 
-#: content/models.py:1973
+#: content/models.py:1976
 msgid "end date"
 msgstr ""
 
 #. Translators: Admin field name
-#: content/models.py:1995
+#: content/models.py:1998
 #, fuzzy
 #| msgid "Competitions"
 msgid "Custom Notifications"
 msgstr "Kompetisi"
 
-#: content/models.py:2017
+#: content/models.py:2020
 msgid "The order in which this category will appear on the frontend"
 msgstr ""
 
 #. Translators: Collection name on CMS
-#: content/models.py:2021
+#: content/models.py:2024
 msgid "expense category"
 msgstr ""
 
 #. Translators: Plural collection name on CMS
-#: content/models.py:2024
+#: content/models.py:2027
 msgid "expense categories"
 msgstr ""
 
-#: content/models.py:2053
+#: content/models.py:2056
 #, fuzzy
 #| msgid "Incomplete"
 msgid "income"
 msgstr "Belum Lengkap"
 
-#: content/models.py:2054
+#: content/models.py:2057
 msgid "original income"
 msgstr ""
 
-#: content/models.py:2056
+#: content/models.py:2059
 #, fuzzy
 #| msgid "completed on"
 msgid "income modified on"
 msgstr "dilengkapi pada"
 
-#: content/models.py:2058
+#: content/models.py:2061
 msgid "income increase count"
 msgstr ""
 
-#: content/models.py:2059
+#: content/models.py:2062
 msgid "income decreased count"
 msgstr ""
 
-#: content/models.py:2062
+#: content/models.py:2065
 msgid "savings"
 msgstr ""
 
-#: content/models.py:2063
+#: content/models.py:2066
 msgid "original savings"
 msgstr ""
 
-#: content/models.py:2065
+#: content/models.py:2068
 msgid "savings modified on"
 msgstr ""
 
-#: content/models.py:2067
+#: content/models.py:2070
 msgid "savings increased count"
 msgstr ""
 
-#: content/models.py:2068
+#: content/models.py:2071
 msgid "savings decreased count"
 msgstr ""
 
-#: content/models.py:2071
+#: content/models.py:2074
 msgid "original total expenses"
 msgstr ""
 
-#: content/models.py:2073
+#: content/models.py:2076
 msgid "total expenses modified on"
 msgstr ""
 
-#: content/models.py:2075
+#: content/models.py:2078
 msgid "total expenses increased count"
 msgstr ""
 
-#: content/models.py:2076
+#: content/models.py:2079
 msgid "total expenses decreased count"
 msgstr ""
 
 #. Translators: Collection name on CMS
-#. Translators: Plural collection name on CMS
-#: content/models.py:2087 content/models.py:2090
+#: content/models.py:2090
 msgid "budget"
-msgstr ""
+msgstr "anggaran"
+
+#. Translators: Plural collection name on CMS
+#: content/models.py:2093
+#, fuzzy
+#| msgid "budget"
+msgid "budgets"
+msgstr "anggaran"
 
 #. Translators: Admin field name
 #. Translators: CMS menu name
-#: content/models.py:2109 content/wagtail_hooks.py:256
+#: content/models.py:2112 content/wagtail_hooks.py:256
 msgid "Budget"
-msgstr ""
+msgstr "Anggaran"
 
 #. Translators: Admin field name
-#: content/models.py:2117
+#: content/models.py:2120
 msgid "Expenses"
 msgstr ""
 
-#: content/models.py:2133
+#: content/models.py:2136
 msgid "original value"
 msgstr ""
 
-#: content/models.py:2135
+#: content/models.py:2138
 msgid "value modified on"
 msgstr ""
 
-#: content/models.py:2137
+#: content/models.py:2140
 msgid "value increased count"
 msgstr ""
 
-#: content/models.py:2139
+#: content/models.py:2142
 msgid "value decreased count"
 msgstr ""
 
 #. Translators: Collection name on CMS
-#: content/models.py:2155
+#: content/models.py:2158
 msgid "expense"
 msgstr ""
 
 #. Translators: Plural collection name on CMS
-#: content/models.py:2158
+#: content/models.py:2161
 msgid "expenses"
 msgstr ""
 
 #. Translators: Default Expense name
-#: content/models.py:2168
+#: content/models.py:2171
 msgid "Expense"
 msgstr ""
 
@@ -1010,14 +1013,14 @@ msgstr ""
 msgid "Report generation ran during data cleanup - try again"
 msgstr ""
 
-#: content/templates/content/badge_social.html:47
+#: content/templates/content/badge_social.html:50
 msgid ""
 "Are you still having to borrow money from your parents to get the things "
 "that you want? Life is more awesome when you save money and reach goals on "
 "your own. Let Dooit help!"
 msgstr ""
-"Masih suka minta uang sama orangtua buat beli barang-barang yang lagi "
-"kamu pengen? Lebih baik kamu nabung sendiri dengan bantuan Dooit!"
+"Masih suka minta uang sama orangtua buat beli barang-barang yang lagi kamu "
+"pengen? Lebih baik kamu nabung sendiri dengan bantuan Dooit!"
 
 #: content/templates/content/tip.html:41
 msgid "Written for you, by Bina."
@@ -1025,10 +1028,8 @@ msgstr "Ditulis untukmu oleh Bina."
 
 #. Translators: CMS menu name
 #: content/wagtail_hooks.py:70
-#, fuzzy
-#| msgid "participants"
 msgid "Participants"
-msgstr "peserta"
+msgstr "Peserta"
 
 #. Translators: CMS menu name
 #: content/wagtail_hooks.py:90
@@ -1057,7 +1058,7 @@ msgstr "Draft Tujuan"
 #. Translators: CMS menu name
 #: content/wagtail_hooks.py:190
 msgid "Badges"
-msgstr ""
+msgstr "Badge"
 
 #. Translators: CMS menu name
 #: content/wagtail_hooks.py:199
@@ -1080,7 +1081,7 @@ msgstr ""
 
 #: survey/exceptions.py:9
 msgid "Multiple survey submissions are not allowed."
-msgstr ""
+msgstr "Kiriman survei berkelipatan tidak diizinkan"
 
 #. Translators: Help text on CMS
 #: survey/models.py:47
@@ -1101,38 +1102,38 @@ msgstr "Kalimat awal yang diucapkan oleh Coach saat menjelaskan tentang Tips."
 #. Translators: Field name on CMS
 #: survey/models.py:61
 msgid "notification body"
-msgstr ""
+msgstr "notifikasi"
 
 #. Translators: Help text on CMS
 #: survey/models.py:63
 msgid "The content body of the first Survey notification the user receives."
-msgstr ""
+msgstr "Isi notifikasi survei pertama yang diterima oleh pengguna"
 
 #. Translators: Field name on CMS
 #: survey/models.py:69
 msgid "reminder notification body"
-msgstr ""
+msgstr "Pengingat notifikasi"
 
 #. Translators: Help text on CMS
 #: survey/models.py:71
 msgid ""
 "The content body of the repeating Survey notifications the user receives."
-msgstr ""
+msgstr "Isi pemberitahuan Survei berulang yang diterima pengguna."
 
 #. Translators: Field name on CMS
 #: survey/models.py:77
 msgid "days to deliver"
-msgstr ""
+msgstr "Waktu yang dibutuhkan"
 
 #. Translators: Help text on CMS
 #: survey/models.py:79
 msgid ""
 "The number of days after user registration that the Survey will be available."
-msgstr ""
+msgstr "Jumlah hari setelah pengguna mendaftar hingga Survey tersedia"
 
 #: survey/models.py:84
 msgid "none"
-msgstr ""
+msgstr "tidak ada"
 
 #: survey/models.py:85
 msgid "baseline"
@@ -1140,62 +1141,64 @@ msgstr ""
 
 #: survey/models.py:86
 msgid "ea tool"
-msgstr ""
+msgstr "ea tool"
 
 #: survey/models.py:91
 msgid "Unique User ID"
-msgstr ""
+msgstr "Identitas Unik Pengguna"
 
 #: survey/models.py:92
 msgid "Name"
-msgstr ""
+msgstr "Nama"
 
 #: survey/models.py:93
 msgid "Username"
-msgstr ""
+msgstr "Nama Pengguna"
 
 #: survey/models.py:95
 msgid "Gender"
-msgstr ""
+msgstr "Jenis Kelamin"
 
 #: survey/models.py:96
 msgid "Age"
-msgstr ""
+msgstr "Umur"
 
 #: survey/models.py:97
 msgid "Email"
-msgstr ""
+msgstr "Email"
 
 #: survey/models.py:98
 msgid "Consented to Survey"
-msgstr ""
+msgstr "Persetujuan untuk Melakukan Survey"
 
 #. Translators: Admin field name
 #: survey/models.py:165
 msgid "Push Notifications"
-msgstr ""
+msgstr "Notifikasi"
 
 #: survey/models.py:175
 msgid "Form fields"
-msgstr ""
+msgstr "Form"
 
 #: survey/models.py:182
 msgid "key"
-msgstr ""
+msgstr "key"
 
 #: survey/models.py:185
 msgid ""
 "Field identifier. Warning: Changing this will prevent existing submissions' "
 "fields from being exported."
 msgstr ""
+"Tanda pengenal field. Peringatan: Perubahan di bidang ini akan menghalangi "
+"pengiriman pengajuan field"
 
 #: survey/models.py:288
 msgid "coach survey submission draft"
-msgstr ""
+msgstr "Draf submisi survei Bina"
 
 #: survey/models.py:290
 msgid "coach survey submission drafts"
-msgstr ""
+msgstr "Draf submisi survei Bina"
 
 #. Translators: API warning
 #: users/exceptions.py:10
@@ -1234,7 +1237,7 @@ msgstr ""
 #. Translators: CMS field
 #: users/models.py:88
 msgid "age"
-msgstr ""
+msgstr "umur"
 
 #. Translators: Gender value
 #: users/models.py:92
@@ -1249,7 +1252,7 @@ msgstr "Perempuan"
 #. Translators: CMS field name
 #: users/models.py:98
 msgid "mobile number"
-msgstr ""
+msgstr "nomor telepon"
 
 #. Translators: CMS field name
 #: users/models.py:101
@@ -1259,16 +1262,14 @@ msgid "profile image"
 msgstr "profil"
 
 #: users/models.py:109
-#, fuzzy
-#| msgid "picture question"
 msgid "security question"
-msgstr "pertanyaan gambar"
+msgstr "pertanyaan keamanan"
 
 #. Translators: Validation failure message
 #: users/models.py:116
 #, python-format
 msgid "Security question must be at least %d characters long"
-msgstr ""
+msgstr "Pertanyaan keamanan minimal harus %d karakter"
 
 #: users/models.py:120
 #, fuzzy
@@ -1288,7 +1289,7 @@ msgstr "profil"
 
 #: users/models.py:170
 msgid "Google Analytics ID"
-msgstr ""
+msgstr "Akun Google Analytics"
 
 #: users/models.py:184
 msgid "campaign"
@@ -1304,19 +1305,24 @@ msgstr ""
 
 #: users/views.py:151 users/views.py:176 users/views.py:192 users/views.py:200
 msgid "Required."
-msgstr ""
+msgstr "Dibutuhkan."
 
 #: users/views.py:161 users/views.py:183
 msgid "No such username exists."
-msgstr ""
+msgstr "Nama pengguna belum terdaftar."
 
 #: users/views.py:187
 msgid "Unknown username error."
-msgstr ""
+msgstr "Nama pengguna tidak dikenal."
 
 #: users/views.py:195
 msgid "Incorrect answer (remember capital letters)."
-msgstr ""
+msgstr "Data yang kamu masukan salah (jangan lupa huruf kapital)"
+
+#, fuzzy
+#~| msgid "mobile number"
+#~ msgid "Decimal number"
+#~ msgstr "nomor telepon"
 
 #, fuzzy
 #~| msgid "question"
@@ -1329,9 +1335,34 @@ msgstr ""
 #~ msgstr "urutan"
 
 #, fuzzy
+#~| msgid "None"
+#~ msgid "No"
+#~ msgstr "tidak ada"
+
+#, fuzzy
+#~| msgid "Status"
+#~ msgid "Sat"
+#~ msgstr "status"
+
+#, fuzzy
+#~| msgid "age"
+#~ msgid "aug"
+#~ msgstr "umur"
+
+#, fuzzy
 #~| msgid "correct"
 #~ msgid "oct"
 #~ msgstr "benar"
+
+#, fuzzy
+#~| msgid "Multiple survey submissions are not allowed."
+#~ msgid "Directory indexes are not allowed here."
+#~ msgstr "Kiriman survei berkelipatan tidak diizinkan"
+
+#, fuzzy
+#~| msgid "Username"
+#~ msgid "name"
+#~ msgstr "Nama Pengguna"
 
 #, fuzzy
 #~| msgid "state"
@@ -1349,8 +1380,23 @@ msgstr ""
 #~ msgstr "dibuat pada"
 
 #, fuzzy
+#~| msgid "question"
+#~ msgid "Useful description"
+#~ msgstr "pertanyaan"
+
+#, fuzzy
+#~| msgid "state"
+#~ msgid "task name"
+#~ msgstr "status"
+
+#, fuzzy
 #~| msgid "agreements"
 #~ msgid "Arguments"
+#~ msgstr "persetujuan"
+
+#, fuzzy
+#~| msgid "agreements"
+#~ msgid "Keyword arguments"
 #~ msgstr "persetujuan"
 
 #, fuzzy
@@ -1362,6 +1408,26 @@ msgstr ""
 #~| msgid "question"
 #~ msgid "description"
 #~ msgstr "pertanyaan"
+
+#, fuzzy
+#~| msgid "Username"
+#~ msgid "hostname"
+#~ msgstr "Nama Pengguna"
+
+#, fuzzy
+#~| msgid "state"
+#~ msgid "tasks"
+#~ msgstr "status"
+
+#, fuzzy
+#~| msgid "agreements"
+#~ msgid "too few arguments"
+#~ msgstr "persetujuan"
+
+#, fuzzy
+#~| msgid "First Goal Done"
+#~ msgid "First child of"
+#~ msgstr "Target pertama selesai"
 
 #, fuzzy
 #~| msgid "question"

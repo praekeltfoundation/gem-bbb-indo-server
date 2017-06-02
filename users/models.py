@@ -3,7 +3,7 @@ from datetime import timedelta
 import uuid
 
 from django.utils import timezone
-from django.utils.translation import ugettext as _
+from django.utils.translation import ugettext_lazy as _
 from django.contrib.auth.models import User
 from django.core.validators import MinLengthValidator, RegexValidator
 from django.db import models
