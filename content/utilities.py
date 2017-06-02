@@ -73,19 +73,19 @@ def send_password_email(request, export_name, unique_time, password):
     send_to = request.user.email
     file_name = export_name + unique_time + '.zip'
 
-    send_mail(
-        subject=subject,
-        message='Password for ' + file_name + ': ' + password,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[send_to],
-
-        fail_silently=False
-    )
+    # send_mail(
+    #     subject=subject,
+    #     message='Password for ' + file_name + ': ' + password,
+    #     from_email=settings.DEFAULT_FROM_EMAIL,
+    #     recipient_list=[send_to],
+    #
+    #     fail_silently=False
+    # )
 
     if os.path.isfile(settings.SENDFILE_ROOT + '\\' + file_name):
         email = EmailMessage(
             subject,
-            'Attached report: ' + file_name,
+            'Attached report: ' + file_name + '\nPassword: ' + password,
             settings.DEFAULT_FROM_EMAIL,
             [send_to],
         )
