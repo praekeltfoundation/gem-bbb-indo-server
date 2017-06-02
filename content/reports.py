@@ -46,7 +46,7 @@ class GoalReport:
 
     @classmethod
     def export_csv(cls, request, stream, export_name, unique_time):
-        goals = Goal.objects.all()
+        goals = Goal.objects.all(user__is_staff=False)
 
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
 
@@ -450,13 +450,11 @@ class UserReport:
 
     @classmethod
     def num_budget_created_badges(cls, profile):
-        # TODO: Return the number of Budget Created badges (Not implemented)
-        return 0
+        return UserBadge.objects.filter(user=profile.user, badge__badge_type=Badge.BUDGET_CREATE).count()
 
     @classmethod
     def num_budget_revision_badges(cls, profile):
-        # TODO: Return the number of Budget Revision badges (Not implemented)
-        return 0
+        return UserBadge.objects.filter(user=profile.user, badge__badge_type=Badge.BUDGET_EDIT).count()
 
     # Survey data
 
@@ -494,7 +492,7 @@ class SavingsReport:
 
     @classmethod
     def export_csv(cls, request, stream, export_name, unique_time):
-        goals = Goal.objects.all()
+        goals = Goal.objects.all(user__is_staff=False)
 
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
@@ -1298,8 +1296,8 @@ class RewardsDataPerStreak:
 
             total_streaks = cls.get_total_streaks()
             num_users_min_one_streak = cls.get_users_at_least_one_streak()
-            total_weekly_target_weeks = cls.total_users_reached_weekly_savings_for_weeks()
-            total_not_weekly_target_weeks = cls.total_users_not_reached_weekly_savings_for_weeks()
+            total_weekly_target_weeks = cls.get_total_users_reached_weekly_savings_for_weeks()
+            total_not_weekly_target_weeks = cls.get_total_users_not_reached_weekly_savings_for_weeks()
 
             for i in range(1, 7):
                 week = ''
@@ -1355,16 +1353,6 @@ class RewardsDataPerStreak:
             return 'five'
         if num == 6:
             return 'six'
-
-    @classmethod
-    def total_streak_badges(cls, badge):
-        """Returns the number of given streak badges awarded to all users"""
-        return UserBadge.objects.filter(user__is_staff=False, badge=badge).count()
-
-    @classmethod
-    def total_streak_badges_at_least_one_user(cls, badge):
-        """"Returns the number given streak badges by earned by at least one user"""
-        return UserBadge.objects.filter(user__is_staff=False, badge=badge).values('user').distinct().count()
 
     @classmethod
     def get_total_streaks(cls):
@@ -1453,7 +1441,7 @@ class RewardsDataPerStreak:
             return streak_weeks
 
     @classmethod
-    def total_users_reached_weekly_savings_for_weeks(cls):
+    def get_total_users_reached_weekly_savings_for_weeks(cls):
         reached_weeks = {
             'one': 0,
             'two': 0,
@@ -1492,7 +1480,7 @@ class RewardsDataPerStreak:
         return reached_weeks
 
     @classmethod
-    def total_users_not_reached_weekly_savings_for_weeks(cls):
+    def get_total_users_not_reached_weekly_savings_for_weeks(cls):
         reached_weeks = {
             'one': 0,
             'two': 0,
@@ -1619,8 +1607,6 @@ class SummarySurveyData:
             submitted_surveys = CoachSurveySubmission.objects.filter(
                 user__is_staff=False,
                 survey__bot_conversation=CoachSurvey.BASELINE)
-
-
 
             for survey in submitted_surveys:
                 survey_data = survey.get_data()
@@ -2007,7 +1993,7 @@ class EndlineSurveyData:
 
 
 class BudgetUserData:
-    # TODO: Refactor this report to remove code repetition
+
     fields = ()
 
     @classmethod
@@ -2141,15 +2127,15 @@ class BudgetAggregateData:
                            ),
                           csvfile)
 
-            budgets = Budget.objects.all()
+            budgets = Budget.objects.filter(user__is_staff=False)
 
-            num_users_edited = Budget.objects.all().exclude(modified_count=0).count()
-            num_budget_income_increased = Budget.objects.all().exclude(income_increased_count=0).count()
-            num_budget_income_decreased = Budget.objects.all().exclude(income_decreased_count=0).count()
-            num_budget_savings_increased = Budget.objects.all().exclude(savings_increased_count=0).count()
-            num_budget_savings_decreased = Budget.objects.all().exclude(savings_decreased_count=0).count()
-            num_budget_expense_increased = Budget.objects.all().exclude(expense_increased_count=0).count()
-            num_budget_expense_decreased = Budget.objects.all().exclude(expense_decreased_count=0).count()
+            num_users_edited = Budget.objects.all().exclude(user__is_staff=False, modified_count=0).count()
+            num_budget_income_increased = Budget.objects.all().exclude(user__is_staff=False, income_increased_count=0).count()
+            num_budget_income_decreased = Budget.objects.all().exclude(user__is_staff=False, income_decreased_count=0).count()
+            num_budget_savings_increased = Budget.objects.all().exclude(user__is_staff=False, savings_increased_count=0).count()
+            num_budget_savings_decreased = Budget.objects.all().exclude(user__is_staff=False, savings_decreased_count=0).count()
+            num_budget_expense_increased = Budget.objects.all().exclude(user__is_staff=False, expense_increased_count=0).count()
+            num_budget_expense_decreased = Budget.objects.all().exclude(user__is_staff=False, expense_decreased_count=0).count()
 
             data = [
                 budgets.count(),
