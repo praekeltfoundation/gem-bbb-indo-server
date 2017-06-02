@@ -5,7 +5,7 @@ import random
 import csv
 
 from django.conf import settings
-from django.core.mail import send_mail
+from django.core.mail import send_mail, EmailMessage
 from django.utils import timezone
 
 from content.celery import app
@@ -71,12 +71,29 @@ def send_password_email(request, export_name, unique_time, password):
     subject = 'Dooit Date Export: ' + str(timezone.now().date())
 
     send_to = request.user.email
+    file_name = export_name + unique_time + '.zip'
 
-    send_mail(
-        subject=subject,
-        message='Password for ' + export_name + unique_time + '.zip: ' + password,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[send_to],
+    # send_mail(
+    #     subject=subject,
+    #     message='Password for ' + file_name + ': ' + password,
+    #     from_email=settings.DEFAULT_FROM_EMAIL,
+    #     recipient_list=[send_to],
+    #
+    #     fail_silently=False
+    # )
 
-        fail_silently=False
-    )
+    if os.path.isfile(settings.SENDFILE_ROOT + '\\' + file_name):
+        email = EmailMessage(
+            subject,
+            'Attached report: ' + file_name + '\nPassword: ' + password,
+            settings.DEFAULT_FROM_EMAIL,
+            [send_to],
+        )
+
+        email.attach_file(settings.SENDFILE_ROOT + '\\' + file_name, 'application/zip')
+
+        email.send()
+    else:
+        return False
+
+    return True

@@ -104,8 +104,9 @@ def report_challenge_exports(request):
                                                               date_from=date_from, date_to=date_to)
             if not success:
                 messages.error(request, err)
-                return redirect(reverse('content-admin:reports-challenges'))
-            return response
+            else:
+                messages.success(request, err)
+            return redirect(reverse('content-admin:reports-challenges'))
         elif request.POST.get('action') == 'EXPORT-CHALLENGE-QUIZ-SUMMARY':
             export_name = 'Challenge_Quiz_Summary'
             unique_time = get_report_generation_time()
@@ -117,8 +118,9 @@ def report_challenge_exports(request):
             success, err = SummaryDataPerQuiz.export_csv(request, response, export_name, unique_time)
             if not success:
                 messages.error(request, err)
-                return redirect(reverse('content-admin:reports-challenges'))
-            return response
+            else:
+                messages.success(request, err)
+            return redirect(reverse('content-admin:reports-challenges'))
         elif request.POST.get('action') == 'EXPORT-CHALLENGE-PICTURE':
             challenge_name = request.POST['picture-challenge-name']
             export_name = 'Challenge_Picture'
@@ -130,8 +132,9 @@ def report_challenge_exports(request):
             success, err = ChallengeExportPicture.export_csv(request, response, export_name, unique_time, challenge_name=challenge_name)
             if not success:
                 messages.error(request, err)
-                return redirect(reverse('content-admin:reports-challenges'))
-            return response
+            else:
+                messages.success(request, err)
+            return redirect(reverse('content-admin:reports-challenges'))
         elif request.POST.get('action') == 'EXPORT-CHALLENGE-QUIZ':
             challenge_name = request.POST['quiz-challenge-name']
             export_name = 'Challenge_Quiz'
@@ -143,8 +146,9 @@ def report_challenge_exports(request):
             success, err = ChallengeExportQuiz.export_csv(request, response, export_name, unique_time, challenge_name=challenge_name)
             if not success:
                 messages.error(request, err)
-                return redirect(reverse('content-admin:reports-challenges'))
-            return response
+            else:
+                messages.success(request, err)
+            return redirect(reverse('content-admin:reports-challenges'))
         elif request.POST.get('action') == 'EXPORT-CHALLENGE-FREETEXT':
             challenge_name = request.POST['freetext-challenge-name']
             export_name = 'Challenge_Freetext'
@@ -156,8 +160,9 @@ def report_challenge_exports(request):
             success, err = ChallengeExportFreetext.export_csv(request, response, export_name, unique_time, challenge_name=challenge_name)
             if not success:
                 messages.error(request, err)
-                return redirect(reverse('content-admin:reports-challenges'))
-            return response
+            else:
+                messages.success(request, err)
+            return redirect(reverse('content-admin:reports-challenges'))
     elif request.method == 'GET':
         context = {
             'quiz_challenges': list(Challenge.objects.filter(type=Challenge.CTP_QUIZ)),
@@ -185,8 +190,10 @@ def report_goal_exports(request):
             success, err = GoalReport.export_csv(request, response, export_name, unique_time)
             if not success:
                 messages.error(request, err)
-                return redirect(reverse('content-admin:reports-goals'))
-            return response
+            else:
+                messages.success(request, err)
+            return redirect(reverse('content-admin:reports-goals'))
+            # return response
         elif request.POST.get('action') == 'EXPORT-USER':
             export_name = 'User_Summary'
             unique_time = get_report_generation_time()
@@ -198,8 +205,9 @@ def report_goal_exports(request):
             success, err = UserReport.export_csv(request, response, export_name, unique_time)
             if not success:
                 messages.error(request, err)
-                return redirect(reverse('content-admin:reports-goals'))
-            return response
+            else:
+                messages.success(request, err)
+            return redirect(reverse('content-admin:reports-goals'))
         elif request.POST.get('action') == 'EXPORT-SAVINGS':
             export_name = 'Savings_Summary'
             unique_time = get_report_generation_time()
@@ -211,8 +219,9 @@ def report_goal_exports(request):
             success, err = SavingsReport.export_csv(request, response, export_name, unique_time)
             if not success:
                 messages.error(request, err)
-                return redirect(reverse('content-admin:reports-goals'))
-            return response
+            else:
+                messages.success(request, err)
+            return redirect(reverse('content-admin:reports-goals'))
     elif request.method == 'GET':
         return render(request, 'admin/reports/goals.html')
 
@@ -234,8 +243,9 @@ def report_aggregate_exports(request):
             success, err = SummaryGoalData.export_csv(request, response, export_name, unique_time)
             if not success:
                 messages.error(request, err)
-                return redirect(reverse('content-admin:reports-aggregates'))
-            return response
+            else:
+                messages.success(request, err)
+            return redirect(reverse('content-admin:reports-aggregates'))
         elif request.POST.get('action') == 'EXPORT-AGGREGATE-GOAL-PER-CATEGORY':
             export_name = 'Aggregate_Goal_Per_Category'
             unique_time = get_report_generation_time()
@@ -247,8 +257,9 @@ def report_aggregate_exports(request):
             success, err = GoalDataPerCategory.export_csv(request, response, export_name, unique_time)
             if not success:
                 messages.error(request, err)
-                return redirect(reverse('content-admin:reports-aggregates'))
-            return response
+            else:
+                messages.success(request, err)
+            return redirect(reverse('content-admin:reports-aggregates'))
         elif request.POST.get('action') == 'EXPORT-AGGREGATE-REWARDS-DATA':
             export_name = 'Aggregate_Rewards_Data'
             unique_time = get_report_generation_time()
@@ -260,8 +271,9 @@ def report_aggregate_exports(request):
             success, err = RewardsData.export_csv(request, response, export_name, unique_time)
             if not success:
                 messages.error(request, err)
-                return redirect(reverse('content-admin:reports-aggregates'))
-            return response
+            else:
+                messages.success(request, err)
+            return redirect(reverse('content-admin:reports-aggregates'))
         elif request.POST.get('action') == 'EXPORT-AGGREGATE-DATA-PER-BADGE':
             export_name = 'Aggregate_Data_Per_Badge'
             unique_time = get_report_generation_time()
@@ -273,8 +285,9 @@ def report_aggregate_exports(request):
             success, err = RewardsDataPerBadge.export_csv(request, response, export_name, unique_time)
             if not success:
                 messages.error(request, err)
-                return redirect(reverse('content-admin:reports-aggregates'))
-            return response
+            else:
+                messages.success(request, err)
+            return redirect(reverse('content-admin:reports-aggregates'))
         elif request.POST.get('action') == 'EXPORT-AGGREGATE-DATA-PER-STREAK':
             export_name = 'Aggregate_Data_Per_Streak'
             unique_time = get_report_generation_time()
@@ -286,8 +299,9 @@ def report_aggregate_exports(request):
             success, err = RewardsDataPerStreak.export_csv(request, response, export_name, unique_time)
             if not success:
                 messages.error(request, err)
-                return redirect(reverse('content-admin:reports-aggregates'))
-            return response
+            else:
+                messages.success(request, err)
+            return redirect(reverse('content-admin:reports-aggregates'))
         elif request.POST.get('action') == 'EXPORT-AGGREGATE-USER-TYPE':
             export_name = 'Aggregate_User_Type'
             unique_time = get_report_generation_time()
@@ -299,8 +313,9 @@ def report_aggregate_exports(request):
             success, err = UserTypeData.export_csv(request, response, export_name, unique_time)
             if not success:
                 messages.error(request, err)
-                return redirect(reverse('content-admin:reports-aggregates'))
-            return response
+            else:
+                messages.success(request, err)
+            return redirect(reverse('content-admin:reports-aggregates'))
         elif request.POST.get('action') == 'RECONCILE-GA-CAMPAIGN':
             print("Starting GA connection")
             # print("Initializing analytics reporting")
@@ -337,8 +352,9 @@ def report_survey_exports(request):
             success, err = SummarySurveyData.export_csv(request, response, export_name, unique_time)
             if not success:
                 messages.error(request, err)
-                return redirect(reverse('content-admin:reports-surveys'))
-            return response
+            else:
+                messages.success(request, err)
+            return redirect(reverse('content-admin:reports-surveys'))
         elif request.POST.get('action') == 'EXPORT-BASELINE-SURVEY':
             export_name = 'Baseline_Survey'
             unique_time = get_report_generation_time()
@@ -350,8 +366,9 @@ def report_survey_exports(request):
             success, err = BaselineSurveyData.export_csv(request, response, export_name, unique_time)
             if not success:
                 messages.error(request, err)
-                return redirect(reverse('content-admin:reports-surveys'))
-            return response
+            else:
+                messages.success(request, err)
+            return redirect(reverse('content-admin:reports-surveys'))
         elif request.POST.get('action') == 'EXPORT-EATOOL1-SURVEY':
             export_name = 'EATool1_Survey'
             unique_time = get_report_generation_time()
@@ -363,8 +380,9 @@ def report_survey_exports(request):
             success, err = EaTool1SurveyData.export_csv(request, response, export_name, unique_time)
             if not success:
                 messages.error(request, err)
-                return redirect(reverse('content-admin:reports-surveys'))
-            return response
+            else:
+                messages.success(request, err)
+            return redirect(reverse('content-admin:reports-surveys'))
         elif request.POST.get('action') == 'EXPORT-EATOOL2-SURVEY':
             export_name = 'EATool2_Survey'
             unique_time = get_report_generation_time()
@@ -376,8 +394,9 @@ def report_survey_exports(request):
             success, err = EaTool2SurveyData.export_csv(request, response, export_name, unique_time)
             if not success:
                 messages.error(request, err)
-                return redirect(reverse('content-admin:reports-surveys'))
-            return response
+            else:
+                messages.success(request, err)
+            return redirect(reverse('content-admin:reports-surveys'))
         elif request.POST.get('action') == 'EXPORT-ENDLINE-SURVEY':
             export_name = 'Endline_Survey'
             unique_time = get_report_generation_time()
@@ -389,8 +408,9 @@ def report_survey_exports(request):
             success, err = EndlineSurveyData.export_csv(request, response, export_name, unique_time)
             if not success:
                 messages.error(request, err)
-                return redirect(reverse('content-admin:reports-surveys'))
-            return response
+            else:
+                messages.success(request, err)
+            return redirect(reverse('content-admin:reports-surveys'))
     elif request.method == 'GET':
         return render(request, 'admin/reports/surveys.html')
 
@@ -420,8 +440,9 @@ def report_budget_exports(request):
             success, err = BudgetUserData.export_csv(request, response, export_name, unique_time)
             if not success:
                 messages.error(request, err)
-                return redirect(reverse('content-admin:reports-budget'))
-            return response
+            else:
+                messages.success(request, err)
+            return redirect(reverse('content-admin:reports-budget'))
         elif request.POST.get('action') == 'EXPORT-BUDGET-EXPENSE-CATEGORY':
             export_name = 'Budget_Expense_Category'
             unique_time = get_report_generation_time()
@@ -433,8 +454,9 @@ def report_budget_exports(request):
             success, err = BudgetExpenseCategoryData.export_csv(request, response, export_name, unique_time)
             if not success:
                 messages.error(request, err)
-                return redirect(reverse('content-admin:reports-budget'))
-            return response
+            else:
+                messages.success(request, err)
+            return redirect(reverse('content-admin:reports-budget'))
         elif request.POST.get('action') == 'EXPORT-BUDGET-AGGREGATE':
             export_name = 'Budget_Aggregate'
             unique_time = get_report_generation_time()
@@ -446,7 +468,8 @@ def report_budget_exports(request):
             success, err = BudgetAggregateData.export_csv(request, response, export_name, unique_time)
             if not success:
                 messages.error(request, err)
-                return redirect(reverse('content-admin:reports-budget'))
-            return response
+            else:
+                messages.success(request, err)
+            return redirect(reverse('content-admin:reports-budget'))
     elif request.method == 'GET':
         return render(request, 'admin/reports/budget.html')
