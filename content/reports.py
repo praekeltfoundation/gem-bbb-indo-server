@@ -363,8 +363,7 @@ class UserReport:
 
     @classmethod
     def num_goal_reached_badges(cls, profile):
-        # TODO: Count number of goal reached badges (Not implemented)
-        return 0
+        return UserBadge.objects.filter(user=profile.user, badge__badge_type=Badge.GOAL_FIRST_DONE).count()
 
     @classmethod
     def num_challenge_participation_badges(cls, profile):
