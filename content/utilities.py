@@ -7,8 +7,13 @@ import csv
 from django.conf import settings
 from django.core.mail import EmailMessage
 from django.utils import timezone
+from django.utils.translation import ugettext as _
 
 REPORT_GENERATION_TIMEOUT = 60
+
+SUCCESS_MESSAGE_EMAIL_SENT = _('Report and password has been sent in an email.')
+ERROR_MESSAGE_NO_EMAIL = _('No email address associated with this account.')
+ERROR_MESSAGE_DATA_CLEANUP = _('Report generation ran during data cleanup - try again')
 
 
 def create_csv(filename):
@@ -62,6 +67,23 @@ def password_generator():
     password = "".join(random.sample(sequence, password_length))
 
     return password
+
+
+def pass_zip_encrypt_email(user_email, export_name, unique_time):
+    """Generate a password, zip and encrypt the report, if nothing goes wrong email the password"""
+
+    password = password_generator()
+    result, err_message = zip_and_encrypt(export_name, unique_time, password)
+
+    if not result:
+        return False, err_message
+
+    if user_email is None or user_email is '':
+        return False, ERROR_MESSAGE_NO_EMAIL
+
+    send_password_email(user_email, export_name, unique_time, password)
+
+    return True, SUCCESS_MESSAGE_EMAIL_SENT
 
 
 def send_password_email(email, export_name, unique_time, password):
