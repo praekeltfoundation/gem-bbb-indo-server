@@ -13,8 +13,7 @@ from content.celery import app
 from content.models import Goal, GoalTransaction, UserBadge, Badge, Participant, Challenge, QuizQuestion, \
     QuestionOption, ParticipantAnswer, ParticipantPicture, ParticipantFreeText, GoalPrototype, Budget, ExpenseCategory, \
     Expense
-from content.utilities import password_generator, zip_and_encrypt, send_password_email, append_to_csv, create_csv, \
-    pass_zip_encrypt_email
+from content.utilities import append_to_csv, create_csv, pass_zip_encrypt_email
 from survey.models import CoachSurveySubmission, CoachSurvey, CoachSurveySubmissionDraft
 from users.models import Profile, CampaignInformation
 
@@ -48,23 +47,6 @@ def ga_task_handler():
     connect_ga_to_user(response)
     print("Finished GA connection")
 
-
-# @task(name="pass_zip_encrypt_email_task")
-# def pass_zip_encrypt_email_task(user_email, export_name, unique_time):
-#     """Generate a password, zip and encrypt the report, if nothing goes wrong email the password"""
-#
-#     password = password_generator()
-#     result, err_message = zip_and_encrypt(export_name, unique_time, password)
-#
-#     if not result:
-#         return False, err_message
-#
-#     if user_email is None or user_email is '':
-#         return False, ERROR_MESSAGE_NO_EMAIL
-#
-#     send_password_email(user_email, export_name, unique_time, password)
-#
-#     return True, SUCCESS_MESSAGE_EMAIL_SENT
 
 ###########################
 # Report Generation Tasks #
@@ -322,7 +304,6 @@ def total_badges_earned(profile):
     """Returns the total number of badges earned by the user"""
     user = profile.user
     return UserBadge.objects.filter(user=user).count()
-# Badge totals
 
 
 def num_first_goal_created_badges(profile):
@@ -727,6 +708,7 @@ def export_challenge_quiz(email, export_name, unique_time, challenge_name):
     pass_zip_encrypt_email(email, export_name, unique_time)
 
     return True, SUCCESS_MESSAGE_EMAIL_SENT
+
 
 @task(name="export_challenge_freetext")
 def export_challenge_freetext(email, export_name, unique_time, challenge_name):
