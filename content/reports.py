@@ -5,8 +5,8 @@ from django.db.models import Count
 from django.conf import settings
 from django.utils.translation import ugettext as _
 
-from content.utilities import zip_and_encrypt, append_to_csv, create_csv, password_generator
-from content.tasks import send_password_email_task
+from content.utilities import append_to_csv, create_csv
+from content.tasks import pass_zip_encrypt_email_task
 from survey.models import CoachSurveySubmission, CoachSurvey, CoachSurveySubmissionDraft
 from users.models import Profile, CampaignInformation
 from .models import Goal, Badge, UserBadge, GoalTransaction, Challenge, Participant, QuizQuestion, QuestionOption, \
@@ -17,23 +17,6 @@ ERROR_MESSAGE_NO_EMAIL = _('No email address associated with this account.')
 ERROR_MESSAGE_DATA_CLEANUP = _('Report generation ran during data cleanup - try again')
 
 STORAGE_DIRECTORY = settings.SENDFILE_ROOT + '\\'
-
-
-def pass_zip_encrypt_email(request, export_name, unique_time):
-    """Generate a password, zip and encrypt the report, if nothing goes wrong email the password"""
-
-    password = password_generator()
-    result, err_message = zip_and_encrypt(export_name, unique_time, password)
-
-    if not result:
-        return False, err_message
-
-    if request.user.email is None or request.user.email is '':
-        return False, ERROR_MESSAGE_NO_EMAIL
-
-    send_password_email_task.delay(request.user.email, export_name, unique_time, password)
-
-    return True, SUCCESS_MESSAGE_EMAIL_SENT
 
 
 #####################
@@ -104,7 +87,7 @@ class GoalReport:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
+        success, message = pass_zip_encrypt_email_task.delay(request, export_name, unique_time)
 
         if not success:
             return False, message
@@ -289,7 +272,7 @@ class UserReport:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
+        success, message = pass_zip_encrypt_email_task.delay(request, export_name, unique_time)
 
         if not success:
             return False, message
@@ -523,7 +506,7 @@ class SavingsReport:
 
                     append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
+        success, message = pass_zip_encrypt_email_task.delay(request, export_name, unique_time)
 
         if not success:
             return False, message
@@ -577,7 +560,7 @@ class SummaryDataPerChallenge:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
+        success, message = pass_zip_encrypt_email_task.delay(request, export_name, unique_time)
 
         if not success:
             return False, message
@@ -652,7 +635,7 @@ class SummaryDataPerQuiz:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
+        success, message = pass_zip_encrypt_email_task.delay(request, export_name, unique_time)
 
         if not success:
             return False, message
@@ -716,7 +699,7 @@ class ChallengeExportPicture:
 
                     append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
+        success, message = pass_zip_encrypt_email_task.delay(request, export_name, unique_time)
 
         if not success:
             return False, message
@@ -785,7 +768,7 @@ class ChallengeExportQuiz:
 
                     append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
+        success, message = pass_zip_encrypt_email_task.delay(request, export_name, unique_time)
 
         if not success:
             return False, message
@@ -850,7 +833,7 @@ class ChallengeExportFreetext:
                     except ParticipantFreeText.DoesNotExist:
                         pass
 
-        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
+        success, message = pass_zip_encrypt_email_task.delay(request, export_name, unique_time)
 
         if not success:
             return False, message
@@ -894,7 +877,7 @@ class SummaryGoalData:
 
             append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
+        success, message = pass_zip_encrypt_email_task.delay(request, export_name, unique_time)
 
         if not success:
             return False, message
@@ -994,7 +977,7 @@ class GoalDataPerCategory:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
+        success, message = pass_zip_encrypt_email_task.delay(request, export_name, unique_time)
 
         if not success:
             return False, message
@@ -1140,7 +1123,7 @@ class RewardsData:
 
             append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
+            success, message = pass_zip_encrypt_email_task.delay(request, export_name, unique_time)
 
         if not success:
             return False, message
@@ -1260,7 +1243,7 @@ class RewardsDataPerBadge:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
+        success, message = pass_zip_encrypt_email_task.delay(request, export_name, unique_time)
 
         if not success:
             return False, message
@@ -1325,7 +1308,7 @@ class RewardsDataPerStreak:
 
                     append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
+        success, message = pass_zip_encrypt_email_task.delay(request, export_name, unique_time)
 
         if not success:
             return False, message
@@ -1551,7 +1534,7 @@ class UserTypeData:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
+        success, message = pass_zip_encrypt_email_task.delay(request, export_name, unique_time)
 
         if not success:
             return False, message
@@ -1730,7 +1713,7 @@ class SummarySurveyData:
             ]
             append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
+        success, message = pass_zip_encrypt_email_task.delay(request, export_name, unique_time)
 
         if not success:
             return False, message
@@ -1832,7 +1815,7 @@ class BaselineSurveyData:
 
                     append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
+        success, message = pass_zip_encrypt_email_task.delay(request, export_name, unique_time)
 
         if not success:
             return False, message
@@ -1922,7 +1905,7 @@ class EaTool1SurveyData:
 
                     append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
+        success, message = pass_zip_encrypt_email_task.delay(request, export_name, unique_time)
 
         if not success:
             return False, message
@@ -1956,7 +1939,7 @@ class EaTool2SurveyData:
                            ),
                           csvfile)
 
-        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
+        success, message = pass_zip_encrypt_email_task.delay(request, export_name, unique_time)
 
         if not success:
             return False, message
@@ -1991,7 +1974,7 @@ class EndlineSurveyData:
                            ),
                           csvfile)
 
-        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
+        success, message = pass_zip_encrypt_email_task.delay(request, export_name, unique_time)
 
         if not success:
             return False, message
@@ -2071,7 +2054,7 @@ class BudgetUserData:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
+        success, message = pass_zip_encrypt_email_task.delay(request, export_name, unique_time)
 
         if not success:
             return False, message
@@ -2109,7 +2092,7 @@ class BudgetExpenseCategoryData:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
+        success, message = pass_zip_encrypt_email_task.delay(request, export_name, unique_time)
 
         if not success:
             return False, message
@@ -2164,7 +2147,7 @@ class BudgetAggregateData:
 
             append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email(request, export_name, unique_time)
+        success, message = pass_zip_encrypt_email_task.delay(request, export_name, unique_time)
 
         if not success:
             return False, message

@@ -4,11 +4,15 @@ import os
 from celery.task import task
 
 from django.conf import settings
-from django.core.mail import send_mail
-from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 
 from content.analytics_api import get_report, connect_ga_to_user, initialize_analytics_reporting
 from content.celery import app
+from content.utilities import password_generator, zip_and_encrypt, send_password_email
+
+SUCCESS_MESSAGE_EMAIL_SENT = _('Report and password has been sent in an email.')
+ERROR_MESSAGE_NO_EMAIL = _('No email address associated with this account.')
+ERROR_MESSAGE_DATA_CLEANUP = _('Report generation ran during data cleanup - try again')
 
 
 @task(ignore_result=False, max_retries=10, default_retry_delay=10)
@@ -37,17 +41,19 @@ def ga_task_handler():
     print("Finished GA connection")
 
 
-@task(name="send_feedback_email_task")
-def send_password_email_task(email, export_name, unique_time, password):
-    subject = 'Dooit Date Export: ' + str(timezone.now().date())
+@task(name="pass_zip_encrypt_email_task")
+def pass_zip_encrypt_email_task(request, export_name, unique_time):
+    """Generate a password, zip and encrypt the report, if nothing goes wrong email the password"""
 
-    send_to = email
+    password = password_generator()
+    result, err_message = zip_and_encrypt(export_name, unique_time, password)
 
-    send_mail(
-        subject=subject,
-        message='Password for ' + export_name + unique_time + '.zip: ' + password,
-        from_email=settings.DEFAULT_FROM_EMAIL,
-        recipient_list=[send_to],
+    if not result:
+        return False, err_message
 
-        fail_silently=False
-    )
+    if request.user.email is None or request.user.email is '':
+        return False, ERROR_MESSAGE_NO_EMAIL
+
+    send_password_email(request.user.email, export_name, unique_time, password)
+
+    return True, SUCCESS_MESSAGE_EMAIL_SENT
