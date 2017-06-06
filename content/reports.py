@@ -689,6 +689,12 @@ class ChallengeExportPicture:
                     profile = Profile.objects.get(user=participant.user)
                     participant_picture = ParticipantPicture.objects.filter(participant=participant).first()
 
+                    if participant_picture:
+                        date_answered = str(participant_picture.date_answered)
+                    else:
+                        date_answered = ''
+
+
                     try:
                         campaign_info = CampaignInformation.objects.get(user=profile.user)
                         user_type = campaign_info.source + '/' + campaign_info.medium
@@ -704,7 +710,7 @@ class ChallengeExportPicture:
                         profile.age,
                         user_type,  # user type
                         profile.user.date_joined,
-                        challenge.call_to_action + ' ' + str(participant_picture.date_answered)
+                        challenge.call_to_action + ' ' + date_answered
                     ]
 
                     append_to_csv(data, csvfile)
