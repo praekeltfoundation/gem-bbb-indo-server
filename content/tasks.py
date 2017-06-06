@@ -42,7 +42,7 @@ def ga_task_handler():
 
 
 @task(name="pass_zip_encrypt_email_task")
-def pass_zip_encrypt_email_task(request, export_name, unique_time):
+def pass_zip_encrypt_email_task(user_email, export_name, unique_time):
     """Generate a password, zip and encrypt the report, if nothing goes wrong email the password"""
 
     password = password_generator()
@@ -51,9 +51,9 @@ def pass_zip_encrypt_email_task(request, export_name, unique_time):
     if not result:
         return False, err_message
 
-    if request.user.email is None or request.user.email is '':
+    if user_email is None or user_email is '':
         return False, ERROR_MESSAGE_NO_EMAIL
 
-    send_password_email(request.user.email, export_name, unique_time, password)
+    send_password_email(user_email, export_name, unique_time, password)
 
     return True, SUCCESS_MESSAGE_EMAIL_SENT
