@@ -5,7 +5,8 @@ from django.db.models import Count
 from django.conf import settings
 from django.utils.translation import ugettext as _
 
-from content.utilities import zip_and_encrypt, append_to_csv, create_csv, password_generator, send_password_email
+from content.utilities import zip_and_encrypt, append_to_csv, create_csv, password_generator
+from content.tasks import send_password_email_task
 from survey.models import CoachSurveySubmission, CoachSurvey, CoachSurveySubmissionDraft
 from users.models import Profile, CampaignInformation
 from .models import Goal, Badge, UserBadge, GoalTransaction, Challenge, Participant, QuizQuestion, QuestionOption, \
@@ -30,10 +31,9 @@ def pass_zip_encrypt_email(request, export_name, unique_time):
     if request.user.email is None or request.user.email is '':
         return False, ERROR_MESSAGE_NO_EMAIL
 
-    if send_password_email(request, export_name, unique_time, password):
-        return True, SUCCESS_MESSAGE_EMAIL_SENT
-    else:
-        return False, ERROR_MESSAGE_DATA_CLEANUP
+    send_password_email_task.delay(request.user.email, export_name, unique_time, password)
+
+    return True, SUCCESS_MESSAGE_EMAIL_SENT
 
 
 #####################
