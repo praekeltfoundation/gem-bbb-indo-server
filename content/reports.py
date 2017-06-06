@@ -29,7 +29,7 @@ class GoalReport:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name, unique_time):
+    def export_goal_summary(cls, request, stream, export_name, unique_time):
         goals = Goal.objects.filter(user__is_staff=False)
 
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
@@ -210,7 +210,7 @@ class UserReport:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name, unique_time):
+    def export_user_summary(cls, request, stream, export_name, unique_time):
         profiles = Profile.objects.filter(user__is_staff=False)
 
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
@@ -468,7 +468,7 @@ class SavingsReport:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name, unique_time):
+    def export_savings_summary(cls, request, stream, export_name, unique_time):
         goals = Goal.objects.filter(user__is_staff=False)
 
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
@@ -522,7 +522,7 @@ class SummaryDataPerChallenge:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name, unique_time, date_from, date_to):
+    def export_challenge_summary(cls, request, stream, export_name, unique_time, date_from, date_to):
         if date_from is not None and date_to is not None:
             challenges = Challenge.objects.filter(activation_date__gte=date_from, deactivation_date__lte=date_to)
         else:
@@ -589,7 +589,7 @@ class SummaryDataPerQuiz:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name, unique_time):
+    def export_challenge_quiz_summary(cls, request, stream, export_name, unique_time):
         challenges = Challenge.objects.filter(type=Challenge.CTP_QUIZ)
 
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
@@ -640,7 +640,7 @@ class ChallengeExportPicture:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name, unique_time, challenge_name):
+    def export_challenge_picture(cls, request, stream, export_name, unique_time, challenge_name):
         challenges = Challenge.objects.filter(type=Challenge.CTP_PICTURE, name=challenge_name)
 
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
@@ -700,7 +700,7 @@ class ChallengeExportQuiz:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name, unique_time, challenge_name):
+    def export_challenge_quiz(cls, request, stream, export_name, unique_time, challenge_name):
         challenges = Challenge.objects.filter(type=Challenge.CTP_QUIZ, name=challenge_name)
 
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
@@ -767,7 +767,7 @@ class ChallengeExportFreetext:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name, unique_time, challenge_name):
+    def export_challenge_freetext(cls, request, stream, export_name, unique_time, challenge_name):
         challenges = Challenge.objects.filter(type=Challenge.CTP_FREEFORM, name=challenge_name)
 
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
@@ -834,7 +834,7 @@ class SummaryGoalData:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name, unique_time):
+    def export_aggregate_summary(cls, request, stream, export_name, unique_time):
 
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
@@ -921,7 +921,7 @@ class GoalDataPerCategory:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name, unique_time):
+    def export_aggregate_goal_data_per_category(cls, request, stream, export_name, unique_time):
 
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
@@ -1074,7 +1074,7 @@ class RewardsData:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name, unique_time):
+    def export_aggregate_rewards_data(cls, request, stream, export_name, unique_time):
 
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
@@ -1190,7 +1190,7 @@ class RewardsDataPerBadge:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name, unique_time):
+    def export_aggregate_data_per_badge(cls, request, stream, export_name, unique_time):
 
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
@@ -1237,7 +1237,7 @@ class RewardsDataPerStreak:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name, unique_time):
+    def export_aggregate_data_per_streak(cls, request, stream, export_name, unique_time):
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
@@ -1458,7 +1458,7 @@ class UserTypeData:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name, unique_time):
+    def export_aggregate_user_type(cls, request, stream, export_name, unique_time):
 
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
@@ -1517,7 +1517,7 @@ class SummarySurveyData:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name, unique_time):
+    def export_survey_summary(cls, request, stream, export_name, unique_time):
 
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
@@ -1687,7 +1687,7 @@ class BaselineSurveyData:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name, unique_time):
+    def export_baseline_survey(cls, request, stream, export_name, unique_time):
         surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.BASELINE)
 
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
@@ -1786,7 +1786,7 @@ class EaTool1SurveyData:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name, unique_time):
+    def export_ea1tool_survey(cls, request, stream, export_name, unique_time):
         surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.EATOOL)
 
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
@@ -1873,7 +1873,7 @@ class EaTool2SurveyData:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name, unique_time):
+    def export_ea2tool_survey(cls, request, stream, export_name, unique_time):
         # surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.EATOOL2)
 
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
@@ -1904,7 +1904,7 @@ class EndlineSurveyData:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name, unique_time):
+    def export_endline_survey(cls, request, stream, export_name, unique_time):
         # surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.ENDLINE)
 
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
@@ -1937,7 +1937,7 @@ class BudgetUserData:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name, unique_time):
+    def export_budget_user(cls, request, stream, export_name, unique_time):
 
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
@@ -2013,7 +2013,7 @@ class BudgetExpenseCategoryData:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name, unique_time):
+    def export_budget_expense_category(cls, request, stream, export_name, unique_time):
 
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
@@ -2048,7 +2048,7 @@ class BudgetAggregateData:
     fields = ()
 
     @classmethod
-    def export_csv(cls, request, stream, export_name, unique_time):
+    def export_budget_aggregate(cls, request, stream, export_name, unique_time):
 
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)

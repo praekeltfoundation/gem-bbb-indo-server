@@ -103,8 +103,8 @@ def report_challenge_exports(request):
                                               + export_name \
                                               + unique_time \
                                               + '.zip'
-            SummaryDataPerChallenge.export_csv(request, response, export_name, unique_time,
-                                                              date_from=date_from, date_to=date_to)
+            SummaryDataPerChallenge.export_challenge_summary(request, response, export_name, unique_time,
+                                                             date_from=date_from, date_to=date_to)
 
             messages.success(request, SUCCESS_MESSAGE_EMAIL_SENT)
             return redirect(reverse('content-admin:reports-challenges'))
@@ -116,7 +116,7 @@ def report_challenge_exports(request):
                                               + export_name \
                                               + unique_time \
                                               + '.zip'
-            SummaryDataPerQuiz.export_csv(request, response, export_name, unique_time)
+            SummaryDataPerQuiz.export_challenge_quiz_summary(request, response, export_name, unique_time)
             messages.success(request, SUCCESS_MESSAGE_EMAIL_SENT)
             return redirect(reverse('content-admin:reports-challenges'))
         elif request.POST.get('action') == 'EXPORT-CHALLENGE-PICTURE':
@@ -127,7 +127,7 @@ def report_challenge_exports(request):
                                               + export_name \
                                               + unique_time \
                                               + '.zip'
-            ChallengeExportPicture.export_csv(request, response, export_name, unique_time, challenge_name=challenge_name)
+            ChallengeExportPicture.export_challenge_picture(request, response, export_name, unique_time, challenge_name=challenge_name)
             messages.success(request, SUCCESS_MESSAGE_EMAIL_SENT)
             return redirect(reverse('content-admin:reports-challenges'))
         elif request.POST.get('action') == 'EXPORT-CHALLENGE-QUIZ':
@@ -138,7 +138,7 @@ def report_challenge_exports(request):
                                               + export_name \
                                               + unique_time \
                                               + '.zip'
-            ChallengeExportQuiz.export_csv(request, response, export_name, unique_time, challenge_name=challenge_name)
+            ChallengeExportQuiz.export_challenge_quiz(request, response, export_name, unique_time, challenge_name=challenge_name)
             messages.success(request, SUCCESS_MESSAGE_EMAIL_SENT)
             return redirect(reverse('content-admin:reports-challenges'))
         elif request.POST.get('action') == 'EXPORT-CHALLENGE-FREETEXT':
@@ -149,7 +149,7 @@ def report_challenge_exports(request):
                                               + export_name \
                                               + unique_time \
                                               + '.zip'
-            ChallengeExportFreetext.export_csv(request, response, export_name, unique_time, challenge_name=challenge_name)
+            ChallengeExportFreetext.export_challenge_freetext(request, response, export_name, unique_time, challenge_name=challenge_name)
             messages.success(request, SUCCESS_MESSAGE_EMAIL_SENT)
             return redirect(reverse('content-admin:reports-challenges'))
     elif request.method == 'GET':
@@ -176,7 +176,7 @@ def report_goal_exports(request):
                                               + export_name \
                                               + unique_time \
                                               + '.zip'
-            GoalReport.export_csv(request, response, export_name, unique_time)
+            GoalReport.export_goal_summary(request, response, export_name, unique_time)
             messages.success(request, SUCCESS_MESSAGE_EMAIL_SENT)
             return redirect(reverse('content-admin:reports-goals'))
             # return response
@@ -188,7 +188,7 @@ def report_goal_exports(request):
                                               + export_name \
                                               + unique_time \
                                               + '.zip'
-            UserReport.export_csv(request, response, export_name, unique_time)
+            UserReport.export_user_summary(request, response, export_name, unique_time)
             messages.success(request, SUCCESS_MESSAGE_EMAIL_SENT)
             return redirect(reverse('content-admin:reports-goals'))
         elif request.POST.get('action') == 'EXPORT-SAVINGS':
@@ -199,7 +199,7 @@ def report_goal_exports(request):
                                               + export_name \
                                               + unique_time \
                                               + '.zip'
-            SavingsReport.export_csv(request, response, export_name, unique_time)
+            SavingsReport.export_savings_summary(request, response, export_name, unique_time)
             messages.success(request, SUCCESS_MESSAGE_EMAIL_SENT)
             return redirect(reverse('content-admin:reports-goals'))
     elif request.method == 'GET':
@@ -220,7 +220,7 @@ def report_aggregate_exports(request):
                                               + export_name \
                                               + unique_time \
                                               + '.zip'
-            SummaryGoalData.export_csv(request, response, export_name, unique_time)
+            SummaryGoalData.export_aggregate_summary(request, response, export_name, unique_time)
             messages.success(request, SUCCESS_MESSAGE_EMAIL_SENT)
             return redirect(reverse('content-admin:reports-aggregates'))
         elif request.POST.get('action') == 'EXPORT-AGGREGATE-GOAL-PER-CATEGORY':
@@ -231,7 +231,7 @@ def report_aggregate_exports(request):
                                               + export_name \
                                               + unique_time \
                                               + '.zip'
-            GoalDataPerCategory.export_csv(request, response, export_name, unique_time)
+            GoalDataPerCategory.export_aggregate_goal_data_per_category(request, response, export_name, unique_time)
             messages.success(request, SUCCESS_MESSAGE_EMAIL_SENT)
             return redirect(reverse('content-admin:reports-aggregates'))
         elif request.POST.get('action') == 'EXPORT-AGGREGATE-REWARDS-DATA':
@@ -242,7 +242,7 @@ def report_aggregate_exports(request):
                                               + export_name \
                                               + unique_time \
                                               + '.zip'
-            RewardsData.export_csv(request, response, export_name, unique_time)
+            RewardsData.export_aggregate_rewards_data(request, response, export_name, unique_time)
             messages.success(request, SUCCESS_MESSAGE_EMAIL_SENT)
             return redirect(reverse('content-admin:reports-aggregates'))
         elif request.POST.get('action') == 'EXPORT-AGGREGATE-DATA-PER-BADGE':
@@ -253,7 +253,7 @@ def report_aggregate_exports(request):
                                               + export_name \
                                               + unique_time \
                                               + '.zip'
-            RewardsDataPerBadge.export_csv(request, response, export_name, unique_time)
+            RewardsDataPerBadge.export_aggregate_data_per_badge(request, response, export_name, unique_time)
             messages.success(request, SUCCESS_MESSAGE_EMAIL_SENT)
             return redirect(reverse('content-admin:reports-aggregates'))
         elif request.POST.get('action') == 'EXPORT-AGGREGATE-DATA-PER-STREAK':
@@ -264,7 +264,7 @@ def report_aggregate_exports(request):
                                               + export_name \
                                               + unique_time \
                                               + '.zip'
-            RewardsDataPerStreak.export_csv(request, response, export_name, unique_time)
+            RewardsDataPerStreak.export_aggregate_data_per_streak(request, response, export_name, unique_time)
             messages.success(request, SUCCESS_MESSAGE_EMAIL_SENT)
             return redirect(reverse('content-admin:reports-aggregates'))
         elif request.POST.get('action') == 'EXPORT-AGGREGATE-USER-TYPE':
@@ -275,7 +275,7 @@ def report_aggregate_exports(request):
                                               + export_name \
                                               + unique_time \
                                               + '.zip'
-            UserTypeData.export_csv(request, response, export_name, unique_time)
+            UserTypeData.export_aggregate_user_type(request, response, export_name, unique_time)
             messages.success(request, SUCCESS_MESSAGE_EMAIL_SENT)
             return redirect(reverse('content-admin:reports-aggregates'))
         elif request.POST.get('action') == 'RECONCILE-GA-CAMPAIGN':
@@ -311,7 +311,7 @@ def report_survey_exports(request):
                                               + export_name \
                                               + unique_time \
                                               + '.zip'
-            SummarySurveyData.export_csv(request, response, export_name, unique_time)
+            SummarySurveyData.export_survey_summary(request, response, export_name, unique_time)
             messages.success(request, SUCCESS_MESSAGE_EMAIL_SENT)
             return redirect(reverse('content-admin:reports-surveys'))
         elif request.POST.get('action') == 'EXPORT-BASELINE-SURVEY':
@@ -322,7 +322,7 @@ def report_survey_exports(request):
                                               + export_name \
                                               + unique_time \
                                               + '.zip'
-            BaselineSurveyData.export_csv(request, response, export_name, unique_time)
+            BaselineSurveyData.export_baseline_survey(request, response, export_name, unique_time)
             messages.success(request, SUCCESS_MESSAGE_EMAIL_SENT)
             return redirect(reverse('content-admin:reports-surveys'))
         elif request.POST.get('action') == 'EXPORT-EATOOL1-SURVEY':
@@ -333,7 +333,7 @@ def report_survey_exports(request):
                                               + export_name \
                                               + unique_time \
                                               + '.zip'
-            EaTool1SurveyData.export_csv(request, response, export_name, unique_time)
+            EaTool1SurveyData.export_ea1tool_survey(request, response, export_name, unique_time)
             messages.success(request, SUCCESS_MESSAGE_EMAIL_SENT)
             return redirect(reverse('content-admin:reports-surveys'))
         elif request.POST.get('action') == 'EXPORT-EATOOL2-SURVEY':
@@ -344,7 +344,7 @@ def report_survey_exports(request):
                                               + export_name \
                                               + unique_time \
                                               + '.zip'
-            EaTool2SurveyData.export_csv(request, response, export_name, unique_time)
+            EaTool2SurveyData.export_ea2tool_survey(request, response, export_name, unique_time)
             messages.success(request, SUCCESS_MESSAGE_EMAIL_SENT)
             return redirect(reverse('content-admin:reports-surveys'))
         elif request.POST.get('action') == 'EXPORT-ENDLINE-SURVEY':
@@ -355,7 +355,7 @@ def report_survey_exports(request):
                                               + export_name \
                                               + unique_time \
                                               + '.zip'
-            EndlineSurveyData.export_csv(request, response, export_name, unique_time)
+            EndlineSurveyData.export_endline_survey(request, response, export_name, unique_time)
             messages.success(request, SUCCESS_MESSAGE_EMAIL_SENT)
             return redirect(reverse('content-admin:reports-surveys'))
     elif request.method == 'GET':
@@ -369,6 +369,7 @@ def quiz_challenge_entries(request):
         }
 
         return render(request, 'admin/challenge/quizentries.html', context=context)
+
 
 # Budget exports
 def report_budget_exports(request):
@@ -384,7 +385,7 @@ def report_budget_exports(request):
                                               + export_name \
                                               + unique_time \
                                               + '.zip'
-            BudgetUserData.export_csv(request, response, export_name, unique_time)
+            BudgetUserData.export_budget_user(request, response, export_name, unique_time)
             messages.success(request, SUCCESS_MESSAGE_EMAIL_SENT)
             return redirect(reverse('content-admin:reports-budget'))
         elif request.POST.get('action') == 'EXPORT-BUDGET-EXPENSE-CATEGORY':
@@ -395,7 +396,7 @@ def report_budget_exports(request):
                                               + export_name \
                                               + unique_time \
                                               + '.zip'
-            BudgetExpenseCategoryData.export_csv(request, response, export_name, unique_time)
+            BudgetExpenseCategoryData.export_budget_expense_category(request, response, export_name, unique_time)
             messages.success(request, SUCCESS_MESSAGE_EMAIL_SENT)
             return redirect(reverse('content-admin:reports-budget'))
         elif request.POST.get('action') == 'EXPORT-BUDGET-AGGREGATE':
@@ -406,7 +407,7 @@ def report_budget_exports(request):
                                               + export_name \
                                               + unique_time \
                                               + '.zip'
-            BudgetAggregateData.export_csv(request, response, export_name, unique_time)
+            BudgetAggregateData.export_budget_aggregate(request, response, export_name, unique_time)
             messages.success(request, SUCCESS_MESSAGE_EMAIL_SENT)
             return redirect(reverse('content-admin:reports-budget'))
     elif request.method == 'GET':
