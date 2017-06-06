@@ -312,7 +312,7 @@ class UserReport:
     def total_badges_earned(cls, profile):
         """Returns the total number of badges earned by the user"""
         user = profile.user
-        return Badge.objects.filter(user=user).count()
+        return UserBadge.objects.filter(user=user).count()
 
     # Badge totals
 
