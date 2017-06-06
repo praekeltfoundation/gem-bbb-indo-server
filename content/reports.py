@@ -47,7 +47,7 @@ class GoalReport:
 
     @classmethod
     def export_csv(cls, request, stream, export_name, unique_time):
-        goals = Goal.objects.all()
+        goals = Goal.objects.all(user__is_staff=False)
 
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
 
@@ -364,8 +364,7 @@ class UserReport:
 
     @classmethod
     def num_goal_reached_badges(cls, profile):
-        # TODO: Count number of goal reached badges (Not implemented)
-        return 0
+        return UserBadge.objects.filter(user=profile.user, badge__badge_type=Badge.GOAL_FIRST_DONE).count()
 
     @classmethod
     def num_challenge_participation_badges(cls, profile):
@@ -451,13 +450,11 @@ class UserReport:
 
     @classmethod
     def num_budget_created_badges(cls, profile):
-        # TODO: Return the number of Budget Created badges (Not implemented)
-        return 0
+        return UserBadge.objects.filter(user=profile.user, badge__badge_type=Badge.BUDGET_CREATE).count()
 
     @classmethod
     def num_budget_revision_badges(cls, profile):
-        # TODO: Return the number of Budget Revision badges (Not implemented)
-        return 0
+        return UserBadge.objects.filter(user=profile.user, badge__badge_type=Badge.BUDGET_EDIT).count()
 
     # Survey data
 
@@ -495,7 +492,7 @@ class SavingsReport:
 
     @classmethod
     def export_csv(cls, request, stream, export_name, unique_time):
-        goals = Goal.objects.all()
+        goals = Goal.objects.all(user__is_staff=False)
 
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
@@ -1274,12 +1271,12 @@ class RewardsDataPerBadge:
     @classmethod
     def total_earned_by_all_users(cls, badge):
         """Returns the total number of badges won for the given badge for all users"""
-        return Badge.objects.filter(badge_type=badge.badge_type).values('user').count()
+        return Badge.objects.filter(user__is_staff=False, badge_type=badge.badge_type).values('user').count()
 
     @classmethod
     def total_earned_at_least_once(cls, badge):
         """Return the total number of users that have earned the given badge at least once"""
-        return Badge.objects.filter(badge_type=badge.badge_type).values('user').distinct().count()
+        return Badge.objects.filter(user__is_staff=False, badge_type=badge.badge_type).values('user').distinct().count()
 
 
 class RewardsDataPerStreak:
@@ -1288,36 +1285,39 @@ class RewardsDataPerStreak:
 
     @classmethod
     def export_csv(cls, request, stream, export_name, unique_time):
-
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
 
         with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
 
-            append_to_csv(('streak_type', 'total_streaks_by_all_users', 'total_users_at_least_one_streak',
+            append_to_csv(('streak_type', 'total_streaks_by_all_users', 'total_users_who_have_earned_a_streak',
                            'total_users_reached_weekly_savings_amount', 'total_users_not_reached_weekly_savings_amount'),
                           csvfile)
 
-            badges = Badge.objects.all()
+            total_streaks_all_users = cls.get_total_streaks_all_users()
+            num_users_min_one_streak = cls.get_total_users_earned_streak()
+            total_weekly_target_weeks = cls.get_total_users_reached_weekly_savings_for_weeks()
+            total_not_weekly_target_weeks = cls.get_total_users_not_reached_weekly_savings_for_weeks()
 
-            badge_generator = (badge for badge in badges
-                               if (badge.badge_type is Badge.STREAK_2
-                                   or badge.badge_type is Badge.STREAK_4
-                                   or badge.badge_type is Badge.STREAK_6
-                                   or badge.badge_type is Badge.WEEKLY_TARGET_2
-                                   or badge.badge_type is Badge.WEEKLY_TARGET_4
-                                   or badge.badge_type is Badge.WEEKLY_TARGET_6))
+            for i in range(1, 7):
+                week = ''
+                if i % 2 == 0:
+                    if i == 2:
+                        week = '2 weeks'
+                    if i == 4:
+                        week = '4 weeks'
+                    if i == 6:
+                        week = '6 weeks'
 
-            for badge in badge_generator:
-                data = [
-                    badge.name,
-                    cls.total_streak_badges(badge),
-                    cls.total_streak_badges_at_least_one_user(badge),
-                    cls.total_on_track_badges(badge),
-                    cls.total_on_track_badges_at_least_one_user(badge)
-                ]
+                    data = [
+                        week,
+                        total_streaks_all_users[cls.int_to_str(i)],
+                        num_users_min_one_streak[cls.int_to_str(i)],
+                        total_weekly_target_weeks[cls.int_to_str(i)],
+                        total_not_weekly_target_weeks[cls.int_to_str(i)]
+                    ]
 
-                append_to_csv(data, csvfile)
+                    append_to_csv(data, csvfile)
 
         success, message = pass_zip_encrypt_email(request, export_name, unique_time)
 
@@ -1334,40 +1334,173 @@ class RewardsDataPerStreak:
         return True, SUCCESS_MESSAGE_EMAIL_SENT
 
     @classmethod
-    def total_streak_badges(cls, badge):
-        """Returns the number of given streak badges awarded to all users"""
-        badge_type = badge.badge_type
-        if badge_type is Badge.STREAK_2 or badge_type is Badge.STREAK_4 or badge_type is Badge.STREAK_6:
-            return UserBadge.objects.filter(user__is_staff=False, badge=badge).count()
-        else:
-            return 0
+    def int_to_str(cls, num):
+        """Helper method to convert week streak number to word for accesing dicts"""
+        if num == 2:
+            return 'two'
+        if num == 4:
+            return 'four'
+        if num == 6:
+            return 'six'
 
     @classmethod
-    def total_streak_badges_at_least_one_user(cls, badge):
-        """"Returns the number given streak badges by earned by at least one user"""
-        badge_type = badge.badge_type
-        if badge_type is Badge.STREAK_2 or badge_type is Badge.STREAK_4 or badge_type is Badge.STREAK_6:
-            return UserBadge.objects.filter(user__is_staff=False, badge=badge).values('user').distinct().count()
-        else:
-            return 0
+    def get_total_streaks_all_users(cls):
+        """Get the total number of 2, 4, 6 week saving streaks for up to 6 weeks in a row"""
+        streak_weeks = {
+            'two': 0,
+            'four': 0,
+            'six': 0
+        }
+
+        # Iterate through all goals, checking for 2, 4, 6 week streaks
+        # Note: A 6 week streak must not also count as 3 two week streaks
+        goals = Goal.objects.all()
+        for goal in goals:
+            goal_weekly_agg = goal.get_weekly_aggregates()
+            streak = 0
+
+            for week in range(0, len(goal_weekly_agg)):
+                if goal_weekly_agg[week] != 0:
+                    streak += 1
+                    if (week + 1) < len(goal_weekly_agg):
+                        # If the streak doesn't continue, count it then reset streak
+                        if goal_weekly_agg[week + 1] == 0:
+                            if streak == 2 or streak == 3:
+                                streak_weeks['two'] += 1
+                            if streak == 4 or streak == 5:
+                                streak_weeks['four'] += 1
+                            if streak >= 6:
+                                streak_weeks['six'] += 1
+
+                            streak = 0
+
+        return streak_weeks
 
     @classmethod
-    def total_on_track_badges(cls, badge):
-        """Return the number of given 'on track' badges for given badge, else 0, awarded to all users"""
-        badge_type = badge.badge_type
-        if badge_type is Badge.WEEKLY_TARGET_2 or badge_type is Badge.WEEKLY_TARGET_4 or badge_type is Badge.WEEKLY_TARGET_6:
-            return UserBadge.objects.filter(user__is_staff=False, badge=badge).count()
-        else:
-            return 0
+    def get_total_users_earned_streak(cls):
+        """Get the number of users with 2, 4, 6 week savings streaks for up to 6 weeks in a row"""
+        streak_weeks = {
+            'two': 0,
+            'four': 0,
+            'six': 0
+        }
+
+        # Iterate through all goals, checking for 2, 4, 6 week streaks
+        # Note: A 6 week streak must not also count as 3 two week streaks
+        users = User.objects.all()
+        for user in users:
+            user_2_week = 0
+            user_4_week = 0
+            user_6_week = 0
+
+            goals = Goal.objects.filter(user=user)
+            for goal in goals:
+                goal_weekly_agg = goal.get_weekly_aggregates()
+                streak = 0
+
+                for week in range(0, len(goal_weekly_agg)):
+                    if goal_weekly_agg[week] != 0:
+                        streak += 1
+                        if (week + 1) < len(goal_weekly_agg):
+                            # If the streak doesn't continue, count it then reset streak
+                            if goal_weekly_agg[week + 1] == 0:
+                                if (streak == 2 or streak == 3) and user_2_week == 0:
+                                    user_2_week = 1
+                                    streak_weeks['two'] += 1
+                                if (streak == 4 or streak == 5) and user_4_week == 0:
+                                    user_4_week = 1
+                                    streak_weeks['four'] += 1
+                                if streak >= 6 and user_6_week == 0:
+                                    user_6_week = 1
+                                    streak_weeks['six'] += 1
+
+                                streak = 0
+
+        return streak_weeks
 
     @classmethod
-    def total_on_track_badges_at_least_one_user(cls, badge):
-        """Return the number of given 'on track' badges for given badge, else 0, earned by at least one user"""
-        badge_type = badge.badge_type
-        if badge_type is Badge.WEEKLY_TARGET_2 or badge_type is Badge.WEEKLY_TARGET_4 or badge_type is Badge.WEEKLY_TARGET_6:
-            return UserBadge.objects.filter(user__is_staff=False, badge=badge).values('user').distinct().count()
-        else:
-            return 0
+    def get_total_users_reached_weekly_savings_for_weeks(cls):
+        """Get the total number of streaks for up to 6 weeks in a row"""
+        streak_weeks = {
+            'two': 0,
+            'four': 0,
+            'six': 0
+        }
+
+        # Iterate through all goals, checking for 2, 4, 6 week streaks
+        # Note: A 6 week streak must not also count as 3 two week streaks
+        users = User.objects.all()
+        for user in users:
+            user_2_week = 0
+            user_4_week = 0
+            user_6_week = 0
+
+            goals = Goal.objects.filter(user=user)
+            for goal in goals:
+                goal_weekly_agg = goal.get_weekly_aggregates()
+                streak = 0
+
+                for week in range(0, len(goal_weekly_agg)):
+                    if goal_weekly_agg[week] >= goal.weekly_target:
+                        streak += 1
+                        if (week + 1) < len(goal_weekly_agg):
+                            # If the streak doesn't continue, count it then reset streak
+                            if goal_weekly_agg[week + 1] == 0:
+                                if (streak == 2 or streak == 3) and user_2_week == 0:
+                                    user_2_week = 1
+                                    streak_weeks['two'] += 1
+                                if (streak == 4 or streak == 5) and user_4_week == 0:
+                                    user_4_week = 1
+                                    streak_weeks['four'] += 1
+                                if streak >= 6 and user_6_week == 0:
+                                    user_6_week = 1
+                                    streak_weeks['six'] += 1
+
+                                streak = 0
+
+        return streak_weeks
+
+    @classmethod
+    def get_total_users_not_reached_weekly_savings_for_weeks(cls):
+        """Get the total number of streaks for up to 6 weeks in a row"""
+        streak_weeks = {
+            'two': 0,
+            'four': 0,
+            'six': 0
+        }
+
+        # Iterate through all goals, checking for 2, 4, 6 week streaks
+        # Note: A 6 week streak must not also count as 3 two week streaks
+        users = User.objects.all()
+        for user in users:
+            user_2_week = 0
+            user_4_week = 0
+            user_6_week = 0
+
+            goals = Goal.objects.filter(user=user)
+            for goal in goals:
+                goal_weekly_agg = goal.get_weekly_aggregates()
+                streak = 0
+
+                for week in range(0, len(goal_weekly_agg)):
+                    if goal_weekly_agg[week] < goal.weekly_target:
+                        streak += 1
+                        if (week + 1) < len(goal_weekly_agg):
+                            # If the streak doesn't continue, count it then reset streak
+                            if goal_weekly_agg[week + 1] == 0:
+                                if (streak == 2 or streak == 3) and user_2_week == 0:
+                                    user_2_week = 1
+                                    streak_weeks['two'] += 1
+                                if (streak == 4 or streak == 5) and user_4_week == 0:
+                                    user_4_week = 1
+                                    streak_weeks['four'] += 1
+                                if streak >= 6 and user_6_week == 0:
+                                    user_6_week = 1
+                                    streak_weeks['six'] += 1
+
+                                streak = 0
+
+        return streak_weeks
 
 
 class UserTypeData:
@@ -1482,8 +1615,6 @@ class SummarySurveyData:
             submitted_surveys = CoachSurveySubmission.objects.filter(
                 user__is_staff=False,
                 survey__bot_conversation=CoachSurvey.BASELINE)
-
-
 
             for survey in submitted_surveys:
                 survey_data = survey.get_data()
@@ -1870,7 +2001,7 @@ class EndlineSurveyData:
 
 
 class BudgetUserData:
-    # TODO: Refactor this report to remove code repetition
+
     fields = ()
 
     @classmethod
@@ -2004,15 +2135,15 @@ class BudgetAggregateData:
                            ),
                           csvfile)
 
-            budgets = Budget.objects.all()
+            budgets = Budget.objects.filter(user__is_staff=False)
 
-            num_users_edited = Budget.objects.all().exclude(modified_count=0).count()
-            num_budget_income_increased = Budget.objects.all().exclude(income_increased_count=0).count()
-            num_budget_income_decreased = Budget.objects.all().exclude(income_decreased_count=0).count()
-            num_budget_savings_increased = Budget.objects.all().exclude(savings_increased_count=0).count()
-            num_budget_savings_decreased = Budget.objects.all().exclude(savings_decreased_count=0).count()
-            num_budget_expense_increased = Budget.objects.all().exclude(expense_increased_count=0).count()
-            num_budget_expense_decreased = Budget.objects.all().exclude(expense_decreased_count=0).count()
+            num_users_edited = Budget.objects.all().exclude(user__is_staff=False, modified_count=0).count()
+            num_budget_income_increased = Budget.objects.all().exclude(user__is_staff=False, income_increased_count=0).count()
+            num_budget_income_decreased = Budget.objects.all().exclude(user__is_staff=False, income_decreased_count=0).count()
+            num_budget_savings_increased = Budget.objects.all().exclude(user__is_staff=False, savings_increased_count=0).count()
+            num_budget_savings_decreased = Budget.objects.all().exclude(user__is_staff=False, savings_decreased_count=0).count()
+            num_budget_expense_increased = Budget.objects.all().exclude(user__is_staff=False, expense_increased_count=0).count()
+            num_budget_expense_decreased = Budget.objects.all().exclude(user__is_staff=False, expense_decreased_count=0).count()
 
             data = [
                 budgets.count(),
