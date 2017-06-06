@@ -66,41 +66,16 @@ def password_generator():
     return password
 
 
-# @app.task()
-# def send_password_email(request, export_name, unique_time, password):
-#     subject = 'Dooit Date Export: ' + str(timezone.now().date())
-#
-#     send_to = request.user.email
-#     file_name = export_name + unique_time + '.zip'
-#
-#     if os.path.isfile(settings.SENDFILE_ROOT + '\\' + file_name):
-#         email = EmailMessage(
-#             subject,
-#             'Attached report: ' + file_name + '\nPassword: ' + password,
-#             settings.DEFAULT_FROM_EMAIL,
-#             [send_to],
-#         )
-#
-#         email.attach_file(settings.SENDFILE_ROOT + '\\' + file_name, 'application/zip')
-#
-#         email.send()
-#     else:
-#         return False
-#
-#     return True
+def send_password_email(email, export_name, unique_time, password):
+    subject = 'Dooit Date Export: ' + str(timezone.now().date())
 
-#
-# @app.task()
-# def send_password_email(request, export_name, unique_time, password):
-#     subject = 'Dooit Date Export: ' + str(timezone.now().date())
-#
-#     send_to = request.user.email
-#
-#     send_mail(
-#         subject=subject,
-#         message='Password for ' + export_name + unique_time + '.zip: ' + password,
-#         from_email=settings.DEFAULT_FROM_EMAIL,
-#         recipient_list=[send_to],
-#
-#         fail_silently=False
-#     )
+    send_to = email
+
+    send_mail(
+        subject=subject,
+        message='Password for ' + export_name + unique_time + '.zip: ' + password,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[send_to],
+
+        fail_silently=False
+    )
