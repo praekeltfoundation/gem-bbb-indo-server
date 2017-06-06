@@ -1293,35 +1293,30 @@ class RewardsDataPerStreak:
                            'total_users_reached_weekly_savings_amount', 'total_users_not_reached_weekly_savings_amount'),
                           csvfile)
 
-            total_streaks = cls.get_total_streaks()
-            num_users_min_one_streak = cls.get_users_at_least_one_streak()
+            total_streaks_all_users = cls.get_total_streaks_all_users()
+            num_users_min_one_streak = cls.get_total_users_earned_streak()
             total_weekly_target_weeks = cls.get_total_users_reached_weekly_savings_for_weeks()
             total_not_weekly_target_weeks = cls.get_total_users_not_reached_weekly_savings_for_weeks()
 
             for i in range(1, 7):
                 week = ''
-                if i == 1:
-                    week = '1 week'
-                if i == 2:
-                    week = '2 weeks'
-                if i == 3:
-                    week = '3 weeks'
-                if i == 4:
-                    week = '4 weeks'
-                if i == 5:
-                    week = '5 weeks'
-                if i == 6:
-                    week = '6 weeks'
+                if i % 2 == 0:
+                    if i == 2:
+                        week = '2 weeks'
+                    if i == 4:
+                        week = '4 weeks'
+                    if i == 6:
+                        week = '6 weeks'
 
-                data = [
-                    week,
-                    total_streaks[cls.int_to_str(i)],
-                    num_users_min_one_streak[cls.int_to_str(i)],
-                    total_weekly_target_weeks[cls.int_to_str(i)],
-                    total_not_weekly_target_weeks[cls.int_to_str(i)]
-                ]
+                    data = [
+                        week,
+                        total_streaks_all_users[cls.int_to_str(i)],
+                        num_users_min_one_streak[cls.int_to_str(i)],
+                        total_weekly_target_weeks[cls.int_to_str(i)],
+                        total_not_weekly_target_weeks[cls.int_to_str(i)]
+                    ]
 
-                append_to_csv(data, csvfile)
+                    append_to_csv(data, csvfile)
 
         success, message = pass_zip_encrypt_email(request, export_name, unique_time)
 
@@ -1340,158 +1335,171 @@ class RewardsDataPerStreak:
     @classmethod
     def int_to_str(cls, num):
         """Helper method to convert week streak number to word for accesing dicts"""
-        if num == 1:
-            return 'one'
         if num == 2:
             return 'two'
-        if num == 3:
-            return 'three'
         if num == 4:
             return 'four'
-        if num == 5:
-            return 'five'
         if num == 6:
             return 'six'
 
     @classmethod
-    def get_total_streaks(cls):
-        """Get the total number of streaks for up to 6 weeks in a row"""
+    def get_total_streaks_all_users(cls):
+        """Get the total number of 2, 4, 6 week saving streaks for up to 6 weeks in a row"""
         streak_weeks = {
-            'one': 0,
             'two': 0,
-            'three': 0,
             'four': 0,
-            'five': 0,
             'six': 0
         }
 
+        # Iterate through all goals, checking for 2, 4, 6 week streaks
+        # Note: A 6 week streak must not also count as 3 two week streaks
         goals = Goal.objects.all()
-
         for goal in goals:
             goal_weekly_agg = goal.get_weekly_aggregates()
             streak = 0
-            for week_value in goal_weekly_agg:
-                # Start/continue streak of break out of streak
-                if week_value != 0:
-                    streak += 1
-                else:
-                    streak = 0
 
-                # Streaks aren't cumulative, so a six week streak != 6 one week streaks
-                if streak == 1:
-                    streak_weeks['one'] += 1
-                if streak == 2:
-                    streak_weeks['two'] += 1
-                if streak == 3:
-                    streak_weeks['three'] += 1
-                if streak == 4:
-                    streak_weeks['four'] += 1
-                if streak == 5:
-                    streak_weeks['five'] += 1
-                if streak == 6:
-                    streak_weeks['six'] += 1
+            for week in range(0, len(goal_weekly_agg)):
+                if goal_weekly_agg[week] != 0:
+                    streak += 1
+                    if (week + 1) < len(goal_weekly_agg):
+                        # If the streak doesn't continue, count it then reset streak
+                        if goal_weekly_agg[week + 1] == 0:
+                            if streak == 2 or streak == 3:
+                                streak_weeks['two'] += 1
+                            if streak == 4 or streak == 5:
+                                streak_weeks['four'] += 1
+                            if streak >= 6:
+                                streak_weeks['six'] += 1
+
+                            streak = 0
 
         return streak_weeks
 
     @classmethod
-    def get_users_at_least_one_streak(cls):
-        """Count the number of users that have reached 1,2,3 etc week streaks"""
-
-        # TODO: Only count one streak type per user
-
+    def get_total_users_earned_streak(cls):
+        """Get the number of users with 2, 4, 6 week savings streaks for up to 6 weeks in a row"""
         streak_weeks = {
-            'one': 0,
             'two': 0,
-            'three': 0,
             'four': 0,
-            'five': 0,
             'six': 0
         }
 
+        # Iterate through all goals, checking for 2, 4, 6 week streaks
+        # Note: A 6 week streak must not also count as 3 two week streaks
         users = User.objects.all()
-
         for user in users:
-            goals = Goal.objects.filter(user=user)
+            user_2_week = 0
+            user_4_week = 0
+            user_6_week = 0
 
+            goals = Goal.objects.filter(user=user)
             for goal in goals:
                 goal_weekly_agg = goal.get_weekly_aggregates()
                 streak = 0
-                for week_value in goal_weekly_agg:
-                    # Start/continue streak of break out of streak
-                    if week_value != 0:
+
+                for week in range(0, len(goal_weekly_agg)):
+                    if goal_weekly_agg[week] != 0:
                         streak += 1
-                    else:
-                        streak = 0
+                        if (week + 1) < len(goal_weekly_agg):
+                            # If the streak doesn't continue, count it then reset streak
+                            if goal_weekly_agg[week + 1] == 0:
+                                if (streak == 2 or streak == 3) and user_2_week == 0:
+                                    user_2_week = 1
+                                    streak_weeks['two'] += 1
+                                if (streak == 4 or streak == 5) and user_4_week == 0:
+                                    user_4_week = 1
+                                    streak_weeks['four'] += 1
+                                if streak >= 6 and user_6_week == 0:
+                                    user_6_week = 1
+                                    streak_weeks['six'] += 1
 
-                    # Streaks aren't cumulative, so a six week streak != 6 one week streaks
-                    if streak == 1:
-                        streak_weeks['one'] += 1
-                    if streak == 2:
-                        streak_weeks['two'] += 1
-                    if streak == 3:
-                        streak_weeks['three'] += 1
-                    if streak == 4:
-                        streak_weeks['four'] += 1
-                    if streak == 5:
-                        streak_weeks['five'] += 1
-                    if streak == 6:
-                        streak_weeks['six'] += 1
+                                streak = 0
 
-            return streak_weeks
+        return streak_weeks
 
     @classmethod
     def get_total_users_reached_weekly_savings_for_weeks(cls):
-        reached_weeks = {
-            'one': 0,
+        """Get the total number of streaks for up to 6 weeks in a row"""
+        streak_weeks = {
             'two': 0,
-            'three': 0,
             'four': 0,
-            'five': 0,
             'six': 0
         }
 
-        goals = Goal.objects.all()
+        # Iterate through all goals, checking for 2, 4, 6 week streaks
+        # Note: A 6 week streak must not also count as 3 two week streaks
+        users = User.objects.all()
+        for user in users:
+            user_2_week = 0
+            user_4_week = 0
+            user_6_week = 0
 
-        for goal in goals:
-            goal_weekly_agg = goal.get_weekly_aggregates()
-            streak = 0
-            for week_value in goal_weekly_agg:
-                # Start/continue streak of break out of streak
-                if week_value >= goal.weekly_target:
-                    streak += 1
-                else:
-                    streak = 0
+            goals = Goal.objects.filter(user=user)
+            for goal in goals:
+                goal_weekly_agg = goal.get_weekly_aggregates()
+                streak = 0
 
-                # Streaks aren't cumulative, so a six week streak != 6 one week streaks
-                if streak == 1:
-                    reached_weeks['one'] += 1
-                if streak == 2:
-                    reached_weeks['two'] += 1
-                if streak == 3:
-                    reached_weeks['three'] += 1
-                if streak == 4:
-                    reached_weeks['four'] += 1
-                if streak == 5:
-                    reached_weeks['five'] += 1
-                if streak == 6:
-                    reached_weeks['six'] += 1
+                for week in range(0, len(goal_weekly_agg)):
+                    if goal_weekly_agg[week] >= goal.weekly_target:
+                        streak += 1
+                        if (week + 1) < len(goal_weekly_agg):
+                            # If the streak doesn't continue, count it then reset streak
+                            if goal_weekly_agg[week + 1] == 0:
+                                if (streak == 2 or streak == 3) and user_2_week == 0:
+                                    user_2_week = 1
+                                    streak_weeks['two'] += 1
+                                if (streak == 4 or streak == 5) and user_4_week == 0:
+                                    user_4_week = 1
+                                    streak_weeks['four'] += 1
+                                if streak >= 6 and user_6_week == 0:
+                                    user_6_week = 1
+                                    streak_weeks['six'] += 1
 
-        return reached_weeks
+                                streak = 0
+
+        return streak_weeks
 
     @classmethod
     def get_total_users_not_reached_weekly_savings_for_weeks(cls):
-        reached_weeks = {
-            'one': 0,
+        """Get the total number of streaks for up to 6 weeks in a row"""
+        streak_weeks = {
             'two': 0,
-            'three': 0,
             'four': 0,
-            'five': 0,
             'six': 0
         }
 
-        # TODO: Number of users who have not reached an X week saving streak
+        # Iterate through all goals, checking for 2, 4, 6 week streaks
+        # Note: A 6 week streak must not also count as 3 two week streaks
+        users = User.objects.all()
+        for user in users:
+            user_2_week = 0
+            user_4_week = 0
+            user_6_week = 0
 
-        return reached_weeks
+            goals = Goal.objects.filter(user=user)
+            for goal in goals:
+                goal_weekly_agg = goal.get_weekly_aggregates()
+                streak = 0
+
+                for week in range(0, len(goal_weekly_agg)):
+                    if goal_weekly_agg[week] < goal.weekly_target:
+                        streak += 1
+                        if (week + 1) < len(goal_weekly_agg):
+                            # If the streak doesn't continue, count it then reset streak
+                            if goal_weekly_agg[week + 1] == 0:
+                                if (streak == 2 or streak == 3) and user_2_week == 0:
+                                    user_2_week = 1
+                                    streak_weeks['two'] += 1
+                                if (streak == 4 or streak == 5) and user_4_week == 0:
+                                    user_4_week = 1
+                                    streak_weeks['four'] += 1
+                                if streak >= 6 and user_6_week == 0:
+                                    user_6_week = 1
+                                    streak_weeks['six'] += 1
+
+                                streak = 0
+
+        return streak_weeks
 
 
 class UserTypeData:
