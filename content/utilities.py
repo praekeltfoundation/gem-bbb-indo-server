@@ -5,10 +5,8 @@ import random
 import csv
 
 from django.conf import settings
-from django.core.mail import send_mail, EmailMessage
+from django.core.mail import send_mail
 from django.utils import timezone
-
-from content.celery import app
 
 REPORT_GENERATION_TIMEOUT = 60
 

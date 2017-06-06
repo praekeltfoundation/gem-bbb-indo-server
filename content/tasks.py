@@ -4,8 +4,7 @@ import os
 from celery.task import task
 
 from django.conf import settings
-from django.core.mail import send_mail
-from django.utils import timezone
+from django.utils.translation import ugettext_lazy as _
 
 from content.analytics_api import get_report, connect_ga_to_user, initialize_analytics_reporting
 from content.celery import app
