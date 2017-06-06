@@ -87,10 +87,7 @@ class GoalReport:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
-
-        if not success:
-            return False, message
+        pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
 
         # try:
         #     fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
@@ -272,10 +269,7 @@ class UserReport:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
-
-        if not success:
-            return False, message
+        pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
 
         # try:
         #     fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
@@ -506,10 +500,7 @@ class SavingsReport:
 
                     append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
-
-        if not success:
-            return False, message
+        pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
 
         # try:
         #     fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
@@ -560,10 +551,7 @@ class SummaryDataPerChallenge:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
-
-        if not success:
-            return False, message
+        pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
 
         # try:
         #     fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
@@ -635,10 +623,7 @@ class SummaryDataPerQuiz:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
-
-        if not success:
-            return False, message
+        pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
 
         # try:
         #     fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
@@ -699,10 +684,7 @@ class ChallengeExportPicture:
 
                     append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
-
-        if not success:
-            return False, message
+        pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
 
         # try:
         #     fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
@@ -768,10 +750,7 @@ class ChallengeExportQuiz:
 
                     append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
-
-        if not success:
-            return False, message
+        pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
 
         # try:
         #     fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
@@ -833,10 +812,7 @@ class ChallengeExportFreetext:
                     except ParticipantFreeText.DoesNotExist:
                         pass
 
-        success, message = pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
-
-        if not success:
-            return False, message
+        pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
 
         # try:
         #     fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
@@ -877,10 +853,7 @@ class SummaryGoalData:
 
             append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
-
-        if not success:
-            return False, message
+        pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
 
         # try:
         #     fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
@@ -977,10 +950,7 @@ class GoalDataPerCategory:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
-
-        if not success:
-            return False, message
+        pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
 
         # try:
         #     fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
@@ -1123,10 +1093,7 @@ class RewardsData:
 
             append_to_csv(data, csvfile)
 
-            success, message = pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
-
-        if not success:
-            return False, message
+        pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
 
         # try:
         #     fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
@@ -1243,10 +1210,7 @@ class RewardsDataPerBadge:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
-
-        if not success:
-            return False, message
+        pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
 
         # try:
         #     fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
@@ -1308,10 +1272,7 @@ class RewardsDataPerStreak:
 
                     append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
-
-        if not success:
-            return False, message
+        pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
 
         # try:
         #     fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
@@ -1534,10 +1495,7 @@ class UserTypeData:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
-
-        if not success:
-            return False, message
+        pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
 
         # try:
         #     fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
@@ -1713,10 +1671,7 @@ class SummarySurveyData:
             ]
             append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
-
-        if not success:
-            return False, message
+        pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
 
         # try:
         #     fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
@@ -1815,10 +1770,7 @@ class BaselineSurveyData:
 
                     append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
-
-        if not success:
-            return False, message
+        pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
 
         # try:
         #     fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
@@ -1905,10 +1857,7 @@ class EaTool1SurveyData:
 
                     append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
-
-        if not success:
-            return False, message
+        pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
 
         # try:
         #     fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
@@ -1939,10 +1888,7 @@ class EaTool2SurveyData:
                            ),
                           csvfile)
 
-        success, message = pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
-
-        if not success:
-            return False, message
+        pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
 
         # try:
         #     fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
@@ -1974,10 +1920,7 @@ class EndlineSurveyData:
                            ),
                           csvfile)
 
-        success, message = pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
-
-        if not success:
-            return False, message
+        pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
 
         # try:
         #     fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
@@ -2054,10 +1997,7 @@ class BudgetUserData:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
-
-        if not success:
-            return False, message
+        pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
 
         # try:
         #     fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
@@ -2092,10 +2032,7 @@ class BudgetExpenseCategoryData:
 
                 append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
-
-        if not success:
-            return False, message
+        pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
 
         # try:
         #     fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
@@ -2147,10 +2084,7 @@ class BudgetAggregateData:
 
             append_to_csv(data, csvfile)
 
-        success, message = pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
-
-        if not success:
-            return False, message
+        pass_zip_encrypt_email_task.delay(request.user.email, export_name, unique_time)
 
         # try:
         #     fsock = open(STORAGE_DIRECTORY + export_name + unique_time + '.zip', "rb")
