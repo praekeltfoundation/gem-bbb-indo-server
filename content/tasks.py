@@ -4,6 +4,8 @@ import os
 from celery.task import task
 
 from django.conf import settings
+from django.core.mail import send_mail
+from django.utils import timezone
 
 from content.analytics_api import get_report, connect_ga_to_user, initialize_analytics_reporting
 from content.celery import app
@@ -33,3 +35,19 @@ def ga_task_handler():
     response = get_report(analytics)
     connect_ga_to_user(response)
     print("Finished GA connection")
+
+
+@task(name="send_feedback_email_task")
+def send_password_email_task(email, export_name, unique_time, password):
+    subject = 'Dooit Date Export: ' + str(timezone.now().date())
+
+    send_to = email
+
+    send_mail(
+        subject=subject,
+        message='Password for ' + export_name + unique_time + '.zip: ' + password,
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[send_to],
+
+        fail_silently=False
+    )
