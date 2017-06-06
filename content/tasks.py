@@ -360,6 +360,7 @@ def num_challenge_participation_badges(profile):
 
 
 def highest_streak_earned(profile):
+    """Returns the highest streak of weeks a user has saved, regardless of weekly target"""
     goals = Goal.objects.filter(user=profile.user)
     highest_streak = 0
     current_count = 0
@@ -376,6 +377,7 @@ def highest_streak_earned(profile):
 
 
 def total_streak_and_ontrack_badges(profile):
+    """Returns the total amount of streak and on track badges"""
     total_2_week_streak = UserBadge.objects.filter(user=profile.user,
                                                    badge__badge_type=Badge.STREAK_2).count()
     total_4_week_streak = UserBadge.objects.filter(user=profile.user,
@@ -395,6 +397,8 @@ def total_streak_and_ontrack_badges(profile):
 
 
 def total_streaks_earned(profile):
+    """Returns the total number of streaks a user has saved for. Since saving for 1 week counts as a streak
+    this is basically just the number of weeks saved"""
     goals = Goal.objects.filter(user=profile.user)
     total_streaks = 0
     current_count = 0
@@ -436,7 +440,6 @@ def num_budget_created_badges(profile):
 
 def num_budget_revision_badges(profile):
     return UserBadge.objects.filter(user=profile.user, badge__badge_type=Badge.BUDGET_EDIT).count()
-# Survey data
 
 
 def baseline_survey_complete(profile):
@@ -628,7 +631,6 @@ def export_challenge_picture(email, export_name, unique_time, challenge_name):
                 else:
                     date_answered = ''
 
-
                 try:
                     campaign_info = CampaignInformation.objects.get(user=profile.user)
                     user_type = campaign_info.source + '/' + campaign_info.medium
@@ -642,7 +644,7 @@ def export_challenge_picture(email, export_name, unique_time, challenge_name):
                     participant.user.email,
                     profile.gender,
                     profile.age,
-                    user_type,  # user type
+                    user_type,
                     profile.user.date_joined,
                     challenge.call_to_action + ' ' + date_answered
                 ]
