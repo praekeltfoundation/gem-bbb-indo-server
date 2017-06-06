@@ -13,8 +13,7 @@ from content.celery import app
 from content.models import Goal, GoalTransaction, UserBadge, Badge, Participant, Challenge, QuizQuestion, \
     QuestionOption, ParticipantAnswer, ParticipantPicture, ParticipantFreeText, GoalPrototype, Budget, ExpenseCategory, \
     Expense
-from content.utilities import password_generator, zip_and_encrypt, send_password_email, append_to_csv, create_csv, \
-    pass_zip_encrypt_email
+from content.utilities import append_to_csv, create_csv, pass_zip_encrypt_email
 from survey.models import CoachSurveySubmission, CoachSurvey, CoachSurveySubmissionDraft
 from users.models import Profile, CampaignInformation
 
@@ -48,23 +47,6 @@ def ga_task_handler():
     connect_ga_to_user(response)
     print("Finished GA connection")
 
-
-# @task(name="pass_zip_encrypt_email_task")
-# def pass_zip_encrypt_email_task(user_email, export_name, unique_time):
-#     """Generate a password, zip and encrypt the report, if nothing goes wrong email the password"""
-#
-#     password = password_generator()
-#     result, err_message = zip_and_encrypt(export_name, unique_time, password)
-#
-#     if not result:
-#         return False, err_message
-#
-#     if user_email is None or user_email is '':
-#         return False, ERROR_MESSAGE_NO_EMAIL
-#
-#     send_password_email(user_email, export_name, unique_time, password)
-#
-#     return True, SUCCESS_MESSAGE_EMAIL_SENT
 
 ###########################
 # Report Generation Tasks #
@@ -322,7 +304,6 @@ def total_badges_earned(profile):
     """Returns the total number of badges earned by the user"""
     user = profile.user
     return UserBadge.objects.filter(user=user).count()
-# Badge totals
 
 
 def num_first_goal_created_badges(profile):
@@ -379,6 +360,7 @@ def num_challenge_participation_badges(profile):
 
 
 def highest_streak_earned(profile):
+    """Returns the highest streak of weeks a user has saved, regardless of weekly target"""
     goals = Goal.objects.filter(user=profile.user)
     highest_streak = 0
     current_count = 0
@@ -395,6 +377,7 @@ def highest_streak_earned(profile):
 
 
 def total_streak_and_ontrack_badges(profile):
+    """Returns the total amount of streak and on track badges"""
     total_2_week_streak = UserBadge.objects.filter(user=profile.user,
                                                    badge__badge_type=Badge.STREAK_2).count()
     total_4_week_streak = UserBadge.objects.filter(user=profile.user,
@@ -414,6 +397,8 @@ def total_streak_and_ontrack_badges(profile):
 
 
 def total_streaks_earned(profile):
+    """Returns the total number of streaks a user has saved for. Since saving for 1 week counts as a streak
+    this is basically just the number of weeks saved"""
     goals = Goal.objects.filter(user=profile.user)
     total_streaks = 0
     current_count = 0
@@ -455,7 +440,6 @@ def num_budget_created_badges(profile):
 
 def num_budget_revision_badges(profile):
     return UserBadge.objects.filter(user=profile.user, badge__badge_type=Badge.BUDGET_EDIT).count()
-# Survey data
 
 
 def baseline_survey_complete(profile):
@@ -647,7 +631,6 @@ def export_challenge_picture(email, export_name, unique_time, challenge_name):
                 else:
                     date_answered = ''
 
-
                 try:
                     campaign_info = CampaignInformation.objects.get(user=profile.user)
                     user_type = campaign_info.source + '/' + campaign_info.medium
@@ -661,7 +644,7 @@ def export_challenge_picture(email, export_name, unique_time, challenge_name):
                     participant.user.email,
                     profile.gender,
                     profile.age,
-                    user_type,  # user type
+                    user_type,
                     profile.user.date_joined,
                     challenge.call_to_action + ' ' + date_answered
                 ]
@@ -727,6 +710,7 @@ def export_challenge_quiz(email, export_name, unique_time, challenge_name):
     pass_zip_encrypt_email(email, export_name, unique_time)
 
     return True, SUCCESS_MESSAGE_EMAIL_SENT
+
 
 @task(name="export_challenge_freetext")
 def export_challenge_freetext(email, export_name, unique_time, challenge_name):
