@@ -46,7 +46,7 @@ class GoalReport:
 
     @classmethod
     def export_csv(cls, request, stream, export_name, unique_time):
-        goals = Goal.objects.all(user__is_staff=False)
+        goals = Goal.objects.filter(user__is_staff=False)
 
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
 
@@ -491,7 +491,7 @@ class SavingsReport:
 
     @classmethod
     def export_csv(cls, request, stream, export_name, unique_time):
-        goals = Goal.objects.all(user__is_staff=False)
+        goals = Goal.objects.filter(user__is_staff=False)
 
         filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
         create_csv(filename)
