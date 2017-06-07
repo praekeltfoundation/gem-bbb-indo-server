@@ -2,6 +2,35 @@
 Changelog
 =========
 
+1.2.3
+-----
+
+- Changed reports to generate as asynchronous background tasks
+- Changed reports to be sent via the password email instead of downloaded through browser
+- Added new fields to reports
+- Various changes and fixes to reports
+- Changed Aggregates - Rewards Data Per Streak Type to match clarified spec
+- Added a whole lot of translations
+- Added campaign information to shared badges
+
+1.2.2
+-----
+
+- Changed challenge push notification conditions and serializable name
+- Include Twitter attribution info in badges page
+- Removed tags from tip articles
+- Added styling and download buttons to shared badge pages
+- Removed debug prints to prevent spamming logs
+- Added initial savings value to Goal model
+- Sorted tips by last edit date instead of last published date
+- Return 404 instead of errors if free text challenge participants are not found
+
+1.2.0
+-----
+
+- Added more backend support for budgeting feature
+- Changes and fixes to reports
+
 1.0.4
 -----
 
