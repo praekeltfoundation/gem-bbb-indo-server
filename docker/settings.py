@@ -63,7 +63,7 @@ LOGGING = {
     'loggers': {
         'dooit': {
             'handlers': ['sentry'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propagate': True,
         },
         'django.db.backends': {
