@@ -1562,6 +1562,7 @@ def export_baseline_survey(email, export_name, unique_time):
         8: '"Volunteer in church or community"',
         9: '"Care giver of family members or children"',
         10: '"Not working, studying, or volunteering"',
+        998: '998',
         999: '999',
     }
 
@@ -1570,6 +1571,7 @@ def export_baseline_survey(email, export_name, unique_time):
         1: '"1st Year"',
         2: '"2nd Year"',
         3: '"3rd Year"',
+        998: '998',
         999: '999',
     }
 
@@ -1577,6 +1579,7 @@ def export_baseline_survey(email, export_name, unique_time):
     q05_answers = {
         0: '"No"',
         1: '"Yes"',
+        998: '998',
         999: '999',
     }
 
@@ -1588,6 +1591,7 @@ def export_baseline_survey(email, export_name, unique_time):
         4: '"Between 750 thousand and 1 million"',
         5: '"Between 1 million and 1,5 million"',
         6: '"More than 1,5 million"',
+        998: '998',
         999: '999',
     }
 
@@ -1601,6 +1605,7 @@ def export_baseline_survey(email, export_name, unique_time):
         6: '"Helping family business with pay"',
         7: '"Does not know"',
         888: '888',
+        998: '998',
         999: '999',
     }
 
@@ -1608,6 +1613,7 @@ def export_baseline_survey(email, export_name, unique_time):
     q08_answers = {
         0: '"No"',
         1: '"Yes"',
+        998: '998',
         999: '999',
     }
 
@@ -1619,6 +1625,7 @@ def export_baseline_survey(email, export_name, unique_time):
         4: '"Between 750 thousand and 1 million"',
         5: '"Between 1 million and 1,5 million"',
         6: '"More than 1,5 million"',
+        998: '998',
         999: '999',
     }
 
@@ -1626,6 +1633,7 @@ def export_baseline_survey(email, export_name, unique_time):
     q10_answers = {
         0: '"No"',
         1: '"Yes"',
+        998: '998',
         999: '999',
     }
 
@@ -1639,6 +1647,7 @@ def export_baseline_survey(email, export_name, unique_time):
         6: '"Once or twice a year"',
         7: '"Do not remember"',
         8: '"Varies (different times, not a set frequency)"',
+        998: '998',
         999: '999',
     }
 
@@ -1650,6 +1659,7 @@ def export_baseline_survey(email, export_name, unique_time):
         4: '"Send to family for safekeeping"',
         5: '"Buy gold or other valuables"',
         6: '"Other"',
+        998: '998',
         999: '999',
     }
 
@@ -1663,6 +1673,7 @@ def export_baseline_survey(email, export_name, unique_time):
         6: '"Between 300 thousand and 350 thousand"',
         7: '"Between 350 thousand and 400 thousand"',
         8: '"More than 400 thousand"',
+        998: '998',
         999: '999',
     }
 
@@ -1670,6 +1681,7 @@ def export_baseline_survey(email, export_name, unique_time):
     q14_answers = {
         0: '"No"',
         1: '"Yes"',
+        998: '998',
         999: '999',
     }
 
@@ -1677,6 +1689,7 @@ def export_baseline_survey(email, export_name, unique_time):
     q15_answers = {
         0: '"No"',
         1: '"Yes"',
+        998: '998',
         999: '999',
     }
 
@@ -1684,6 +1697,7 @@ def export_baseline_survey(email, export_name, unique_time):
     q16_answers = {
         0: '"No"',
         1: '"Yes"',
+        998: '998',
         999: '999',
     }
 
@@ -1691,6 +1705,7 @@ def export_baseline_survey(email, export_name, unique_time):
     q17_answers = {
         0: '"No"',
         1: '"Yes"',
+        998: '998',
         999: '999',
     }
 
@@ -1698,6 +1713,7 @@ def export_baseline_survey(email, export_name, unique_time):
     q18_answers = {
         0: '"No"',
         1: '"Yes"',
+        998: '998',
         999: '999',
     }
 
@@ -1705,6 +1721,7 @@ def export_baseline_survey(email, export_name, unique_time):
     q19_answers = {
         0: '"No"',
         1: '"Yes"',
+        998: '998',
         999: '999',
     }
 
@@ -1712,6 +1729,7 @@ def export_baseline_survey(email, export_name, unique_time):
     q20_answers = {
         0: '"No"',
         1: '"Yes"',
+        998: '998',
         999: '999',
     }
 
@@ -1719,6 +1737,7 @@ def export_baseline_survey(email, export_name, unique_time):
     q21_answers = {
         0: '"No"',
         1: '"Yes"',
+        998: '998',
         999: '999',
     }
 
@@ -1726,6 +1745,7 @@ def export_baseline_survey(email, export_name, unique_time):
     q22_answers = {
         0: '"No"',
         1: '"Yes"',
+        998: '998',
         999: '999',
     }
 
@@ -1736,6 +1756,7 @@ def export_baseline_survey(email, export_name, unique_time):
         3: '"Once a week"',
         4: '"Once a day"',
         5: '"Multiple times per day"',
+        998: '998',
         999: '999',
     }
 
@@ -1747,6 +1768,7 @@ def export_baseline_survey(email, export_name, unique_time):
         4: '"Accessing information on the internet"',
         5: '"Using apps or tools to help me manage my life, like trackers or calendars."',
         6: '"Other"',
+        998: '998',
         999: '999',
     }
 
@@ -1758,6 +1780,7 @@ def export_baseline_survey(email, export_name, unique_time):
         4: '"Accessing information on the internet"',
         5: '"Using apps or tools to help me manage my life, like trackers or calendars."',
         6: '"Other"',
+        998: '998',
         999: '999',
     }
 
@@ -1769,6 +1792,7 @@ def export_baseline_survey(email, export_name, unique_time):
         4: '"Sibling"',
         5: '"Another relative"',
         6: '"Someone else"',
+        998: '998',
         999: '999',
     }
 
@@ -1777,6 +1801,7 @@ def export_baseline_survey(email, export_name, unique_time):
         1: '"Approve"',
         2: '"Neutral"',
         3: '"Disapprove"',
+        998: '998',
         999: '999',
     }
 
@@ -1785,6 +1810,7 @@ def export_baseline_survey(email, export_name, unique_time):
         1: '"Approve"',
         2: '"Neutral"',
         3: '"Disapprove"',
+        998: '998',
         999: '999',
     }
 
@@ -1793,6 +1819,7 @@ def export_baseline_survey(email, export_name, unique_time):
         1: '"Approve"',
         2: '"Neutral"',
         3: '"Disapprove"',
+        998: '998',
         999: '999',
     }
 
@@ -1804,6 +1831,7 @@ def export_baseline_survey(email, export_name, unique_time):
         4: '"Between 25 thousand and 35 thousand rupiah"',
         5: '"Between 35 thousand and 45 thousand rupiah"',
         6: '"More than 45 thousand rupiah"',
+        998: '998',
         999: '999',
     }
 
@@ -1811,6 +1839,7 @@ def export_baseline_survey(email, export_name, unique_time):
     q29_1_answers = {
         0: '"No"',
         1: '"Yes"',
+        998: '998',
         999: '999',
     }
 
@@ -1818,6 +1847,7 @@ def export_baseline_survey(email, export_name, unique_time):
     q29_2_answers = {
         0: '"No"',
         1: '"Yes"',
+        998: '998',
         999: '999',
     }
 
@@ -1825,6 +1855,7 @@ def export_baseline_survey(email, export_name, unique_time):
     q29_3_answers = {
         0: '"No"',
         1: '"Yes"',
+        998: '998',
         999: '999',
     }
 
@@ -1832,6 +1863,7 @@ def export_baseline_survey(email, export_name, unique_time):
     q29_4_answers = {
         0: '"No"',
         1: '"Yes"',
+        998: '998',
         999: '999',
     }
 
