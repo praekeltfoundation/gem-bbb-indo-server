@@ -35,9 +35,11 @@ class CoachSurvey(AbstractSurvey):
     NONE = 0
     BASELINE = 1
     EATOOL = 2
+    ENDLINE = 3
     _REVERSE = {
         'SURVEY_BASELINE': BASELINE,
-        'SURVEY_EATOOL': EATOOL
+        'SURVEY_EATOOL': EATOOL,
+        'SURVEY_ENDLINE': ENDLINE
     }
 
     intro = models.TextField(
@@ -84,6 +86,7 @@ class CoachSurvey(AbstractSurvey):
         (NONE, _('none')),
         (BASELINE, _('baseline')),
         (EATOOL, _('ea tool')),
+        (ENDLINE, _('endline'))
     ), default=NONE)
 
     def get_data_fields(self):
