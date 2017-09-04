@@ -1979,6 +1979,58 @@ def export_baseline_survey(email, export_name, unique_time):
     return True, SUCCESS_MESSAGE_EMAIL_SENT
 
 
+@task(name="export_endline_survey")
+def export_endline_survey(email, export_name, unique_time):
+    surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.ENDLINE)
+
+    filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
+    create_csv(filename)
+
+    with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
+        append_to_csv(('uuid', 'username', 'name', 'mobile', 'email', 'gender', 'age',
+                       'user_type_source_medium', 'date_joined', 'consent_given', 'submission_date',
+
+                       # Survey questions
+                       ''
+                       ),
+                      csvfile)
+
+        for survey in surveys:
+            # All baseline survey submissions that are complete
+            submissions = CoachSurveySubmission.objects.filter(user__is_staff=False, survey=survey)
+
+            for submission in submissions:
+                try:
+                    campaign_info = CampaignInformation.objects.get(user=submission.user)
+                    user_type = campaign_info.source + '/' + campaign_info.medium
+                except:
+                    user_type = ''
+                survey_data = submission.get_data()
+
+                data = [
+                    submission.user_unique_id,
+                    submission.username,
+                    submission.name,
+                    submission.mobile,
+                    submission.email,
+                    submission.gender,
+                    submission.age,
+                    user_type,  # user type
+                    submission.user.date_joined,
+                    submission.consent,
+                    submission.created_at,
+
+                    # survey questions
+                    '',
+                ]
+
+                append_to_csv(data, csvfile)
+
+    pass_zip_encrypt_email(email, export_name, unique_time)
+
+    return True, SUCCESS_MESSAGE_EMAIL_SENT
+
+
 @task(name="export_ea1tool_survey")
 def export_ea1tool_survey(email, export_name, unique_time):
     surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.EATOOL)
