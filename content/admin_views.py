@@ -9,6 +9,7 @@ from django.utils.translation import ugettext_lazy as _
 from wagtail.wagtailadmin import messages
 
 from content.analytics_api import initialize_analytics_reporting, get_report, connect_ga_to_user
+
 from content.tasks import export_goal_summary, export_user_summary, export_challenge_summary, \
     export_challenge_quiz_summary, export_challenge_picture, export_challenge_freetext, export_challenge_quiz, \
     export_savings_summary, export_aggregate_summary, export_aggregate_goal_data_per_category, \
@@ -17,6 +18,7 @@ from content.tasks import export_goal_summary, export_user_summary, export_chall
     export_ea2tool_survey, export_endline_survey, export_budget_user, export_budget_expense_category, \
     export_budget_aggregate
 
+from users.models import EndlineSurveySelectUsers
 from .models import Challenge, Participant, Feedback
 
 
@@ -66,6 +68,14 @@ def feedback_mark_read(request, feedback_pk):
     feedback.save()
     return JsonResponse({})
 
+
+# TODO: permission_required('survey.can_change')
+@ensure_csrf_cookie
+def survey_mark_can_receive(request, user_id):
+    survey_accessor = get_object_or_404(EndlineSurveySelectUsers, pk=user_id)
+    survey_accessor.receive_survey =not survey_accessor.receive_survey
+    survey_accessor.save()
+    return JsonResponse({})
 
 #############
 # Reporting #

@@ -1,8 +1,8 @@
 from django.conf.urls import url, include
 
 from .admin_views import participant_mark_read, report_goal_exports, report_challenge_exports, report_aggregate_exports, \
-    report_index_page, report_survey_exports, feedback_mark_read, quiz_challenge_entries, report_budget_exports
-
+    report_index_page, report_survey_exports, feedback_mark_read, quiz_challenge_entries, report_budget_exports, \
+    survey_mark_can_receive
 
 from .admin_views import participant_mark_shortlisted
 from .admin_views import participant_mark_winner
@@ -26,4 +26,7 @@ urlpatterns = [
 
     # Feedback controls
     url(r'^feedback/mark-read/(?P<feedback_pk>\d+)/$', feedback_mark_read, name='feedback-mark-read'),
+
+    # Survey controls
+    url(r'^survey/mark-can-receive/(?P<user_id>\d+)/$', survey_mark_can_receive, name='survey-mark-can-receive'),
 ]
