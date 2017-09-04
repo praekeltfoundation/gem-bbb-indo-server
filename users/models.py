@@ -4,6 +4,7 @@ import uuid
 
 from django.utils import timezone
 from django.utils.translation import ugettext_lazy as _
+from django.utils.html import format_html
 from django.contrib.auth.models import User
 from django.core.validators import MinLengthValidator, RegexValidator
 from django.db import models
@@ -14,6 +15,9 @@ from rest_framework.authtoken.models import Token
 
 from .storage import ProfileImgStorage
 from content.models import Entry, Participant
+
+from wagtail.wagtailadmin import edit_handlers as wagtail_edit_handlers
+from content.edit_handlers import ReadOnlyPanel
 
 
 # proxy managers
@@ -186,6 +190,34 @@ class CampaignInformation(models.Model):
     medium = models.TextField(_('medium'), blank=False, null=True)
 
 
+###############################
+# Endline Survey User Chooser #
+###############################
+
+
+class EndlineSurveySelectUsers(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    receive_survey = models.BooleanField(default=False, help_text=_('Should the user receive the Endline Survey'))
+    survey_completed = models.BooleanField(default=False, help_text=_('Has the user already completed the survey'))
+
+    def mark_receive_survey(self):
+        if self.receive_survey:
+            return format_html(
+                "<input type='checkbox' id='{}' class='mark-receive-survey' value='{}' checked='checked' />",
+                'participant-is-shortlisted-%d' % self.id, self.id)
+        else:
+            return format_html("<input type='checkbox' id='{}' class='mark-receive-survey' value='{}' />",
+                               'participant-is-shortlisted-%d' % self.id, self.id)
+
+EndlineSurveySelectUsers.panels = [
+    wagtail_edit_handlers.MultiFieldPanel([
+        wagtail_edit_handlers.FieldPanel('user'),
+        wagtail_edit_handlers.FieldPanel('receive_survey'),
+        ReadOnlyPanel('survey_completed',)
+    ])
+]
+
+
 def reset_token(sender, instance, **kwargs):
     """Invalidates a token when a user's password is changed."""
     new_password = instance.password
@@ -210,6 +242,7 @@ for model in MODEL_CLASSES:
 def create_profile(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(user=instance)
+        EndlineSurveySelectUsers.objects.get_or_create(user=instance)
 
 
 @receiver(post_save, sender=User)
