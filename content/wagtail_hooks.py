@@ -8,6 +8,7 @@ from wagtail.wagtailadmin.menu import MenuItem
 from wagtail.wagtailcore import hooks
 
 from content.menu import ReportMenuItem
+from users.models import EndlineSurveySelectUsers
 from .models import Feedback
 from .models import Challenge, Participant, CustomNotification, ParticipantFreeText, ParticipantPicture
 from .models import FreeTextQuestion, PictureQuestion, QuizQuestion
@@ -276,3 +277,26 @@ class FeedbackAdmin(ModelAdmin):
     ordering = ('date_created',)
 
 modeladmin_register(FeedbackAdmin)
+
+
+###########
+# Surveys #
+###########
+
+class EndlineUserAdmin(ModelAdmin):
+    model = EndlineSurveySelectUsers
+    index_view_extra_js = ['js/js.cookie.js', 'js/endline_survey.js']
+    list_display = ('user', 'mark_receive_survey', 'survey_completed',)
+    search_fields = ('user',)
+    list_filter = ('receive_survey', 'survey_completed')
+    menu_label = _('Endline Survey')
+    ordering = ('user',)
+
+
+class SurveyAdmin(ModelAdminGroup):
+    menu_icon = 'success'
+    menu_label = _('Survey Admin')
+    items = (EndlineUserAdmin,)
+    menu_order = 206
+
+modeladmin_register(SurveyAdmin)

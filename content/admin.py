@@ -4,6 +4,7 @@ from django.utils.translation import ugettext_lazy as _
 from django import forms
 import wagtail.contrib.modeladmin.options as wagadmin
 
+from users.models import EndlineSurveySelectUsers
 from .models import Challenge, FreeTextQuestion, Participant, PictureQuestion, QuestionOption, QuizQuestion
 from .models import Goal, GoalTransaction
 from .models import Tip, TipFavourite
@@ -131,6 +132,25 @@ class TipAdmin(wagadmin.ModelAdmin):
     menu_order = 200
     list_display = ('title', 'live', 'owner', 'first_published_at')
     list_filter = ('title', 'live', 'owner', 'first_published_at')
+
+
+def make_receive_survey(modeladmin, request, queryset):
+    queryset.update(receive_survey=True)
+make_receive_survey.short_description = "Mark the user's as eligible for the survey"
+
+
+def make_not_receive_survey(modeladmin, request, queryset):
+    queryset.update(receive_survey=False)
+make_not_receive_survey.short_description = "Mark the user's as not eligible for the survey"
+
+
+@admin.register(EndlineSurveySelectUsers)
+class EndlineSurveyAdmin(admin.ModelAdmin):
+    model = EndlineSurveySelectUsers
+    menu_order = 210
+    list_display = ('user', 'receive_survey', 'survey_completed',)
+    list_editable = ('receive_survey',)
+    actions = [make_receive_survey, make_not_receive_survey]
 
 
 @admin.register(TipFavourite)
