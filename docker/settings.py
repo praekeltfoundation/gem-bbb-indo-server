@@ -55,7 +55,7 @@ LOGGING = {
             'level': 'DEBUG',
         },
         'sentry': {
-            'level': 'DEBUG', # To capture more than ERROR, change to WARNING, INFO, etc.
+            'level': 'INFO', # To capture more than ERROR, change to WARNING, INFO, etc.
             'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
             #'tags': {'custom-tag': 'gem-sentry-tag'},
         },
@@ -63,7 +63,7 @@ LOGGING = {
     'loggers': {
         'dooit': {
             'handlers': ['sentry'],
-            'level': 'DEBUG',
+            'level': 'INFO',
             'propagate': True,
         },
         'django.db.backends': {
