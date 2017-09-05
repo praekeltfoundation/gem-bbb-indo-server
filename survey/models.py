@@ -17,8 +17,6 @@ from modelcluster.fields import ParentalKey
 from wagtailsurveys.models import AbstractSurvey, AbstractFormField, AbstractFormSubmission
 from unidecode import unidecode
 
-from users.models import Profile
-
 
 class CoachSurveyIndex(Page):
     subpage_types = ['CoachSurvey']
