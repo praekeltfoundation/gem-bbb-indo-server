@@ -48,6 +48,8 @@ class CoachSurveySerializer(serializers.ModelSerializer):
             return 'SURVEY_BASELINE'
         elif obj.bot_conversation == CoachSurvey.EATOOL:
             return 'SURVEY_EATOOL'
+        elif obj.bot_conversation == CoachSurvey.ENDLINE:
+            return 'SURVEY_ENDLINE'
         else:
             return None
 
