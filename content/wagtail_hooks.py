@@ -286,9 +286,9 @@ modeladmin_register(FeedbackAdmin)
 class EndlineUserAdmin(ModelAdmin):
     model = EndlineSurveySelectUsers
     index_view_extra_js = ['js/js.cookie.js', 'js/endline_survey.js']
-    list_display = ('user', 'mark_receive_survey', 'survey_completed',)
+    list_display = ('user', 'is_baseline_completed', 'is_endline_completed', 'receive_endline_survey',)
     search_fields = ('user',)
-    list_filter = ('receive_survey', 'survey_completed')
+    list_filter = ('receive_survey', 'survey_completed',)
     menu_label = _('Endline Survey')
     ordering = ('user',)
 

@@ -13,6 +13,7 @@ from django.dispatch import receiver
 from django.utils.encoding import python_2_unicode_compatible
 from rest_framework.authtoken.models import Token
 
+from survey.models import CoachSurveySubmission, CoachSurvey
 from .storage import ProfileImgStorage
 from content.models import Entry, Participant
 
@@ -200,7 +201,7 @@ class EndlineSurveySelectUsers(models.Model):
     receive_survey = models.BooleanField(default=False, help_text=_('Should the user receive the Endline Survey'))
     survey_completed = models.BooleanField(default=False, help_text=_('Has the user already completed the survey'))
 
-    def mark_receive_survey(self):
+    def receive_endline_survey(self):
         if self.receive_survey:
             return format_html(
                 "<input type='checkbox' id='{}' class='mark-receive-survey' value='{}' checked='checked' />",
@@ -209,11 +210,30 @@ class EndlineSurveySelectUsers(models.Model):
             return format_html("<input type='checkbox' id='{}' class='mark-receive-survey' value='{}' />",
                                'participant-is-shortlisted-%d' % self.id, self.id)
 
+    @property
+    def is_baseline_completed(self):
+        baseline_surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.EATOOL).first()
+        completed = CoachSurveySubmission.objects.filter(survey=baseline_surveys, user=self.user).first()
+
+        if not completed:
+            return False
+        return True
+
+    @property
+    def is_endline_completed(self):
+        endline_surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.ENDLINE).first()
+        completed = CoachSurveySubmission.objects.filter(survey=endline_surveys, user=self.user).first()
+
+        if not completed:
+            return False
+        return True
+
 EndlineSurveySelectUsers.panels = [
     wagtail_edit_handlers.MultiFieldPanel([
         wagtail_edit_handlers.FieldPanel('user'),
         wagtail_edit_handlers.FieldPanel('receive_survey'),
-        ReadOnlyPanel('survey_completed',)
+        ReadOnlyPanel('is_baseline_completed'),
+        ReadOnlyPanel('is_endline_completed',)
     ])
 ]
 
