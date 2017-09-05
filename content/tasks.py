@@ -63,7 +63,7 @@ STORAGE_DIRECTORY = settings.SENDFILE_ROOT + '\\'
 
 @task(name="export_goal_summary")
 def export_goal_summary(email, export_name, unique_time):
-    goals = Goal.objects.filter(user__is_staff=False)
+    goals = Goal.objects.filter(user__is_staff=False, user__is_active=True)
 
     filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
 
@@ -232,7 +232,7 @@ def date_achieved(goal):
 
 @task(name="export_user_summary")
 def export_user_summary(email, export_name, unique_time):
-    profiles = Profile.objects.filter(user__is_staff=False)
+    profiles = Profile.objects.filter(user__is_staff=False, user__is_active=True)
     filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
     create_csv(filename)
 
@@ -471,7 +471,7 @@ def endline_survey_completed(profile):
 
 @task(name="export_savings_summary")
 def export_savings_summary(email, export_name, unique_time):
-    goals = Goal.objects.filter(user__is_staff=False)
+    goals = Goal.objects.filter(user__is_staff=False, user__is_active=True)
 
     filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
     create_csv(filename)
@@ -548,19 +548,23 @@ def export_challenge_summary(email, export_name, unique_time, date_from, date_to
 
 def total_challenge_completions(challenge):
     """Returns the number of participants who have completed a challenge"""
-    return Participant.objects.filter(user__is_staff=False, challenge=challenge, date_completed__isnull=False).count()
+
+    return Participant.objects.filter(user__is_staff=False, user__is_active=True,
+                                      challenge=challenge, date_completed__isnull=False).count()
 
 
 def total_users_in_progress(challenge):
     """Returns the total number of participants who have started the challenge but not completed it"""
-    return Participant.objects.filter(user__is_staff=False, challenge=challenge, date_completed__isnull=True).count()
+    return Participant.objects.filter(user__is_staff=False, user__is_active=True,
+                                      challenge=challenge, date_completed__isnull=True).count()
 
 
 def total_no_response(challenge):
     """Checks to see which users don't have a participant for the given challenge"""
-
-    total_amount_of_users = User.objects.filter(is_staff=False).count()
-    total_amount_of_participants = Participant.objects.filter(user__is_staff=False, challenge=challenge).count()
+    total_amount_of_users = User.objects.filter(is_staff=False, user__is_active=True).count()
+    total_amount_of_participants = Participant.objects.filter(user__is_staff=False,
+                                                              user__is_active=True,
+                                                              challenge=challenge).count()
 
     num_no_responses = total_amount_of_users - total_amount_of_participants
 
@@ -620,7 +624,7 @@ def export_challenge_picture(email, export_name, unique_time, challenge_name):
                       csvfile)
 
         for challenge in challenges:
-            participants = Participant.objects.filter(user__is_staff=False, challenge=challenge)
+            participants = Participant.objects.filter(user__is_staff=False, user__is_active=True, challenge=challenge)
 
             for participant in participants:
                 profile = Profile.objects.get(user=participant.user)
@@ -669,7 +673,10 @@ def export_challenge_quiz(email, export_name, unique_time, challenge_name):
                       csvfile)
 
         for challenge in challenges:
-            participants = Participant.objects.filter(user__is_staff=False, challenge=challenge)
+            participants = Participant.objects.filter(user__is_staff=False,
+                                                      user__is_active=True,
+                                                      challenge=challenge)
+
             quiz_questions = QuizQuestion.objects.filter(challenge=challenge)
 
             for participant in participants:
@@ -725,7 +732,7 @@ def export_challenge_freetext(email, export_name, unique_time, challenge_name):
                       csvfile)
 
         for challenge in challenges:
-            participants = Participant.objects.filter(user__is_staff=False, challenge=challenge)
+            participants = Participant.objects.filter(user__is_staff=False, user__is_active=True, challenge=challenge)
 
             for participant in participants:
                 try:
@@ -794,16 +801,16 @@ def export_aggregate_summary(email, export_name, unique_time):
 
 def num_users_set_at_least_one_goal():
     """Number of users with at least one goal set"""
-    return Goal.objects.filter(user__is_staff=False).values('user_id').distinct().count()
+    return Goal.objects.filter(user__is_staff=False, user__is_active=True).values('user_id').distinct().count()
 
 
 def num_users_achieved_one_goal():
     """Total amount of users who have achieved at least one goal"""
     num_users_achieved_one_goal = 0
-    array_of_users = Goal.objects.filter(user__is_staff=False).values('user_id').distinct()
+    array_of_users = Goal.objects.filter(user__is_staff=False, user__is_active=True).values('user_id').distinct()
 
     for user in array_of_users:
-        goals = Goal.objects.filter(user_id=user['user_id'], user__is_staff=False)
+        goals = Goal.objects.filter(user_id=user['user_id'], user__is_staff=False, user__is_active=True)
         for goal in goals:
             if goal.progress >= 100:
                 num_users_achieved_one_goal += 1
@@ -814,7 +821,7 @@ def num_users_achieved_one_goal():
 
 def num_achieved_goals():
     """Number of achieved goals"""
-    goals = Goal.objects.filter(user__is_staff=False)
+    goals = Goal.objects.filter(user__is_staff=False, user__is_active=True)
     num_achieved_goals = 0
     for goal in goals:
         if goal.progress >= 100:
@@ -826,7 +833,7 @@ def num_achieved_goals():
 def percentage_weeks_saved():
     """Percentage weeks saved out of total weeks"""
     percentage_weeks_saved = 0
-    goals = Goal.objects.filter(user__is_staff=False)
+    goals = Goal.objects.filter(user__is_staff=False, user__is_active=True)
     total_weeks = 0
     total_weeks_saved = 0
 
@@ -883,11 +890,13 @@ def total_users_achieved_at_least_one_goal(goal_prototype):
     Returns the number of users that have achieved the goal prototype
     unique users
     """
-    users_with_goals = Goal.objects.filter(user__is_staff=False, prototype=goal_prototype).values('user_id').distinct()
+    users_with_goals = Goal.objects.filter(user__is_staff=False, user__is_active=True,
+                                           prototype=goal_prototype).values('user_id').distinct()
 
     num_achieved_one_goal = 0
     for user in users_with_goals:
-        users_goals = Goal.objects.filter(user__is_staff=False, prototype=goal_prototype, user_id=user['user_id'])
+        users_goals = Goal.objects.filter(user__is_staff=False, user__is_active=True,
+                                          prototype=goal_prototype, user_id=user['user_id'])
 
         for goal in users_goals:
             if goal.progress >= 100:
@@ -899,7 +908,7 @@ def total_users_achieved_at_least_one_goal(goal_prototype):
 
 def average_total_goal_amount(goal_prototype):
     """Returns the average goal amount for the given goal prototype"""
-    goals = Goal.objects.filter(user__is_staff=False, prototype=goal_prototype)
+    goals = Goal.objects.filter(user__is_staff=False, user__is_active=True, prototype=goal_prototype)
 
     total_amount_of_goals_count = goals.count()
 
@@ -915,8 +924,7 @@ def average_total_goal_amount(goal_prototype):
 
 def average_percentage_of_goal_reached(goal_prototype):
     """Returns the average percentage of completions for the given goal prototype"""
-
-    goals = Goal.objects.filter(user__is_staff=False, prototype=goal_prototype)
+    goals = Goal.objects.filter(user__is_staff=False, user__is_active=True, prototype=goal_prototype)
 
     total_amount_of_goals = goals.count()
 
@@ -933,11 +941,13 @@ def average_percentage_of_goal_reached(goal_prototype):
 
 def total_users_50_percent_achieved(goal_prototype):
     """Returns the total amount of users who have achieved 50% of the given goal prototype"""
-    users_with_goals = Goal.objects.filter(user__is_staff=False, prototype=goal_prototype).values('user_id').distinct()
+    users_with_goals = Goal.objects.filter(user__is_staff=False, user__is_active=True,
+                                           prototype=goal_prototype).values('user_id').distinct()
 
     num_50_percent_achieved = 0
     for user in users_with_goals:
-        users_goals = Goal.objects.filter(user__is_staff=False, prototype=goal_prototype, user_id=user['user_id'])
+        users_goals = Goal.objects.filter(user__is_staff=False, user__is_active=True,
+                                          prototype=goal_prototype, user_id=user['user_id'])
 
         for goal in users_goals:
             if goal.progress >= 50:
@@ -952,11 +962,12 @@ def total_users_100_percent_achieved(goal_prototype):
     Returns the total amount of users who have achieved 100% of the given goal prototype
     not unique users
     """
-    goals = Goal.objects.filter(user__is_staff=False, prototype=goal_prototype)
+    goals = Goal.objects.filter(user__is_staff=False, user__is_active=True, prototype=goal_prototype)
 
     num_100_percent_achieved = 0
     for goal in goals:
-        users_goals = Goal.objects.filter(user__is_staff=False, prototype=goal_prototype, user_id=goal.user_id)
+        users_goals = Goal.objects.filter(user__is_staff=False, user__is_active=True,
+                                          prototype=goal_prototype, user_id=goal.user_id)
 
         for user_goal in users_goals:
             if user_goal.progress >= 100:
@@ -968,7 +979,7 @@ def total_users_100_percent_achieved(goal_prototype):
 
 def percentage_of_weeks_saved_out_of_total_weeks(goal_prototype):
     """Percentage of weeks saved for given goal prototype"""
-    goals = Goal.objects.filter(user__is_staff=False, prototype=goal_prototype)
+    goals = Goal.objects.filter(user__is_staff=False, user__is_active=True, prototype=goal_prototype)
     total_weeks = 0
     total_weeks_saved = 0
 
@@ -997,7 +1008,7 @@ def export_aggregate_rewards_data(email, export_name, unique_time):
                       csvfile)
 
         data = [
-            UserBadge.objects.filter(user__is_staff=False).count(),
+            UserBadge.objects.filter(user__is_staff=False, user__is_active=True).count(),
             total_users_at_least_one_streak(),
             average_percentage_weeks_saved_weekly_target_met(),
             average_percentage_weeks_saved()
@@ -1013,10 +1024,10 @@ def export_aggregate_rewards_data(email, export_name, unique_time):
 def total_users_at_least_one_streak():
     """Returns the total number of users that have at least one streak"""
     users_with_streaks = 0
-    users = User.objects.filter(is_staff=False)
+    users = User.objects.filter(is_staff=False, user__is_active=True)
 
     for user in users:
-        goals = Goal.objects.filter(user__is_staff=False, user=user)
+        goals = Goal.objects.filter(user=user, user__is_staff=False, user__is_active=True)
         current_count = 0
 
         user_has_streak = False
@@ -1045,10 +1056,10 @@ def average_percentage_weeks_saved_weekly_target_met():
     total_weeks_saved = 0
     total_weeks = 0
 
-    users = User.objects.filter(is_staff=False)
+    users = User.objects.filter(is_staff=False, user__is_active=True)
 
     for user in users:
-        goals = Goal.objects.filter(user__is_staff=False, user=user)
+        goals = Goal.objects.filter(user__is_staff=False, user__is_active=True, user=user)
 
         for goal in goals:
             weekly_aggregates = goal.get_weekly_aggregates_to_date()
@@ -1070,10 +1081,10 @@ def average_percentage_weeks_saved():
     total_weeks_saved = 0
     total_weeks = 0
 
-    users = User.objects.filter(is_staff=False)
+    users = User.objects.filter(is_staff=False, user__is_active=True)
 
     for user in users:
-        goals = Goal.objects.filter(user__is_staff=False, user=user)
+        goals = Goal.objects.filter(user=user, user__is_staff=False, user__is_active=True)
 
         for goal in goals:
             weekly_aggregates = goal.get_weekly_aggregates_to_date()
@@ -1118,12 +1129,14 @@ def export_aggregate_data_per_badge(email, export_name, unique_time):
 
 def total_earned_by_all_users(badge):
     """Returns the total number of badges won for the given badge for all users"""
-    return Badge.objects.filter(user__is_staff=False, badge_type=badge.badge_type).values('user').count()
+    return Badge.objects.filter(user__is_staff=False, user__is_active=True,
+                                badge_type=badge.badge_type).values('user').count()
 
 
 def total_earned_at_least_once(badge):
     """Return the total number of users that have earned the given badge at least once"""
-    return Badge.objects.filter(user__is_staff=False, badge_type=badge.badge_type).values('user').distinct().count()
+    return Badge.objects.filter(user__is_staff=False, user__is_active=True,
+                                badge_type=badge.badge_type).values('user').distinct().count()
 
 
 @task(name="export_aggregate_data_per_streak")
@@ -1347,7 +1360,7 @@ def export_aggregate_user_type(email, export_name, unique_time):
                        'campaign', 'source', 'medium'),
                       csvfile)
 
-        users = User.objects.filter(is_staff=False)
+        users = User.objects.filter(is_staff=False, user__is_active=True)
 
         for user in users:
             campaign_info = CampaignInformation.objects.filter(user=user).first()
@@ -1398,10 +1411,12 @@ def export_survey_summary(email, export_name, unique_time):
 
         num_completed_users = CoachSurveySubmission.objects.filter(
             user__is_staff=False,
+            user__is_active=True,
             survey__bot_conversation=CoachSurvey.BASELINE).count()
 
         num_in_progress_users = CoachSurveySubmissionDraft.objects.filter(
             user__is_staff=False,
+            user__is_active=True,
             survey__bot_conversation=CoachSurvey.BASELINE,
             complete=False).count()
 
@@ -1411,6 +1426,7 @@ def export_survey_summary(email, export_name, unique_time):
 
         submitted_survey_drafts = CoachSurveySubmissionDraft.objects.filter(
             user__is_staff=False,
+            user__is_active=True,
             survey__bot_conversation=CoachSurvey.BASELINE,
             consent=False)
 
@@ -1428,6 +1444,7 @@ def export_survey_summary(email, export_name, unique_time):
 
         submitted_surveys = CoachSurveySubmission.objects.filter(
             user__is_staff=False,
+            user__is_active=True,
             survey__bot_conversation=CoachSurvey.BASELINE)
 
         for survey in submitted_surveys:
@@ -1440,7 +1457,7 @@ def export_survey_summary(email, export_name, unique_time):
 
         num_total_users = User.objects.filter(is_staff=False).count()
         num_participated_survey = CoachSurveySubmission.objects\
-            .filter(user__is_staff=False, survey__bot_conversation=CoachSurvey.BASELINE)\
+            .filter(user__is_staff=False, user__is_active=True, survey__bot_conversation=CoachSurvey.BASELINE)\
             .values('user')\
             .distinct()\
             .count()
@@ -1462,10 +1479,12 @@ def export_survey_summary(email, export_name, unique_time):
 
         num_completed_users = CoachSurveySubmission.objects.filter(
             user__is_staff=False,
+            user__is_active=True,
             survey__bot_conversation=CoachSurvey.EATOOL).count()
 
         num_in_progress_users = CoachSurveySubmissionDraft.objects.filter(
             user__is_staff=False,
+            user__is_active=True,
             survey__bot_conversation=CoachSurvey.EATOOL,
             complete=False).count()
 
@@ -1475,6 +1494,7 @@ def export_survey_summary(email, export_name, unique_time):
 
         submitted_survey_drafts = CoachSurveySubmissionDraft.objects.filter(
             user__is_staff=False,
+            user__is_active=True,
             survey__bot_conversation=CoachSurvey.EATOOL,
             consent=False)
 
@@ -1492,6 +1512,7 @@ def export_survey_summary(email, export_name, unique_time):
 
         submitted_surveys = CoachSurveySubmission.objects.filter(
             user__is_staff=False,
+            user__is_active=True,
             survey__bot_conversation=CoachSurvey.EATOOL)
 
         for survey in submitted_surveys:
@@ -1504,7 +1525,7 @@ def export_survey_summary(email, export_name, unique_time):
 
         num_total_users = User.objects.filter(is_staff=False).count()
         num_participated_survey = CoachSurveySubmissionDraft.objects \
-            .filter(user__is_staff=False, survey__bot_conversation=CoachSurvey.EATOOL) \
+            .filter(user__is_staff=False, user__is_active=True, survey__bot_conversation=CoachSurvey.EATOOL) \
             .values('user') \
             .distinct() \
             .count()
@@ -1550,20 +1571,369 @@ def export_baseline_survey(email, export_name, unique_time):
     filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
     create_csv(filename)
 
+    # 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 999
+    q01_answers = {
+        1: '"Student in elementary school (SD)"',
+        2: '"Student in middle school (SMP)"',
+        3: '"Student in academic high school (SMA)"',
+        4: '"Student in vocational high school (SMK)"',
+        5: '"Student in college or above"',
+        6: '"Employee working in a job"',
+        7: '"Business owner or co-owner"',
+        8: '"Volunteer in church or community"',
+        9: '"Care giver of family members or children"',
+        10: '"Not working, studying, or volunteering"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 999
+    q02_answers = {
+        1: '"1st Year"',
+        2: '"2nd Year"',
+        3: '"3rd Year"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q05_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 999
+    q06_answers = {
+        1: '"Less than 250 thousand"',
+        2: '"Between 250 thousand and 500 thousand"',
+        3: '"Between 500 thousand and 750 thousand"',
+        4: '"Between 750 thousand and 1 million"',
+        5: '"Between 1 million and 1,5 million"',
+        6: '"More than 1,5 million"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 888, 999
+    q07_answers = {
+        1: '"Permanent staff (signed contract with specific salary and benefits)"',
+        2: '"Indefinite term employment (probation, pathway to permanent staff)"',
+        3: '"Temporary/casual (working on short assignments or task, no contract)"',
+        4: '"Apprenticeship (learning new skill and receiving small monetary support to cover transport cost)"',
+        5: '"Daily worker (working on a day to day basis)"',
+        6: '"Helping family business with pay"',
+        7: '"Does not know"',
+        888: '888',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q08_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 999
+    q09_answers = {
+        1: '"Less than 250 thousand"',
+        2: '"Between 250 thousand and 500 thousand"',
+        3: '"Between 500 thousand and 750 thousand"',
+        4: '"Between 750 thousand and 1 million"',
+        5: '"Between 1 million and 1,5 million"',
+        6: '"More than 1,5 million"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q10_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 7, 8, 999
+    q11_answers = {
+        1: '"Daily"',
+        2: '"Weekly"',
+        3: '"Monthly"',
+        4: '"Every 2 months"',
+        5: '"Every 3 or 4 months"',
+        6: '"Once or twice a year"',
+        7: '"Do not remember"',
+        8: '"Varies (different times, not a set frequency)"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 999
+    q12_answers = {
+        1: '"Bank"',
+        2: '"Community savings group"',
+        3: '"At home (chicken bank)"',
+        4: '"Send to family for safekeeping"',
+        5: '"Buy gold or other valuables"',
+        6: '"Other"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 7, 8, 999
+    q13_answers = {
+        1: '"Less than 100 thousand"',
+        2: '"Between 100 thousand and 150 thousand"',
+        3: '"Between 150 thousand and 200 thousand"',
+        4: '"Between 200 thousand and 250 thousand"',
+        5: '"Between 250 thousand and 300 thousand"',
+        6: '"Between 300 thousand and 350 thousand"',
+        7: '"Between 350 thousand and 400 thousand"',
+        8: '"More than 400 thousand"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q14_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q15_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q16_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q17_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q18_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q19_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q20_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q21_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q22_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 999
+    q23_answers = {
+        1: '"Never"',
+        2: '"Once a month"',
+        3: '"Once a week"',
+        4: '"Once a day"',
+        5: '"Multiple times per day"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 999
+    q24_answers = {
+        1: '"Calling or texting friends"',
+        2: '"Calling or texting family"',
+        3: '"Accessing social media"',
+        4: '"Accessing information on the internet"',
+        5: '"Using apps or tools to help me manage my life, like trackers or calendars."',
+        6: '"Other"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 999
+    q25_answers = {
+        1: '"Calling or texting friends"',
+        2: '"Calling or texting family"',
+        3: '"Accessing social media"',
+        4: '"Accessing information on the internet"',
+        5: '"Using apps or tools to help me manage my life, like trackers or calendars."',
+        6: '"Other"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 999
+    q26_answers = {
+        1: '"You"',
+        2: '"Mother"',
+        3: '"Father"',
+        4: '"Sibling"',
+        5: '"Another relative"',
+        6: '"Someone else"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 999
+    q27_1_answers = {
+        1: '"Approve"',
+        2: '"Neutral"',
+        3: '"Disapprove"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 999
+    q27_2_answers = {
+        1: '"Approve"',
+        2: '"Neutral"',
+        3: '"Disapprove"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 999
+    q27_3_answers = {
+        1: '"Approve"',
+        2: '"Neutral"',
+        3: '"Disapprove"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 999
+    q28_answers = {
+        1: '"Less than 5 thousand rupiah"',
+        2: '"Between 5 thousand and 15 thousand rupiah"',
+        3: '"Between 15 thousand and 25 thousand rupiah"',
+        4: '"Between 25 thousand and 35 thousand rupiah"',
+        5: '"Between 35 thousand and 45 thousand rupiah"',
+        6: '"More than 45 thousand rupiah"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q29_1_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q29_2_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q29_3_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q29_4_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
     with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
         append_to_csv(('uuid', 'username', 'name', 'mobile', 'email', 'gender', 'age',
                        'user_type_source_medium', 'date_joined', 'city', 'younger_than_17', 'consent_given',
                        'submission_date',
 
                        # Survey questions
-                       'q1', 'q2', 'q3', 'q4', 'q5', 'q6', 'q7', 'q8', 'q9', 'q10', 'q11',
-                       'q12', 'q13', 'q14', 'q15', 'q16', 'q17', 'q18', 'q19', 'q20', 'q21', 'q22', 'q23',
-                       'q24', 'q25', 'q26', 'q27_1', 'q27_2', '27_3', 'q28', 'q29_1', 'q29_2', 'q29_3', 'q29_4'),
+                       'q1_WhatIsYourOccupation',
+                       'q2_WhatGradeAreYouIn',
+                       'q3_WhatIsTheNameOfYourSMK',
+                       'q4_WhatCityDoYouLiveIn',
+                       'q5_HaveYouEverHadAPaidJobForLongerThanOneMonthIncludeWorkingInFamilyBusinessAndOrApprenticeshipsIfPaid',
+                       'q6_WithinWhatRangeDIdYourMonthlyEarningFallForYourLastJob',
+                       'q7_WhatWasYourEmploymentStatusInYourLastJob',
+                       'q8_HaveYouEverOwnedOrSharedOwnershipOfABusiness',
+                       'q9_WithinWhatRangeDidYourMonthlyBusinessEarningsFall',
+                       'q10_DoYouEverSaveSomeOfYourMoney',
+                       'q11_HowFrequentlyDoYouSaveMoney',
+                       'q12_WhereDoYouKeepMostOfYourSavings',
+                       'q13_InTheLast3MonthsApproximatelyHowMuchMoneyDidYouSaveInTotal',
+                       'q14_HaveYouEverSavedMoneyToPayForEducationCostsLikeFeesForATrainingCourse',
+                       'q15_HaveYouEverSavedMOneyToPayForTheCostOfLookingForAJobOrAttendingJobInterviews',
+                       'q16_HaveYouEverSavedMoneyToHaveSomeExtraInCaseOfEmergencies',
+                       'q17_HaveYouEverSavedMoneyToInvestInBusinessOpportunities',
+                       'q18_HaveYouEverSavedMoneyToSupportFamilyNeeds',
+                       'q19_HaveYouEverSavedMoneyToBuyPersonalItemsForEverydayUseLikeClothesOrFood',
+                       'q20_HaveYouEverSavedMoneyToBuyPersonalItemsForEverydayUseLikeClothesOrFood',
+                       'q21_HaveYouEverSavedMoneyToBuyItemsThatLastLongerLikeAPhoneComputerOrMotorbike',
+                       'q22_HaveYouEverSavedMoneyToGoOutWithFriendsForFun', 'q23_HowOftenDoYouUseAMobilePhone',
+                       'q24_WhatIsYourMobilePhoneMostUsefulFor',
+                       'q25_WhatIsYourMobilePhoneLeastUsefulFor',
+                       'q26_WhoOwnsTheMobilePhoneThatYouUse',
+                       'q27_1_HereAreSOmePeopleYouMightInteractWithPleaseTellMeIfYouThinkTheyApproveDisapproveOrAreNeutralTowardYouOrYourFriendsUsingMobilePhones',
+                       'q27_2',
+                       'q27_3',
+                       'q28_HowMuchCreditDoYouOrYourFamilyPutIntoYourMobilePhoneOnATypicalWeek',
+                       'q29_1_DoYouHaveTheFollowingAssetsInYourHome',
+                       'q29_2',
+                       'q29_3',
+                       'q29_4'),
                       csvfile)
 
         for survey in surveys:
             # All baseline survey submissions that are complete
-            submissions = CoachSurveySubmission.objects.filter(user__is_staff=False, survey=survey)
+            submissions = CoachSurveySubmission.objects.filter(user__is_staff=False,
+                                                               user__is_active=True,
+                                                               survey=survey)
 
             for submission in submissions:
                 try:
@@ -1589,40 +1959,478 @@ def export_baseline_survey(email, export_name, unique_time):
                     submission.created_at,
 
                     # survey questions
-                    survey_data['survey_baseline_q01_occupation'],
-                    survey_data['survey_baseline_q02_grade'],
+                    q01_answers[int(survey_data['survey_baseline_q01_occupation'])],
+                    q02_answers[int(survey_data['survey_baseline_q02_grade'])],
                     survey_data['survey_baseline_q03_school_name'],
                     survey_data['survey_baseline_q04_city'],
-                    survey_data['survey_baseline_q05_job_month'],
-                    survey_data['survey_baseline_q06_job_earning_range'],
-                    survey_data['survey_baseline_q07_job_status'],
-                    survey_data['survey_baseline_q08_shared_ownership'],
-                    survey_data['survey_baseline_q09_business_earning_range'],
-                    survey_data['survey_baseline_q10_save'],
-                    survey_data['survey_baseline_q11_savings_frequency'],
-                    survey_data['survey_baseline_q12_savings_where'],
-                    survey_data['survey_baseline_q13_savings_3_months'],
-                    survey_data['survey_baseline_q14_saving_education'],
-                    survey_data['survey_baseline_q15_job_hunt'],
-                    survey_data['survey_baseline_q16_emergencies'],
-                    survey_data['survey_baseline_q17_invest'],
-                    survey_data['survey_baseline_q18_family'],
-                    survey_data['survey_baseline_q19_clothes_food'],
+                    q05_answers[int(survey_data['survey_baseline_q05_job_month'])],
+                    q06_answers[int(survey_data['survey_baseline_q06_job_earning_range'])],
+                    q07_answers[int(survey_data['survey_baseline_q07_job_status'])],
+                    q08_answers[int(survey_data['survey_baseline_q08_shared_ownership'])],
+                    q09_answers[int(survey_data['survey_baseline_q09_business_earning_range'])],
+                    q10_answers[int(survey_data['survey_baseline_q10_save'])],
+                    q11_answers[int(survey_data['survey_baseline_q11_savings_frequency'])],
+                    q12_answers[int(survey_data['survey_baseline_q12_savings_where'])],
+                    q13_answers[int(survey_data['survey_baseline_q13_savings_3_months'])],
+                    q14_answers[int(survey_data['survey_baseline_q14_saving_education'])],
+                    q15_answers[int(survey_data['survey_baseline_q15_job_hunt'])],
+                    q16_answers[int(survey_data['survey_baseline_q16_emergencies'])],
+                    q17_answers[int(survey_data['survey_baseline_q17_invest'])],
+                    q18_answers[int(survey_data['survey_baseline_q18_family'])],
+                    q19_answers[int(survey_data['survey_baseline_q19_clothes_food'])],
                     '',  # Missing q20
-                    survey_data['survey_baseline_q21_gadgets'],
-                    survey_data['survey_baseline_q22_friends'],
-                    survey_data['survey_baseline_q23_mobile_frequency'],
-                    survey_data['survey_baseline_q24_mobile_most_use'],
-                    survey_data['survey_baseline_q25_mobile_least_use'],
-                    survey_data['survey_baseline_q26_mobile_own'],
-                    survey_data['survey_baseline_q27_1_friends'],
-                    survey_data['survey_baseline_q27_2_family'],
-                    survey_data['survey_baseline_q27_3_community'],
-                    survey_data['survey_baseline_q28_mobile_credit'],
-                    survey_data['survey_baseline_q29_1_desktop'],
-                    survey_data['survey_baseline_q29_2_laptop'],
-                    survey_data['survey_baseline_q29_3_mobile_no_data'],
-                    survey_data['survey_baseline_q29_4_mobile_data']
+                    q21_answers[int(survey_data['survey_baseline_q21_gadgets'])],
+                    q22_answers[int(survey_data['survey_baseline_q22_friends'])],
+                    q23_answers[int(survey_data['survey_baseline_q23_mobile_frequency'])],
+                    q24_answers[int(survey_data['survey_baseline_q24_mobile_most_use'])],
+                    q25_answers[int(survey_data['survey_baseline_q25_mobile_least_use'])],
+                    q26_answers[int(survey_data['survey_baseline_q26_mobile_own'])],
+                    q27_1_answers[int(survey_data['survey_baseline_q27_1_friends'])],
+                    q27_2_answers[int(survey_data['survey_baseline_q27_2_family'])],
+                    q27_3_answers[int(survey_data['survey_baseline_q27_3_community'])],
+                    q28_answers[int(survey_data['survey_baseline_q28_mobile_credit'])],
+                    q29_1_answers[int(survey_data['survey_baseline_q29_1_desktop'])],
+                    q29_2_answers[int(survey_data['survey_baseline_q29_2_laptop'])],
+                    q29_3_answers[int(survey_data['survey_baseline_q29_3_mobile_no_data'])],
+                    q29_4_answers[int(survey_data['survey_baseline_q29_4_mobile_data'])]
+                ]
+
+                append_to_csv(data, csvfile)
+
+    pass_zip_encrypt_email(email, export_name, unique_time)
+
+    return True, SUCCESS_MESSAGE_EMAIL_SENT
+
+
+@task(name="export_endline_survey")
+def export_endline_survey(email, export_name, unique_time):
+    surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.ENDLINE)
+
+    filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
+    create_csv(filename)
+
+    # 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 999
+    q01_answers = {
+        1: '"Student in elementary school (SD)"',
+        2: '"Student in middle school (SMP)"',
+        3: '"Student in academic high school (SMA)"',
+        4: '"Student in vocational high school (SMK)"',
+        5: '"Student in college or above"',
+        6: '"Employee working in a job"',
+        7: '"Business owner or co-owner"',
+        8: '"Volunteer in church or community"',
+        9: '"Care giver of family members or children"',
+        10: '"Not working, studying, or volunteering"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 999
+    q02_answers = {
+        1: '"1st Year"',
+        2: '"2nd Year"',
+        3: '"3rd Year"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q05_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 999
+    q06_answers = {
+        1: '"Less than 250 thousand"',
+        2: '"Between 250 thousand and 500 thousand"',
+        3: '"Between 500 thousand and 750 thousand"',
+        4: '"Between 750 thousand and 1 million"',
+        5: '"Between 1 million and 1,5 million"',
+        6: '"More than 1,5 million"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 888, 999
+    q07_answers = {
+        1: '"Permanent staff (signed contract with specific salary and benefits)"',
+        2: '"Indefinite term employment (probation, pathway to permanent staff)"',
+        3: '"Temporary/casual (working on short assignments or task, no contract)"',
+        4: '"Apprenticeship (learning new skill and receiving small monetary support to cover transport cost)"',
+        5: '"Daily worker (working on a day to day basis)"',
+        6: '"Helping family business with pay"',
+        7: '"Does not know"',
+        888: '888',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q08_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 999
+    q09_answers = {
+        1: '"Less than 250 thousand"',
+        2: '"Between 250 thousand and 500 thousand"',
+        3: '"Between 500 thousand and 750 thousand"',
+        4: '"Between 750 thousand and 1 million"',
+        5: '"Between 1 million and 1,5 million"',
+        6: '"More than 1,5 million"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q10_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 7, 8, 999
+    q11_answers = {
+        1: '"Daily"',
+        2: '"Weekly"',
+        3: '"Monthly"',
+        4: '"Every 2 months"',
+        5: '"Every 3 or 4 months"',
+        6: '"Once or twice a year"',
+        7: '"Do not remember"',
+        8: '"Varies (different times, not a set frequency)"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 999
+    q12_answers = {
+        1: '"Bank"',
+        2: '"Community savings group"',
+        3: '"At home (chicken bank)"',
+        4: '"Send to family for safekeeping"',
+        5: '"Buy gold or other valuables"',
+        6: '"Other"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 7, 8, 999
+    q13_answers = {
+        1: '"Less than 100 thousand"',
+        2: '"Between 100 thousand and 150 thousand"',
+        3: '"Between 150 thousand and 200 thousand"',
+        4: '"Between 200 thousand and 250 thousand"',
+        5: '"Between 250 thousand and 300 thousand"',
+        6: '"Between 300 thousand and 350 thousand"',
+        7: '"Between 350 thousand and 400 thousand"',
+        8: '"More than 400 thousand"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q14_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q15_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q16_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q17_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q18_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q19_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q20_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q21_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q22_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 999
+    q23_answers = {
+        1: '"Never"',
+        2: '"Once a month"',
+        3: '"Once a week"',
+        4: '"Once a day"',
+        5: '"Multiple times per day"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 999
+    q24_answers = {
+        1: '"Calling or texting friends"',
+        2: '"Calling or texting family"',
+        3: '"Accessing social media"',
+        4: '"Accessing information on the internet"',
+        5: '"Using apps or tools to help me manage my life, like trackers or calendars."',
+        6: '"Other"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 999
+    q25_answers = {
+        1: '"Calling or texting friends"',
+        2: '"Calling or texting family"',
+        3: '"Accessing social media"',
+        4: '"Accessing information on the internet"',
+        5: '"Using apps or tools to help me manage my life, like trackers or calendars."',
+        6: '"Other"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 999
+    q26_answers = {
+        1: '"You"',
+        2: '"Mother"',
+        3: '"Father"',
+        4: '"Sibling"',
+        5: '"Another relative"',
+        6: '"Someone else"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 999
+    q27_1_answers = {
+        1: '"Approve"',
+        2: '"Neutral"',
+        3: '"Disapprove"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 999
+    q27_2_answers = {
+        1: '"Approve"',
+        2: '"Neutral"',
+        3: '"Disapprove"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 999
+    q27_3_answers = {
+        1: '"Approve"',
+        2: '"Neutral"',
+        3: '"Disapprove"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 999
+    q28_answers = {
+        1: '"Less than 5 thousand rupiah"',
+        2: '"Between 5 thousand and 15 thousand rupiah"',
+        3: '"Between 15 thousand and 25 thousand rupiah"',
+        4: '"Between 25 thousand and 35 thousand rupiah"',
+        5: '"Between 35 thousand and 45 thousand rupiah"',
+        6: '"More than 45 thousand rupiah"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q29_1_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q29_2_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q29_3_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q29_4_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
+        append_to_csv(('uuid', 'username', 'name', 'mobile', 'email', 'gender', 'age',
+                       'user_type_source_medium', 'date_joined', 'city', 'younger_than_17', 'consent_given',
+                       'submission_date',
+
+                       # Survey questions
+                       'q1_WhatIsYourOccupation',
+                       'q2_WhatGradeAreYouIn',
+                       'q3_WhatIsTheNameOfYourSMK',
+                       'q4_WhatCityDoYouLiveIn',
+                       'q5_HaveYouEverHadAPaidJobForLongerThanOneMonthIncludeWorkingInFamilyBusinessAndOrApprenticeshipsIfPaid',
+                       'q6_WithinWhatRangeDIdYourMonthlyEarningFallForYourLastJob',
+                       'q7_WhatWasYourEmploymentStatusInYourLastJob',
+                       'q8_HaveYouEverOwnedOrSharedOwnershipOfABusiness',
+                       'q9_WithinWhatRangeDidYourMonthlyBusinessEarningsFall',
+                       'q10_DoYouEverSaveSomeOfYourMoney',
+                       'q11_HowFrequentlyDoYouSaveMoney',
+                       'q12_WhereDoYouKeepMostOfYourSavings',
+                       'q13_InTheLast3MonthsApproximatelyHowMuchMoneyDidYouSaveInTotal',
+                       'q14_HaveYouEverSavedMoneyToPayForEducationCostsLikeFeesForATrainingCourse',
+                       'q15_HaveYouEverSavedMOneyToPayForTheCostOfLookingForAJobOrAttendingJobInterviews',
+                       'q16_HaveYouEverSavedMoneyToHaveSomeExtraInCaseOfEmergencies',
+                       'q17_HaveYouEverSavedMoneyToInvestInBusinessOpportunities',
+                       'q18_HaveYouEverSavedMoneyToSupportFamilyNeeds',
+                       'q19_HaveYouEverSavedMoneyToBuyPersonalItemsForEverydayUseLikeClothesOrFood',
+                       'q20_HaveYouEverSavedMoneyToBuyPersonalItemsForEverydayUseLikeClothesOrFood',
+                       'q21_HaveYouEverSavedMoneyToBuyItemsThatLastLongerLikeAPhoneComputerOrMotorbike',
+                       'q22_HaveYouEverSavedMoneyToGoOutWithFriendsForFun', 'q23_HowOftenDoYouUseAMobilePhone',
+                       'q24_WhatIsYourMobilePhoneMostUsefulFor',
+                       'q25_WhatIsYourMobilePhoneLeastUsefulFor',
+                       'q26_WhoOwnsTheMobilePhoneThatYouUse',
+                       'q27_1_HereAreSOmePeopleYouMightInteractWithPleaseTellMeIfYouThinkTheyApproveDisapproveOrAreNeutralTowardYouOrYourFriendsUsingMobilePhones',
+                       'q27_2',
+                       'q27_3',
+                       'q28_HowMuchCreditDoYouOrYourFamilyPutIntoYourMobilePhoneOnATypicalWeek',
+                       'q29_1_DoYouHaveTheFollowingAssetsInYourHome',
+                       'q29_2',
+                       'q29_3',
+                       'q29_4'),
+                      csvfile)
+
+        for survey in surveys:
+            # All baseline survey submissions that are complete
+            submissions = CoachSurveySubmission.objects.filter(user__is_staff=False,
+                                                               user__is_active=True,
+                                                               survey=survey)
+
+            for submission in submissions:
+                try:
+                    campaign_info = CampaignInformation.objects.get(user=submission.user)
+                    user_type = campaign_info.source + '/' + campaign_info.medium
+                except:
+                    user_type = ''
+                survey_data = submission.get_data()
+
+                data = [
+                    submission.user_unique_id,
+                    submission.username,
+                    submission.name,
+                    submission.mobile,
+                    submission.email,
+                    submission.gender,
+                    submission.age,
+                    user_type,  # user type
+                    submission.user.date_joined,
+                    survey_data['survey_endline_q04_city'],
+                    survey_data['survey_endline_q1_consent'],
+                    submission.consent,  # survey_data['survey_endline_q2_consent']
+                    submission.created_at,
+
+                    # survey questions
+                    q01_answers[int(survey_data['survey_endline_q01_occupation'])],
+                    q02_answers[int(survey_data['survey_endline_q02_grade'])],
+                    survey_data['survey_endline_q03_school_name'],
+                    survey_data['survey_endline_q04_city'],
+                    q05_answers[int(survey_data['survey_endline_q05_job_month'])],
+                    q06_answers[int(survey_data['survey_endline_q06_job_earning_range'])],
+                    q07_answers[int(survey_data['survey_endline_q07_job_status'])],
+                    q08_answers[int(survey_data['survey_endline_q08_shared_ownership'])],
+                    q09_answers[int(survey_data['survey_endline_q09_business_earning_range'])],
+                    q10_answers[int(survey_data['survey_endline_q10_save'])],
+                    q11_answers[int(survey_data['survey_endline_q11_savings_frequency'])],
+                    q12_answers[int(survey_data['survey_endline_q12_savings_where'])],
+                    q13_answers[int(survey_data['survey_endline_q13_savings_3_months'])],
+                    q14_answers[int(survey_data['survey_endline_q14_saving_education'])],
+                    q15_answers[int(survey_data['survey_endline_q15_job_hunt'])],
+                    q16_answers[int(survey_data['survey_endline_q16_emergencies'])],
+                    q17_answers[int(survey_data['survey_endline_q17_invest'])],
+                    q18_answers[int(survey_data['survey_endline_q18_family'])],
+                    q19_answers[int(survey_data['survey_endline_q19_clothes_food'])],
+                    '',  # Missing q20
+                    q21_answers[int(survey_data['survey_endline_q21_gadgets'])],
+                    q22_answers[int(survey_data['survey_endline_q22_friends'])],
+                    q23_answers[int(survey_data['survey_endline_q23_mobile_frequency'])],
+                    q24_answers[int(survey_data['survey_endline_q24_mobile_most_use'])],
+                    q25_answers[int(survey_data['survey_endline_q25_mobile_least_use'])],
+                    q26_answers[int(survey_data['survey_endline_q26_mobile_own'])],
+                    q27_1_answers[int(survey_data['survey_endline_q27_1_friends'])],
+                    q27_2_answers[int(survey_data['survey_endline_q27_2_family'])],
+                    q27_3_answers[int(survey_data['survey_endline_q27_3_community'])],
+                    q28_answers[int(survey_data['survey_endline_q28_mobile_credit'])],
+                    q29_1_answers[int(survey_data['survey_endline_q29_1_desktop'])],
+                    q29_2_answers[int(survey_data['survey_endline_q29_2_laptop'])],
+                    q29_3_answers[int(survey_data['survey_endline_q29_3_mobile_no_data'])],
+                    q29_4_answers[int(survey_data['survey_endline_q29_4_mobile_data'])]
                 ]
 
                 append_to_csv(data, csvfile)
@@ -1651,7 +2459,9 @@ def export_ea1tool_survey(email, export_name, unique_time):
                       csvfile)
 
         for survey in surveys:
-            submissions = CoachSurveySubmission.objects.filter(user__is_staff=False, survey=survey)
+            submissions = CoachSurveySubmission.objects.filter(user__is_staff=False,
+                                                               user__is_active=True,
+                                                               survey=survey)
 
             for submission in submissions:
                 try:
@@ -1730,28 +2540,6 @@ def export_ea2tool_survey(email, export_name, unique_time):
     return True, SUCCESS_MESSAGE_EMAIL_SENT
 
 
-@task(name="export_endline_survey")
-def export_endline_survey(email, export_name, unique_time):
-    # surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.ENDLINE)
-
-    filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
-    create_csv(filename)
-
-    with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
-
-        append_to_csv(('uuid', 'username', 'name', 'mobile', 'email', 'gender', 'age',
-                       'user_type_source_medium', 'date_joined', 'city', 'younger_than_17', 'consent_given',
-                       'submission_date',
-
-                       # Survey questions
-                       ),
-                      csvfile)
-
-    pass_zip_encrypt_email(email, export_name, unique_time)
-
-    return True, SUCCESS_MESSAGE_EMAIL_SENT
-
-
 #####################
 # Budgeting Reports #
 #####################
@@ -1784,7 +2572,7 @@ def export_budget_user(email, export_name, unique_time):
                        'budget_current_savings'),
                       csvfile)
 
-        users = User.objects.filter(is_staff=False)
+        users = User.objects.filter(is_staff=False, is_active=True)
 
         for user in users:
             budget_exists = Budget.objects.filter(user=user).exists()
@@ -1862,15 +2650,29 @@ def export_budget_aggregate(email, export_name, unique_time):
                        ),
                       csvfile)
 
-        budgets = Budget.objects.filter(user__is_staff=False)
+        budgets = Budget.objects.filter(user__is_staff=False, user__is_active=True)
 
-        num_users_edited = Budget.objects.all().exclude(user__is_staff=False, modified_count=0).count()
-        num_budget_income_increased = Budget.objects.all().exclude(user__is_staff=False, income_increased_count=0).count()
-        num_budget_income_decreased = Budget.objects.all().exclude(user__is_staff=False, income_decreased_count=0).count()
-        num_budget_savings_increased = Budget.objects.all().exclude(user__is_staff=False, savings_increased_count=0).count()
-        num_budget_savings_decreased = Budget.objects.all().exclude(user__is_staff=False, savings_decreased_count=0).count()
-        num_budget_expense_increased = Budget.objects.all().exclude(user__is_staff=False, expense_increased_count=0).count()
-        num_budget_expense_decreased = Budget.objects.all().exclude(user__is_staff=False, expense_decreased_count=0).count()
+        num_users_edited = Budget.objects.all().exclude(user__is_staff=False,
+                                                        user__is_active=True,
+                                                        modified_count=0).count()
+        num_budget_income_increased = Budget.objects.all().exclude(user__is_staff=False,
+                                                                   user__is_active=True,
+                                                                   income_increased_count=0).count()
+        num_budget_income_decreased = Budget.objects.all().exclude(user__is_staff=False,
+                                                                   user__is_active=True,
+                                                                   income_decreased_count=0).count()
+        num_budget_savings_increased = Budget.objects.all().exclude(user__is_staff=False,
+                                                                    user__is_active=True,
+                                                                    savings_increased_count=0).count()
+        num_budget_savings_decreased = Budget.objects.all().exclude(user__is_staff=False,
+                                                                    user__is_active=True,
+                                                                    savings_decreased_count=0).count()
+        num_budget_expense_increased = Budget.objects.all().exclude(user__is_staff=False,
+                                                                    user__is_active=True,
+                                                                    expense_increased_count=0).count()
+        num_budget_expense_decreased = Budget.objects.all().exclude(user__is_staff=False,
+                                                                    user__is_active=True,
+                                                                    expense_decreased_count=0).count()
 
         data = [
             budgets.count(),
