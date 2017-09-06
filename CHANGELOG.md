@@ -2,6 +2,11 @@
 Changelog
 =========
 
+1.2.4
+-----
+
+- Added ability to mark users to receive Endline survey
+
 1.2.3
 -----
 
