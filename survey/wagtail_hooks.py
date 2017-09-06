@@ -16,7 +16,7 @@ class EndlineUserAdmin(ModelAdmin):
     model = EndlineSurveySelectUser
     index_view_extra_js = ['js/js.cookie.js', 'js/endline_survey.js']
     list_display = ('user', 'is_baseline_completed', 'is_endline_completed', 'receive_endline_survey',)
-    search_fields = ('user',)
+    search_fields = ('user__username',)
     list_filter = ('receive_survey', 'survey_completed',)
     menu_label = _('Endline Survey')
     ordering = ('user',)
