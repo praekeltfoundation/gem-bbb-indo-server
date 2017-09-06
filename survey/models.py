@@ -363,5 +363,6 @@ EndlineSurveySelectUser.panels = [
 # When signal is attached to User, it won't be fired on registration (RegUser create)
 @receiver(post_save, sender=RegUser)
 def create_survey_link(sender, instance, created, **kwargs):
+    """Ensure survey link is created"""
     if created:
         EndlineSurveySelectUser.objects.get_or_create(user=instance)
