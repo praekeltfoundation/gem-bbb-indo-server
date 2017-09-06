@@ -490,3 +490,8 @@ class SurveyDataPreservationTests(APITestCase):
         self.assertEqual(data['gender'], user_gender)
         self.assertEqual(data['age'], user_age)
         self.assertEqual(data['email'], user_email)
+
+
+class TestEndlineSurvey(APITestCase):
+
+    pass

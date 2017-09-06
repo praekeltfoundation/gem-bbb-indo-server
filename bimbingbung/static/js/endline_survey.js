@@ -17,7 +17,7 @@ $(document).ready(function() {
                         self.prop("readonly", false);
                         self.prop("disabled", false);
                     },
-                    url: '/admin/content/survey/mark-can-receive/' + $(this).val() + '/',
+                    url: '/admin/coach-surveys/survey/mark-can-receive/' + $(this).val() + '/',
                     method: "POST"
                 });
             });

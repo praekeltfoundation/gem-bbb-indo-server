@@ -18,7 +18,6 @@ from content.tasks import export_goal_summary, export_user_summary, export_chall
     export_ea2tool_survey, export_endline_survey, export_budget_user, export_budget_expense_category, \
     export_budget_aggregate
 
-from users.models import EndlineSurveySelectUsers
 from .models import Challenge, Participant, Feedback
 
 
@@ -69,17 +68,10 @@ def feedback_mark_read(request, feedback_pk):
     return JsonResponse({})
 
 
-# TODO: permission_required('survey.can_change')
-@ensure_csrf_cookie
-def survey_mark_can_receive(request, user_id):
-    survey_accessor = get_object_or_404(EndlineSurveySelectUsers, pk=user_id)
-    survey_accessor.receive_survey =not survey_accessor.receive_survey
-    survey_accessor.save()
-    return JsonResponse({})
-
 #############
 # Reporting #
 #############
+
 
 def get_report_generation_time():
     time = datetime.now()

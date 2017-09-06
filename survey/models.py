@@ -6,7 +6,10 @@ import json
 from django.contrib.auth.models import User
 from django.core.serializers.json import DjangoJSONEncoder
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 from django.utils import timezone
+from django.utils.html import format_html
 from django.utils.six import text_type
 from django.utils.text import slugify
 from django.utils.translation import ugettext_lazy as _
@@ -16,6 +19,8 @@ from wagtail.wagtailadmin.edit_handlers import FieldPanel
 from modelcluster.fields import ParentalKey
 from wagtailsurveys.models import AbstractSurvey, AbstractFormField, AbstractFormSubmission
 from unidecode import unidecode
+
+from content.edit_handlers import ReadOnlyPanel
 
 
 class CoachSurveyIndex(Page):
@@ -298,3 +303,63 @@ class CoachSurveySubmissionDraft(models.Model):
         self.version += 1
         self.modified_at = timezone.now()
         super(CoachSurveySubmissionDraft, self).save(*args, **kwargs)
+
+
+###############################
+# Endline Survey User Chooser #
+###############################
+
+
+class EndlineSurveySelectUser(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    receive_survey = models.BooleanField(default=False, help_text=_('Should the user receive the Endline Survey'))
+    survey_completed = models.BooleanField(default=False, help_text=_('Has the user already completed the survey'))
+
+    class Meta:
+        # Translators: Collection name on CMS
+        verbose_name = _('endline survey selected user')
+
+        # Translators: Plural collection name on CMS
+        verbose_name_plural = _('endline survey selected users')
+
+    def receive_endline_survey(self):
+        if self.receive_survey:
+            return format_html(
+                "<input type='checkbox' id='{}' class='mark-receive-survey' value='{}' checked='checked' />",
+                'participant-is-shortlisted-%d' % self.id, self.id)
+        else:
+            return format_html("<input type='checkbox' id='{}' class='mark-receive-survey' value='{}' />",
+                               'participant-is-shortlisted-%d' % self.id, self.id)
+
+    @property
+    def is_baseline_completed(self):
+        baseline_surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.EATOOL).first()
+        completed = CoachSurveySubmission.objects.filter(survey=baseline_surveys, user=self.user).first()
+
+        if not completed:
+            return False
+        return True
+
+    @property
+    def is_endline_completed(self):
+        endline_surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.ENDLINE).first()
+        completed = CoachSurveySubmission.objects.filter(survey=endline_surveys, user=self.user).first()
+
+        if not completed:
+            return False
+        return True
+
+EndlineSurveySelectUser.panels = [
+    MultiFieldPanel([
+        FieldPanel('user'),
+        FieldPanel('receive_survey'),
+        ReadOnlyPanel('is_baseline_completed'),
+        ReadOnlyPanel('is_endline_completed',)
+    ])
+]
+
+
+@receiver(post_save, sender=User)
+def create_survey_link(sender, instance, created, **kwargs):
+    if created:
+        EndlineSurveySelectUser.objects.get_or_create(user=instance)
