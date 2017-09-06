@@ -13,7 +13,7 @@ from .models import Challenge, Participant, CustomNotification, ParticipantFreeT
 from .models import FreeTextQuestion, PictureQuestion, QuizQuestion
 from .models import GoalPrototype
 from .models import Badge
-from .models import ExpenseCategory, Budget, Expense
+from .models import ExpenseCategory, Budget
 from content import admin_urls
 
 
@@ -276,3 +276,4 @@ class FeedbackAdmin(ModelAdmin):
     ordering = ('date_created',)
 
 modeladmin_register(FeedbackAdmin)
+
