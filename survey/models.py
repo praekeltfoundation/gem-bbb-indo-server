@@ -148,7 +148,14 @@ class CoachSurvey(AbstractSurvey):
         if user.profile:
             surveys = list(filter(lambda s: user.profile.is_joined_days_passed(s.deliver_after), surveys))
 
+        user_endline = EndlineSurveySelectUser.objects.filter(user=user).first()
+
         if surveys:
+            # Check to see whether use should receive the Endline Survey
+            if user_endline and surveys[0].bot_conversation == CoachSurvey.ENDLINE:
+                if user_endline.is_endline_completed or not user_endline.receive_survey:
+                    return None, 0
+
             survey = surveys[0]
             inactivity_age = (timezone.now() - user.date_joined).days - survey.deliver_after
             return survey, inactivity_age
