@@ -333,7 +333,7 @@ class EndlineSurveySelectUser(models.Model):
 
     @property
     def is_baseline_completed(self):
-        baseline_surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.EATOOL).first()
+        baseline_surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.BASELINE).first()
         completed = CoachSurveySubmission.objects.filter(survey=baseline_surveys, user=self.user).first()
 
         if not completed:
