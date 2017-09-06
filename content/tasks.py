@@ -63,7 +63,7 @@ STORAGE_DIRECTORY = settings.SENDFILE_ROOT + '\\'
 
 @task(name="export_goal_summary")
 def export_goal_summary(email, export_name, unique_time):
-    goals = Goal.objects.filter(user__is_staff=False)
+    goals = Goal.objects.filter(user__is_staff=False, user__is_active=True)
 
     filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
 
@@ -232,7 +232,7 @@ def date_achieved(goal):
 
 @task(name="export_user_summary")
 def export_user_summary(email, export_name, unique_time):
-    profiles = Profile.objects.filter(user__is_staff=False)
+    profiles = Profile.objects.filter(user__is_staff=False, user__is_active=True)
     filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
     create_csv(filename)
 
@@ -471,7 +471,7 @@ def endline_survey_completed(profile):
 
 @task(name="export_savings_summary")
 def export_savings_summary(email, export_name, unique_time):
-    goals = Goal.objects.filter(user__is_staff=False)
+    goals = Goal.objects.filter(user__is_staff=False, user__is_active=True)
 
     filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
     create_csv(filename)
@@ -548,19 +548,23 @@ def export_challenge_summary(email, export_name, unique_time, date_from, date_to
 
 def total_challenge_completions(challenge):
     """Returns the number of participants who have completed a challenge"""
-    return Participant.objects.filter(user__is_staff=False, challenge=challenge, date_completed__isnull=False).count()
+
+    return Participant.objects.filter(user__is_staff=False, user__is_active=True,
+                                      challenge=challenge, date_completed__isnull=False).count()
 
 
 def total_users_in_progress(challenge):
     """Returns the total number of participants who have started the challenge but not completed it"""
-    return Participant.objects.filter(user__is_staff=False, challenge=challenge, date_completed__isnull=True).count()
+    return Participant.objects.filter(user__is_staff=False, user__is_active=True,
+                                      challenge=challenge, date_completed__isnull=True).count()
 
 
 def total_no_response(challenge):
     """Checks to see which users don't have a participant for the given challenge"""
-
-    total_amount_of_users = User.objects.filter(is_staff=False).count()
-    total_amount_of_participants = Participant.objects.filter(user__is_staff=False, challenge=challenge).count()
+    total_amount_of_users = User.objects.filter(is_staff=False, user__is_active=True).count()
+    total_amount_of_participants = Participant.objects.filter(user__is_staff=False,
+                                                              user__is_active=True,
+                                                              challenge=challenge).count()
 
     num_no_responses = total_amount_of_users - total_amount_of_participants
 
@@ -620,7 +624,7 @@ def export_challenge_picture(email, export_name, unique_time, challenge_name):
                       csvfile)
 
         for challenge in challenges:
-            participants = Participant.objects.filter(user__is_staff=False, challenge=challenge)
+            participants = Participant.objects.filter(user__is_staff=False, user__is_active=True, challenge=challenge)
 
             for participant in participants:
                 profile = Profile.objects.get(user=participant.user)
@@ -669,7 +673,10 @@ def export_challenge_quiz(email, export_name, unique_time, challenge_name):
                       csvfile)
 
         for challenge in challenges:
-            participants = Participant.objects.filter(user__is_staff=False, challenge=challenge)
+            participants = Participant.objects.filter(user__is_staff=False,
+                                                      user__is_active=True,
+                                                      challenge=challenge)
+
             quiz_questions = QuizQuestion.objects.filter(challenge=challenge)
 
             for participant in participants:
@@ -725,7 +732,7 @@ def export_challenge_freetext(email, export_name, unique_time, challenge_name):
                       csvfile)
 
         for challenge in challenges:
-            participants = Participant.objects.filter(user__is_staff=False, challenge=challenge)
+            participants = Participant.objects.filter(user__is_staff=False, user__is_active=True, challenge=challenge)
 
             for participant in participants:
                 try:
@@ -794,16 +801,16 @@ def export_aggregate_summary(email, export_name, unique_time):
 
 def num_users_set_at_least_one_goal():
     """Number of users with at least one goal set"""
-    return Goal.objects.filter(user__is_staff=False).values('user_id').distinct().count()
+    return Goal.objects.filter(user__is_staff=False, user__is_active=True).values('user_id').distinct().count()
 
 
 def num_users_achieved_one_goal():
     """Total amount of users who have achieved at least one goal"""
     num_users_achieved_one_goal = 0
-    array_of_users = Goal.objects.filter(user__is_staff=False).values('user_id').distinct()
+    array_of_users = Goal.objects.filter(user__is_staff=False, user__is_active=True).values('user_id').distinct()
 
     for user in array_of_users:
-        goals = Goal.objects.filter(user_id=user['user_id'], user__is_staff=False)
+        goals = Goal.objects.filter(user_id=user['user_id'], user__is_staff=False, user__is_active=True)
         for goal in goals:
             if goal.progress >= 100:
                 num_users_achieved_one_goal += 1
@@ -814,7 +821,7 @@ def num_users_achieved_one_goal():
 
 def num_achieved_goals():
     """Number of achieved goals"""
-    goals = Goal.objects.filter(user__is_staff=False)
+    goals = Goal.objects.filter(user__is_staff=False, user__is_active=True)
     num_achieved_goals = 0
     for goal in goals:
         if goal.progress >= 100:
@@ -826,7 +833,7 @@ def num_achieved_goals():
 def percentage_weeks_saved():
     """Percentage weeks saved out of total weeks"""
     percentage_weeks_saved = 0
-    goals = Goal.objects.filter(user__is_staff=False)
+    goals = Goal.objects.filter(user__is_staff=False, user__is_active=True)
     total_weeks = 0
     total_weeks_saved = 0
 
@@ -883,11 +890,13 @@ def total_users_achieved_at_least_one_goal(goal_prototype):
     Returns the number of users that have achieved the goal prototype
     unique users
     """
-    users_with_goals = Goal.objects.filter(user__is_staff=False, prototype=goal_prototype).values('user_id').distinct()
+    users_with_goals = Goal.objects.filter(user__is_staff=False, user__is_active=True,
+                                           prototype=goal_prototype).values('user_id').distinct()
 
     num_achieved_one_goal = 0
     for user in users_with_goals:
-        users_goals = Goal.objects.filter(user__is_staff=False, prototype=goal_prototype, user_id=user['user_id'])
+        users_goals = Goal.objects.filter(user__is_staff=False, user__is_active=True,
+                                          prototype=goal_prototype, user_id=user['user_id'])
 
         for goal in users_goals:
             if goal.progress >= 100:
@@ -899,7 +908,7 @@ def total_users_achieved_at_least_one_goal(goal_prototype):
 
 def average_total_goal_amount(goal_prototype):
     """Returns the average goal amount for the given goal prototype"""
-    goals = Goal.objects.filter(user__is_staff=False, prototype=goal_prototype)
+    goals = Goal.objects.filter(user__is_staff=False, user__is_active=True, prototype=goal_prototype)
 
     total_amount_of_goals_count = goals.count()
 
@@ -915,8 +924,7 @@ def average_total_goal_amount(goal_prototype):
 
 def average_percentage_of_goal_reached(goal_prototype):
     """Returns the average percentage of completions for the given goal prototype"""
-
-    goals = Goal.objects.filter(user__is_staff=False, prototype=goal_prototype)
+    goals = Goal.objects.filter(user__is_staff=False, user__is_active=True, prototype=goal_prototype)
 
     total_amount_of_goals = goals.count()
 
@@ -933,11 +941,13 @@ def average_percentage_of_goal_reached(goal_prototype):
 
 def total_users_50_percent_achieved(goal_prototype):
     """Returns the total amount of users who have achieved 50% of the given goal prototype"""
-    users_with_goals = Goal.objects.filter(user__is_staff=False, prototype=goal_prototype).values('user_id').distinct()
+    users_with_goals = Goal.objects.filter(user__is_staff=False, user__is_active=True,
+                                           prototype=goal_prototype).values('user_id').distinct()
 
     num_50_percent_achieved = 0
     for user in users_with_goals:
-        users_goals = Goal.objects.filter(user__is_staff=False, prototype=goal_prototype, user_id=user['user_id'])
+        users_goals = Goal.objects.filter(user__is_staff=False, user__is_active=True,
+                                          prototype=goal_prototype, user_id=user['user_id'])
 
         for goal in users_goals:
             if goal.progress >= 50:
@@ -952,11 +962,12 @@ def total_users_100_percent_achieved(goal_prototype):
     Returns the total amount of users who have achieved 100% of the given goal prototype
     not unique users
     """
-    goals = Goal.objects.filter(user__is_staff=False, prototype=goal_prototype)
+    goals = Goal.objects.filter(user__is_staff=False, user__is_active=True, prototype=goal_prototype)
 
     num_100_percent_achieved = 0
     for goal in goals:
-        users_goals = Goal.objects.filter(user__is_staff=False, prototype=goal_prototype, user_id=goal.user_id)
+        users_goals = Goal.objects.filter(user__is_staff=False, user__is_active=True,
+                                          prototype=goal_prototype, user_id=goal.user_id)
 
         for user_goal in users_goals:
             if user_goal.progress >= 100:
@@ -968,7 +979,7 @@ def total_users_100_percent_achieved(goal_prototype):
 
 def percentage_of_weeks_saved_out_of_total_weeks(goal_prototype):
     """Percentage of weeks saved for given goal prototype"""
-    goals = Goal.objects.filter(user__is_staff=False, prototype=goal_prototype)
+    goals = Goal.objects.filter(user__is_staff=False, user__is_active=True, prototype=goal_prototype)
     total_weeks = 0
     total_weeks_saved = 0
 
@@ -997,7 +1008,7 @@ def export_aggregate_rewards_data(email, export_name, unique_time):
                       csvfile)
 
         data = [
-            UserBadge.objects.filter(user__is_staff=False).count(),
+            UserBadge.objects.filter(user__is_staff=False, user__is_active=True).count(),
             total_users_at_least_one_streak(),
             average_percentage_weeks_saved_weekly_target_met(),
             average_percentage_weeks_saved()
@@ -1013,10 +1024,10 @@ def export_aggregate_rewards_data(email, export_name, unique_time):
 def total_users_at_least_one_streak():
     """Returns the total number of users that have at least one streak"""
     users_with_streaks = 0
-    users = User.objects.filter(is_staff=False)
+    users = User.objects.filter(is_staff=False, user__is_active=True)
 
     for user in users:
-        goals = Goal.objects.filter(user__is_staff=False, user=user)
+        goals = Goal.objects.filter(user=user, user__is_staff=False, user__is_active=True)
         current_count = 0
 
         user_has_streak = False
@@ -1045,10 +1056,10 @@ def average_percentage_weeks_saved_weekly_target_met():
     total_weeks_saved = 0
     total_weeks = 0
 
-    users = User.objects.filter(is_staff=False)
+    users = User.objects.filter(is_staff=False, user__is_active=True)
 
     for user in users:
-        goals = Goal.objects.filter(user__is_staff=False, user=user)
+        goals = Goal.objects.filter(user__is_staff=False, user__is_active=True, user=user)
 
         for goal in goals:
             weekly_aggregates = goal.get_weekly_aggregates_to_date()
@@ -1070,10 +1081,10 @@ def average_percentage_weeks_saved():
     total_weeks_saved = 0
     total_weeks = 0
 
-    users = User.objects.filter(is_staff=False)
+    users = User.objects.filter(is_staff=False, user__is_active=True)
 
     for user in users:
-        goals = Goal.objects.filter(user__is_staff=False, user=user)
+        goals = Goal.objects.filter(user=user, user__is_staff=False, user__is_active=True)
 
         for goal in goals:
             weekly_aggregates = goal.get_weekly_aggregates_to_date()
@@ -1118,12 +1129,14 @@ def export_aggregate_data_per_badge(email, export_name, unique_time):
 
 def total_earned_by_all_users(badge):
     """Returns the total number of badges won for the given badge for all users"""
-    return Badge.objects.filter(user__is_staff=False, badge_type=badge.badge_type).values('user').count()
+    return Badge.objects.filter(user__is_staff=False, user__is_active=True,
+                                badge_type=badge.badge_type).values('user').count()
 
 
 def total_earned_at_least_once(badge):
     """Return the total number of users that have earned the given badge at least once"""
-    return Badge.objects.filter(user__is_staff=False, badge_type=badge.badge_type).values('user').distinct().count()
+    return Badge.objects.filter(user__is_staff=False, user__is_active=True,
+                                badge_type=badge.badge_type).values('user').distinct().count()
 
 
 @task(name="export_aggregate_data_per_streak")
@@ -1347,7 +1360,7 @@ def export_aggregate_user_type(email, export_name, unique_time):
                        'campaign', 'source', 'medium'),
                       csvfile)
 
-        users = User.objects.filter(is_staff=False)
+        users = User.objects.filter(is_staff=False, user__is_active=True)
 
         for user in users:
             campaign_info = CampaignInformation.objects.filter(user=user).first()
@@ -1398,10 +1411,12 @@ def export_survey_summary(email, export_name, unique_time):
 
         num_completed_users = CoachSurveySubmission.objects.filter(
             user__is_staff=False,
+            user__is_active=True,
             survey__bot_conversation=CoachSurvey.BASELINE).count()
 
         num_in_progress_users = CoachSurveySubmissionDraft.objects.filter(
             user__is_staff=False,
+            user__is_active=True,
             survey__bot_conversation=CoachSurvey.BASELINE,
             complete=False).count()
 
@@ -1411,6 +1426,7 @@ def export_survey_summary(email, export_name, unique_time):
 
         submitted_survey_drafts = CoachSurveySubmissionDraft.objects.filter(
             user__is_staff=False,
+            user__is_active=True,
             survey__bot_conversation=CoachSurvey.BASELINE,
             consent=False)
 
@@ -1428,6 +1444,7 @@ def export_survey_summary(email, export_name, unique_time):
 
         submitted_surveys = CoachSurveySubmission.objects.filter(
             user__is_staff=False,
+            user__is_active=True,
             survey__bot_conversation=CoachSurvey.BASELINE)
 
         for survey in submitted_surveys:
@@ -1440,7 +1457,7 @@ def export_survey_summary(email, export_name, unique_time):
 
         num_total_users = User.objects.filter(is_staff=False).count()
         num_participated_survey = CoachSurveySubmission.objects\
-            .filter(user__is_staff=False, survey__bot_conversation=CoachSurvey.BASELINE)\
+            .filter(user__is_staff=False, user__is_active=True, survey__bot_conversation=CoachSurvey.BASELINE)\
             .values('user')\
             .distinct()\
             .count()
@@ -1462,10 +1479,12 @@ def export_survey_summary(email, export_name, unique_time):
 
         num_completed_users = CoachSurveySubmission.objects.filter(
             user__is_staff=False,
+            user__is_active=True,
             survey__bot_conversation=CoachSurvey.EATOOL).count()
 
         num_in_progress_users = CoachSurveySubmissionDraft.objects.filter(
             user__is_staff=False,
+            user__is_active=True,
             survey__bot_conversation=CoachSurvey.EATOOL,
             complete=False).count()
 
@@ -1475,6 +1494,7 @@ def export_survey_summary(email, export_name, unique_time):
 
         submitted_survey_drafts = CoachSurveySubmissionDraft.objects.filter(
             user__is_staff=False,
+            user__is_active=True,
             survey__bot_conversation=CoachSurvey.EATOOL,
             consent=False)
 
@@ -1492,6 +1512,7 @@ def export_survey_summary(email, export_name, unique_time):
 
         submitted_surveys = CoachSurveySubmission.objects.filter(
             user__is_staff=False,
+            user__is_active=True,
             survey__bot_conversation=CoachSurvey.EATOOL)
 
         for survey in submitted_surveys:
@@ -1504,7 +1525,7 @@ def export_survey_summary(email, export_name, unique_time):
 
         num_total_users = User.objects.filter(is_staff=False).count()
         num_participated_survey = CoachSurveySubmissionDraft.objects \
-            .filter(user__is_staff=False, survey__bot_conversation=CoachSurvey.EATOOL) \
+            .filter(user__is_staff=False, user__is_active=True, survey__bot_conversation=CoachSurvey.EATOOL) \
             .values('user') \
             .distinct() \
             .count()
@@ -1910,7 +1931,9 @@ def export_baseline_survey(email, export_name, unique_time):
 
         for survey in surveys:
             # All baseline survey submissions that are complete
-            submissions = CoachSurveySubmission.objects.filter(user__is_staff=False, survey=survey)
+            submissions = CoachSurveySubmission.objects.filter(user__is_staff=False,
+                                                               user__is_active=True,
+                                                               survey=survey)
 
             for submission in submissions:
                 try:
@@ -2346,7 +2369,9 @@ def export_endline_survey(email, export_name, unique_time):
 
         for survey in surveys:
             # All baseline survey submissions that are complete
-            submissions = CoachSurveySubmission.objects.filter(user__is_staff=False, survey=survey)
+            submissions = CoachSurveySubmission.objects.filter(user__is_staff=False,
+                                                               user__is_active=True,
+                                                               survey=survey)
 
             for submission in submissions:
                 try:
@@ -2434,7 +2459,9 @@ def export_ea1tool_survey(email, export_name, unique_time):
                       csvfile)
 
         for survey in surveys:
-            submissions = CoachSurveySubmission.objects.filter(user__is_staff=False, survey=survey)
+            submissions = CoachSurveySubmission.objects.filter(user__is_staff=False,
+                                                               user__is_active=True,
+                                                               survey=survey)
 
             for submission in submissions:
                 try:
@@ -2545,7 +2572,7 @@ def export_budget_user(email, export_name, unique_time):
                        'budget_current_savings'),
                       csvfile)
 
-        users = User.objects.filter(is_staff=False)
+        users = User.objects.filter(is_staff=False, is_active=True)
 
         for user in users:
             budget_exists = Budget.objects.filter(user=user).exists()
@@ -2623,15 +2650,29 @@ def export_budget_aggregate(email, export_name, unique_time):
                        ),
                       csvfile)
 
-        budgets = Budget.objects.filter(user__is_staff=False)
+        budgets = Budget.objects.filter(user__is_staff=False, user__is_active=True)
 
-        num_users_edited = Budget.objects.all().exclude(user__is_staff=False, modified_count=0).count()
-        num_budget_income_increased = Budget.objects.all().exclude(user__is_staff=False, income_increased_count=0).count()
-        num_budget_income_decreased = Budget.objects.all().exclude(user__is_staff=False, income_decreased_count=0).count()
-        num_budget_savings_increased = Budget.objects.all().exclude(user__is_staff=False, savings_increased_count=0).count()
-        num_budget_savings_decreased = Budget.objects.all().exclude(user__is_staff=False, savings_decreased_count=0).count()
-        num_budget_expense_increased = Budget.objects.all().exclude(user__is_staff=False, expense_increased_count=0).count()
-        num_budget_expense_decreased = Budget.objects.all().exclude(user__is_staff=False, expense_decreased_count=0).count()
+        num_users_edited = Budget.objects.all().exclude(user__is_staff=False,
+                                                        user__is_active=True,
+                                                        modified_count=0).count()
+        num_budget_income_increased = Budget.objects.all().exclude(user__is_staff=False,
+                                                                   user__is_active=True,
+                                                                   income_increased_count=0).count()
+        num_budget_income_decreased = Budget.objects.all().exclude(user__is_staff=False,
+                                                                   user__is_active=True,
+                                                                   income_decreased_count=0).count()
+        num_budget_savings_increased = Budget.objects.all().exclude(user__is_staff=False,
+                                                                    user__is_active=True,
+                                                                    savings_increased_count=0).count()
+        num_budget_savings_decreased = Budget.objects.all().exclude(user__is_staff=False,
+                                                                    user__is_active=True,
+                                                                    savings_decreased_count=0).count()
+        num_budget_expense_increased = Budget.objects.all().exclude(user__is_staff=False,
+                                                                    user__is_active=True,
+                                                                    expense_increased_count=0).count()
+        num_budget_expense_decreased = Budget.objects.all().exclude(user__is_staff=False,
+                                                                    user__is_active=True,
+                                                                    expense_decreased_count=0).count()
 
         data = [
             budgets.count(),
