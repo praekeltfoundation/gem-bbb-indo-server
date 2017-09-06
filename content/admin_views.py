@@ -9,6 +9,7 @@ from django.utils.translation import ugettext_lazy as _
 from wagtail.wagtailadmin import messages
 
 from content.analytics_api import initialize_analytics_reporting, get_report, connect_ga_to_user
+
 from content.tasks import export_goal_summary, export_user_summary, export_challenge_summary, \
     export_challenge_quiz_summary, export_challenge_picture, export_challenge_freetext, export_challenge_quiz, \
     export_savings_summary, export_aggregate_summary, export_aggregate_goal_data_per_category, \
@@ -70,6 +71,7 @@ def feedback_mark_read(request, feedback_pk):
 #############
 # Reporting #
 #############
+
 
 def get_report_generation_time():
     time = datetime.now()

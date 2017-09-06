@@ -1,7 +1,7 @@
-
 from datetime import timedelta
 import json
 
+from django.contrib.auth import get_user_model
 from django.http.request import QueryDict
 from django.shortcuts import reverse
 from django.utils import timezone
@@ -10,7 +10,8 @@ from rest_framework.test import APITestCase
 from wagtail.wagtailcore.models import Page
 
 from users.models import RegUser, Profile
-from .models import CoachSurvey, CoachFormField, CoachSurveySubmission, CoachSurveySubmissionDraft
+from .models import (CoachSurvey, CoachFormField, CoachSurveySubmission, CoachSurveySubmissionDraft,
+                     EndlineSurveySelectUser)
 from .reports import survey_aggregates
 
 SINGLE_LINE = 'singleline'
@@ -490,3 +491,25 @@ class SurveyDataPreservationTests(APITestCase):
         self.assertEqual(data['gender'], user_gender)
         self.assertEqual(data['age'], user_age)
         self.assertEqual(data['email'], user_email)
+
+
+class TestEndlineSurvey(APITestCase):
+    def test_link_created_on_register(self):
+        """Ensure that when a new user registers, they receive an endline survey link."""
+
+        data = {
+            'username': 'anon',
+            'password': 'blargh',
+            'profile': {
+                'mobile': '1112223334',
+                'age': 18,
+                'gender': Profile.GENDER_FEMALE
+            }
+        }
+
+        response = self.client.post(reverse('api:users-list'), data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, "User registration failed")
+
+        link = EndlineSurveySelectUser.objects.get(user_id=response.data['id'])
+        self.assertIsNotNone(link, "Link was not created")

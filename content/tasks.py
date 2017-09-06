@@ -1979,6 +1979,442 @@ def export_baseline_survey(email, export_name, unique_time):
     return True, SUCCESS_MESSAGE_EMAIL_SENT
 
 
+@task(name="export_endline_survey")
+def export_endline_survey(email, export_name, unique_time):
+    surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.ENDLINE)
+
+    filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
+    create_csv(filename)
+
+    # 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 999
+    q01_answers = {
+        1: '"Student in elementary school (SD)"',
+        2: '"Student in middle school (SMP)"',
+        3: '"Student in academic high school (SMA)"',
+        4: '"Student in vocational high school (SMK)"',
+        5: '"Student in college or above"',
+        6: '"Employee working in a job"',
+        7: '"Business owner or co-owner"',
+        8: '"Volunteer in church or community"',
+        9: '"Care giver of family members or children"',
+        10: '"Not working, studying, or volunteering"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 999
+    q02_answers = {
+        1: '"1st Year"',
+        2: '"2nd Year"',
+        3: '"3rd Year"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q05_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 999
+    q06_answers = {
+        1: '"Less than 250 thousand"',
+        2: '"Between 250 thousand and 500 thousand"',
+        3: '"Between 500 thousand and 750 thousand"',
+        4: '"Between 750 thousand and 1 million"',
+        5: '"Between 1 million and 1,5 million"',
+        6: '"More than 1,5 million"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 888, 999
+    q07_answers = {
+        1: '"Permanent staff (signed contract with specific salary and benefits)"',
+        2: '"Indefinite term employment (probation, pathway to permanent staff)"',
+        3: '"Temporary/casual (working on short assignments or task, no contract)"',
+        4: '"Apprenticeship (learning new skill and receiving small monetary support to cover transport cost)"',
+        5: '"Daily worker (working on a day to day basis)"',
+        6: '"Helping family business with pay"',
+        7: '"Does not know"',
+        888: '888',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q08_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 999
+    q09_answers = {
+        1: '"Less than 250 thousand"',
+        2: '"Between 250 thousand and 500 thousand"',
+        3: '"Between 500 thousand and 750 thousand"',
+        4: '"Between 750 thousand and 1 million"',
+        5: '"Between 1 million and 1,5 million"',
+        6: '"More than 1,5 million"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q10_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 7, 8, 999
+    q11_answers = {
+        1: '"Daily"',
+        2: '"Weekly"',
+        3: '"Monthly"',
+        4: '"Every 2 months"',
+        5: '"Every 3 or 4 months"',
+        6: '"Once or twice a year"',
+        7: '"Do not remember"',
+        8: '"Varies (different times, not a set frequency)"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 999
+    q12_answers = {
+        1: '"Bank"',
+        2: '"Community savings group"',
+        3: '"At home (chicken bank)"',
+        4: '"Send to family for safekeeping"',
+        5: '"Buy gold or other valuables"',
+        6: '"Other"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 7, 8, 999
+    q13_answers = {
+        1: '"Less than 100 thousand"',
+        2: '"Between 100 thousand and 150 thousand"',
+        3: '"Between 150 thousand and 200 thousand"',
+        4: '"Between 200 thousand and 250 thousand"',
+        5: '"Between 250 thousand and 300 thousand"',
+        6: '"Between 300 thousand and 350 thousand"',
+        7: '"Between 350 thousand and 400 thousand"',
+        8: '"More than 400 thousand"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q14_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q15_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q16_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q17_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q18_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q19_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q20_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q21_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q22_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 999
+    q23_answers = {
+        1: '"Never"',
+        2: '"Once a month"',
+        3: '"Once a week"',
+        4: '"Once a day"',
+        5: '"Multiple times per day"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 999
+    q24_answers = {
+        1: '"Calling or texting friends"',
+        2: '"Calling or texting family"',
+        3: '"Accessing social media"',
+        4: '"Accessing information on the internet"',
+        5: '"Using apps or tools to help me manage my life, like trackers or calendars."',
+        6: '"Other"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 999
+    q25_answers = {
+        1: '"Calling or texting friends"',
+        2: '"Calling or texting family"',
+        3: '"Accessing social media"',
+        4: '"Accessing information on the internet"',
+        5: '"Using apps or tools to help me manage my life, like trackers or calendars."',
+        6: '"Other"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 999
+    q26_answers = {
+        1: '"You"',
+        2: '"Mother"',
+        3: '"Father"',
+        4: '"Sibling"',
+        5: '"Another relative"',
+        6: '"Someone else"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 999
+    q27_1_answers = {
+        1: '"Approve"',
+        2: '"Neutral"',
+        3: '"Disapprove"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 999
+    q27_2_answers = {
+        1: '"Approve"',
+        2: '"Neutral"',
+        3: '"Disapprove"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 999
+    q27_3_answers = {
+        1: '"Approve"',
+        2: '"Neutral"',
+        3: '"Disapprove"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1, 2, 3, 4, 5, 6, 999
+    q28_answers = {
+        1: '"Less than 5 thousand rupiah"',
+        2: '"Between 5 thousand and 15 thousand rupiah"',
+        3: '"Between 15 thousand and 25 thousand rupiah"',
+        4: '"Between 25 thousand and 35 thousand rupiah"',
+        5: '"Between 35 thousand and 45 thousand rupiah"',
+        6: '"More than 45 thousand rupiah"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q29_1_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q29_2_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q29_3_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    # 1y, 0n, 999
+    q29_4_answers = {
+        0: '"No"',
+        1: '"Yes"',
+        998: '998',
+        999: '999',
+    }
+
+    with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
+        append_to_csv(('uuid', 'username', 'name', 'mobile', 'email', 'gender', 'age',
+                       'user_type_source_medium', 'date_joined', 'city', 'younger_than_17', 'consent_given',
+                       'submission_date',
+
+                       # Survey questions
+                       'q1_WhatIsYourOccupation',
+                       'q2_WhatGradeAreYouIn',
+                       'q3_WhatIsTheNameOfYourSMK',
+                       'q4_WhatCityDoYouLiveIn',
+                       'q5_HaveYouEverHadAPaidJobForLongerThanOneMonthIncludeWorkingInFamilyBusinessAndOrApprenticeshipsIfPaid',
+                       'q6_WithinWhatRangeDIdYourMonthlyEarningFallForYourLastJob',
+                       'q7_WhatWasYourEmploymentStatusInYourLastJob',
+                       'q8_HaveYouEverOwnedOrSharedOwnershipOfABusiness',
+                       'q9_WithinWhatRangeDidYourMonthlyBusinessEarningsFall',
+                       'q10_DoYouEverSaveSomeOfYourMoney',
+                       'q11_HowFrequentlyDoYouSaveMoney',
+                       'q12_WhereDoYouKeepMostOfYourSavings',
+                       'q13_InTheLast3MonthsApproximatelyHowMuchMoneyDidYouSaveInTotal',
+                       'q14_HaveYouEverSavedMoneyToPayForEducationCostsLikeFeesForATrainingCourse',
+                       'q15_HaveYouEverSavedMOneyToPayForTheCostOfLookingForAJobOrAttendingJobInterviews',
+                       'q16_HaveYouEverSavedMoneyToHaveSomeExtraInCaseOfEmergencies',
+                       'q17_HaveYouEverSavedMoneyToInvestInBusinessOpportunities',
+                       'q18_HaveYouEverSavedMoneyToSupportFamilyNeeds',
+                       'q19_HaveYouEverSavedMoneyToBuyPersonalItemsForEverydayUseLikeClothesOrFood',
+                       'q20_HaveYouEverSavedMoneyToBuyPersonalItemsForEverydayUseLikeClothesOrFood',
+                       'q21_HaveYouEverSavedMoneyToBuyItemsThatLastLongerLikeAPhoneComputerOrMotorbike',
+                       'q22_HaveYouEverSavedMoneyToGoOutWithFriendsForFun', 'q23_HowOftenDoYouUseAMobilePhone',
+                       'q24_WhatIsYourMobilePhoneMostUsefulFor',
+                       'q25_WhatIsYourMobilePhoneLeastUsefulFor',
+                       'q26_WhoOwnsTheMobilePhoneThatYouUse',
+                       'q27_1_HereAreSOmePeopleYouMightInteractWithPleaseTellMeIfYouThinkTheyApproveDisapproveOrAreNeutralTowardYouOrYourFriendsUsingMobilePhones',
+                       'q27_2',
+                       'q27_3',
+                       'q28_HowMuchCreditDoYouOrYourFamilyPutIntoYourMobilePhoneOnATypicalWeek',
+                       'q29_1_DoYouHaveTheFollowingAssetsInYourHome',
+                       'q29_2',
+                       'q29_3',
+                       'q29_4'),
+                      csvfile)
+
+        for survey in surveys:
+            # All baseline survey submissions that are complete
+            submissions = CoachSurveySubmission.objects.filter(user__is_staff=False, survey=survey)
+
+            for submission in submissions:
+                try:
+                    campaign_info = CampaignInformation.objects.get(user=submission.user)
+                    user_type = campaign_info.source + '/' + campaign_info.medium
+                except:
+                    user_type = ''
+                survey_data = submission.get_data()
+
+                data = [
+                    submission.user_unique_id,
+                    submission.username,
+                    submission.name,
+                    submission.mobile,
+                    submission.email,
+                    submission.gender,
+                    submission.age,
+                    user_type,  # user type
+                    submission.user.date_joined,
+                    survey_data['survey_endline_q04_city'],
+                    survey_data['survey_endline_q1_consent'],
+                    submission.consent,  # survey_data['survey_endline_q2_consent']
+                    submission.created_at,
+
+                    # survey questions
+                    q01_answers[int(survey_data['survey_endline_q01_occupation'])],
+                    q02_answers[int(survey_data['survey_endline_q02_grade'])],
+                    survey_data['survey_endline_q03_school_name'],
+                    survey_data['survey_endline_q04_city'],
+                    q05_answers[int(survey_data['survey_endline_q05_job_month'])],
+                    q06_answers[int(survey_data['survey_endline_q06_job_earning_range'])],
+                    q07_answers[int(survey_data['survey_endline_q07_job_status'])],
+                    q08_answers[int(survey_data['survey_endline_q08_shared_ownership'])],
+                    q09_answers[int(survey_data['survey_endline_q09_business_earning_range'])],
+                    q10_answers[int(survey_data['survey_endline_q10_save'])],
+                    q11_answers[int(survey_data['survey_endline_q11_savings_frequency'])],
+                    q12_answers[int(survey_data['survey_endline_q12_savings_where'])],
+                    q13_answers[int(survey_data['survey_endline_q13_savings_3_months'])],
+                    q14_answers[int(survey_data['survey_endline_q14_saving_education'])],
+                    q15_answers[int(survey_data['survey_endline_q15_job_hunt'])],
+                    q16_answers[int(survey_data['survey_endline_q16_emergencies'])],
+                    q17_answers[int(survey_data['survey_endline_q17_invest'])],
+                    q18_answers[int(survey_data['survey_endline_q18_family'])],
+                    q19_answers[int(survey_data['survey_endline_q19_clothes_food'])],
+                    '',  # Missing q20
+                    q21_answers[int(survey_data['survey_endline_q21_gadgets'])],
+                    q22_answers[int(survey_data['survey_endline_q22_friends'])],
+                    q23_answers[int(survey_data['survey_endline_q23_mobile_frequency'])],
+                    q24_answers[int(survey_data['survey_endline_q24_mobile_most_use'])],
+                    q25_answers[int(survey_data['survey_endline_q25_mobile_least_use'])],
+                    q26_answers[int(survey_data['survey_endline_q26_mobile_own'])],
+                    q27_1_answers[int(survey_data['survey_endline_q27_1_friends'])],
+                    q27_2_answers[int(survey_data['survey_endline_q27_2_family'])],
+                    q27_3_answers[int(survey_data['survey_endline_q27_3_community'])],
+                    q28_answers[int(survey_data['survey_endline_q28_mobile_credit'])],
+                    q29_1_answers[int(survey_data['survey_endline_q29_1_desktop'])],
+                    q29_2_answers[int(survey_data['survey_endline_q29_2_laptop'])],
+                    q29_3_answers[int(survey_data['survey_endline_q29_3_mobile_no_data'])],
+                    q29_4_answers[int(survey_data['survey_endline_q29_4_mobile_data'])]
+                ]
+
+                append_to_csv(data, csvfile)
+
+    pass_zip_encrypt_email(email, export_name, unique_time)
+
+    return True, SUCCESS_MESSAGE_EMAIL_SENT
+
+
 @task(name="export_ea1tool_survey")
 def export_ea1tool_survey(email, export_name, unique_time):
     surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.EATOOL)
@@ -2064,28 +2500,6 @@ def export_ea2tool_survey(email, export_name, unique_time):
     create_csv(filename)
 
     with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
-        append_to_csv(('uuid', 'username', 'name', 'mobile', 'email', 'gender', 'age',
-                       'user_type_source_medium', 'date_joined', 'city', 'younger_than_17', 'consent_given',
-                       'submission_date',
-
-                       # Survey questions
-                       ),
-                      csvfile)
-
-    pass_zip_encrypt_email(email, export_name, unique_time)
-
-    return True, SUCCESS_MESSAGE_EMAIL_SENT
-
-
-@task(name="export_endline_survey")
-def export_endline_survey(email, export_name, unique_time):
-    # surveys = CoachSurvey.objects.filter(bot_conversation=CoachSurvey.ENDLINE)
-
-    filename = STORAGE_DIRECTORY + export_name + unique_time + '.csv'
-    create_csv(filename)
-
-    with open(filename, 'a', newline='', encoding='utf-8') as csvfile:
-
         append_to_csv(('uuid', 'username', 'name', 'mobile', 'email', 'gender', 'age',
                        'user_type_source_medium', 'date_joined', 'city', 'younger_than_17', 'consent_given',
                        'submission_date',
