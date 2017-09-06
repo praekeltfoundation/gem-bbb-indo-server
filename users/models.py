@@ -201,6 +201,13 @@ class EndlineSurveySelectUsers(models.Model):
     receive_survey = models.BooleanField(default=False, help_text=_('Should the user receive the Endline Survey'))
     survey_completed = models.BooleanField(default=False, help_text=_('Has the user already completed the survey'))
 
+    class Meta:
+        # Translators: Collection name on CMS
+        verbose_name = _('endline survey selected user')
+
+        # Translators: Plural collection name on CMS
+        verbose_name_plural = _('endline survey selected users')
+
     def receive_endline_survey(self):
         if self.receive_survey:
             return format_html(
