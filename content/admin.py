@@ -136,12 +136,12 @@ class TipAdmin(wagadmin.ModelAdmin):
 
 def make_receive_survey(modeladmin, request, queryset):
     queryset.update(receive_survey=True)
-make_receive_survey.short_description = "Mark the user's as eligible for the survey"
+make_receive_survey.short_description = "Mark the users as eligible for the survey"
 
 
 def make_not_receive_survey(modeladmin, request, queryset):
     queryset.update(receive_survey=False)
-make_not_receive_survey.short_description = "Mark the user's as not eligible for the survey"
+make_not_receive_survey.short_description = "Mark the users as not eligible for the survey"
 
 
 @admin.register(EndlineSurveySelectUsers)
