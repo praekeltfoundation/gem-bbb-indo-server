@@ -14,9 +14,14 @@ def link_user_endline(apps, schema_editor):
     if schema_editor.connection.alias != 'default':
         return
 
+    # User = apps.get
     users = User.objects.all()
     for user in users:
         EndlineSurveySelectUsers.objects.get_or_create(user=user, receive_survey=False, survey_completed=False)
+
+
+def noop(apps, schema_editor):
+    pass
 
 
 class Migration(migrations.Migration):
@@ -27,5 +32,5 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(link_user_endline),
+        migrations.RunPython(link_user_endline, noop),
     ]
