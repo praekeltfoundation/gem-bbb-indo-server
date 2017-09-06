@@ -4,17 +4,22 @@ $(document).ready(function() {
 
        $('.mark-receive-survey').each(function(index){
             $(this).change(function(){
-                $(".mark-receive-survey").prop("readonly", true);
+                var self = $(this);
+                self.prop("readonly", true);
+                self.prop("disabled", true);
                 $.ajax({
                     beforeSend: function(xhr, settings) {
                         if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
                             xhr.setRequestHeader("X-CSRFToken", csrftoken);
                         }
                     },
+                    complete: function(data) {
+                        self.prop("readonly", false);
+                        self.prop("disabled", false);
+                    },
                     url: '/admin/content/survey/mark-can-receive/' + $(this).val() + '/',
                     method: "POST"
                 });
-                $(".mark-receive-survey").prop("readonly", false);
             });
        });
 });
