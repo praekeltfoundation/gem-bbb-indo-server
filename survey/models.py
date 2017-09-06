@@ -21,6 +21,7 @@ from wagtailsurveys.models import AbstractSurvey, AbstractFormField, AbstractFor
 from unidecode import unidecode
 
 from content.edit_handlers import ReadOnlyPanel
+from users.models import RegUser
 
 
 class CoachSurveyIndex(Page):
@@ -359,7 +360,8 @@ EndlineSurveySelectUser.panels = [
 ]
 
 
-@receiver(post_save, sender=User)
+# When signal is attached to User, it won't be fired on registration (RegUser create)
+@receiver(post_save, sender=RegUser)
 def create_survey_link(sender, instance, created, **kwargs):
     if created:
         EndlineSurveySelectUser.objects.get_or_create(user=instance)
