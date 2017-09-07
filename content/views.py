@@ -872,15 +872,13 @@ class BudgetView(viewsets.ModelViewSet):
                 'badges': badges
             }, status=status.HTTP_201_CREATED)
 
-    @detail_route(methods=['post', 'patch'])
+    @detail_route(methods=['post'])
     def expenses(self, request, pk):
         """Allows expenses to be added or edited in bulk. Accepts a Budget's list of expenses. This functionality has
         been split from the Budget upsert in order to award the Budget Edit Badge. Expenses are identified by their
         category, and so the `category_id` must be included.
 
         Method POST will compare the list's categories and add expenses with new categories.
-
-        Method PATCH will update the values of existing expenses, but not add any new ones.
 
         :return The entire updated budget
         """
@@ -907,8 +905,6 @@ class BudgetView(viewsets.ModelViewSet):
                     'budget': self.get_serializer(instance=self.get_object()).data,
                     'badges': UserBadgeSerializer(instance=[b for b in badges if b is not None], many=True, context=self.get_serializer_context()).data
                 }, status=status.HTTP_201_CREATED)
-        elif request.method == 'PATCH':
-            pass
         else:
             raise MethodNotAllowed(request.method)
 
@@ -925,8 +921,6 @@ class ExpenseView(viewsets.ModelViewSet):
     @list_route(['delete'])
     def delete(self, request, *args, **kwargs):
         delete_list = request.data.getlist('ids')
-        print('delete_list')
-        print(delete_list)
         for expense_id in delete_list:
             obj = Expense.objects.get(id=expense_id)
             self.check_object_permissions(request, obj)
