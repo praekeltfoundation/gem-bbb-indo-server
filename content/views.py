@@ -905,7 +905,7 @@ class BudgetView(viewsets.ModelViewSet):
 
                 return Response({
                     'budget': self.get_serializer(instance=self.get_object()).data,
-                    'badges': [b for b in badges if b is not None]
+                    'badges': UserBadgeSerializer(instance=[b for b in badges if b is not None], many=True, context=self.get_serializer_context()).data
                 }, status=status.HTTP_201_CREATED)
         elif request.method == 'PATCH':
             pass
