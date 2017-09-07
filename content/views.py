@@ -843,12 +843,13 @@ class BudgetView(viewsets.ModelViewSet):
             budget = serializer.save()
 
             badge = award_budget_create(request, serializer.instance)
-
-            user_badge = UserBadgeSerializer(instance=badge, context=self.get_serializer_context()).data
+            badges = []
+            if badge:
+                badges.append(UserBadgeSerializer(instance=badge, context=self.get_serializer_context()).data)
 
             return Response({
                 'budget': self.get_serializer(instance=budget).data,
-                'badges': [user_badge]
+                'badges': badges
             }, status=status.HTTP_201_CREATED)
 
     def list(self, request, *args, **kwargs):
@@ -864,12 +865,13 @@ class BudgetView(viewsets.ModelViewSet):
             budget = serializer.save()
 
             badge = award_budget_edit(request, serializer.instance)
-
-            user_badge = UserBadgeSerializer(instance=badge, context=self.get_serializer_context()).data
+            badges = []
+            if badge:
+                badges.append(UserBadgeSerializer(instance=badge, context=self.get_serializer_context()).data)
 
             return Response({
                 'budget': self.get_serializer(instance=budget).data,
-                'badges': [user_badge]
+                'badges': badges
             }, status=status.HTTP_201_CREATED)
 
 
