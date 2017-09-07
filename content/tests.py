@@ -2020,6 +2020,38 @@ class TestBadgeAwarding(APITestCase):
         self.assertEqual(response.data['badge']['name'], self.challenge_win.name, "Unexpected Badge returned.")
         self.assertEqual(response.data['challenge']['id'], challenge.id, "Unexpected Challenge returned.")
 
+    # --------------------- #
+    # Award Budget Creation #
+    # --------------------- #
+
+    def test_budget_create(self):
+        user = create_test_regular_user('anon')
+        data = {
+            'income': 100000,
+            'savings': 40000,
+            'expenses': [
+                {'name': 'Food', 'value': 20000},
+                {'name': 'Shoes', 'value': 10000},
+            ]
+        }
+
+        self.client.force_authenticate(user=user)
+
+        response = self.client.post(reverse('api:budgets-list'), data, format='json')
+
+        self.assertEqual(len(response.data.get('badges')), 1, "No badges returned")
+
+        badges = [b for b in response.data['badges'] if b['name'] == self.budget_creation.name]
+        self.assertEqual(len(badges), 1, "Budget creation badge not included")
+
+
+    # ----------------- #
+    # Award Budget Edit #
+    # ----------------- #
+
+    def test_budget_edit(self):
+        self.skipTest('TODO')
+
 
 class TestNotification(APITestCase):
     def test_notification(self):
