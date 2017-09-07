@@ -2075,6 +2075,33 @@ class TestBadgeAwarding(APITestCase):
 
         self.assertEqual(len(badges), 1, "Budget edit badge not included")
 
+    def test_budget_edit_savings(self):
+        user = create_test_regular_user()
+        budget = Budget.objects.create(
+            user=user,
+            income=100000,
+            savings=30000
+        )
+        budget.expenses.create(value=20000)
+        budget.expenses.create(value=50000)
+        budget.expenses.create(value=70000)
+        budget.save()
+
+        data = {
+            'savings': 40000
+        }
+
+        self.client.force_authenticate(user=user)
+
+        response = self.client.patch(reverse('api:budgets-detail', kwargs={'pk': budget.id}),
+                                     data=data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, "Savings edit failed")
+        self.assertEqual(len(response.data['badges']), 1, "No badges returned")
+        badges = [b for b in response.data['badges'] if b['name'] == self.budget_edit.name]
+
+        self.assertEqual(len(badges), 1, "Budget edit badge not included")
+
 
 class TestNotification(APITestCase):
     def test_notification(self):
