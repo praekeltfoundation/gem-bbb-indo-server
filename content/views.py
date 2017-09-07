@@ -40,7 +40,7 @@ from .serializers import GoalPrototypeSerializer, GoalSerializer, GoalTransactio
 from .serializers import ParticipantAnswerSerializer, ParticipantFreeTextSerializer, ParticipantPictureSerializer, \
     ParticipantRegisterSerializer
 from .serializers import TipSerializer
-from .serializers import ExpenseCategorySerializer, BudgetSerializer
+from .serializers import ExpenseCategorySerializer, ExpenseSerializer, BudgetSerializer
 
 
 # ========== #
@@ -317,11 +317,11 @@ class ParticipantViewSet(viewsets.ModelViewSet):
         if not Goal.objects.filter(user=request.user).exists():
             return Response({"available": False, "challenge": None})
 
-        challenge = Challenge.objects\
+        challenge = Challenge.objects \
             .filter(state=Challenge.CST_PUBLISHED,
                     activation_date__lte=timezone.now(),
-                    deactivation_date__gte=timezone.now())\
-            .order_by('activation_date')\
+                    deactivation_date__gte=timezone.now()) \
+            .order_by('activation_date') \
             .first()
 
         '''Returns True so the challenge pop up is not shown'''
@@ -842,7 +842,7 @@ class BudgetView(viewsets.ModelViewSet):
         if serializer.is_valid(raise_exception=True):
             budget = serializer.save()
 
-            badge = award_budget_create(request, serializer.instance)
+            badge = award_budget_create(request, budget)
             badges = []
             if badge:
                 badges.append(UserBadgeSerializer(instance=badge, context=self.get_serializer_context()).data)
@@ -859,8 +859,6 @@ class BudgetView(viewsets.ModelViewSet):
     def partial_update(self, request, pk=None, *args, **kwargs):
         serializer = self.get_serializer(instance=self.get_object(), data=request.data, partial=True)
         if serializer.is_valid(raise_exception=True):
-            # serializer.save()
-            # return Response(data=serializer.data, status=status.HTTP_200_OK)
 
             budget = serializer.save()
 
@@ -873,6 +871,46 @@ class BudgetView(viewsets.ModelViewSet):
                 'budget': self.get_serializer(instance=budget).data,
                 'badges': badges
             }, status=status.HTTP_201_CREATED)
+
+    @detail_route(methods=['post', 'patch'])
+    def expenses(self, request, pk):
+        """Allows expenses to be added or edited in bulk. Accepts a Budget's list of expenses. This functionality has
+        been split from the Budget upsert in order to award the Budget Edit Badge. Expenses are identified by their
+        category, and so the `category_id` must be included.
+
+        Method POST will compare the list's categories and add expenses with new categories.
+
+        Method PATCH will update the values of existing expenses, but not add any new ones.
+
+        :return The entire updated budget
+        """
+
+        if request.method == 'POST':
+            serializer = ExpenseSerializer(data=request.data, many=True)
+            if serializer.is_valid(raise_exception=True):
+                badges = []
+                budget = self.get_object()
+                existing_expenses_categories = {ex.category.id for ex in budget.expenses.all()}
+
+                exps = [Expense(category=datum.pop('category_id', None), **datum) for datum in serializer.validated_data]
+                added = False
+                for ex in exps:
+                    if ex.category_id not in existing_expenses_categories:
+                        budget.expenses.add(ex)
+                        added = True
+
+                if added:
+                    budget.save()
+                    badges.append(award_budget_edit(request, budget))
+
+                return Response({
+                    'budget': self.get_serializer(instance=self.get_object()).data,
+                    'badges': [b for b in badges if b is not None]
+                }, status=status.HTTP_201_CREATED)
+        elif request.method == 'PATCH':
+            pass
+        else:
+            raise MethodNotAllowed(request.method)
 
 
 class ExpenseView(viewsets.ModelViewSet):
