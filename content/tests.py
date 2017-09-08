@@ -1553,6 +1553,12 @@ class TestBadgeAwarding(APITestCase):
             budget_edit=cls.budget_edit
         )
 
+        cls.categories = {
+            'food': ExpenseCategory.objects.create(name="Food", state=ExpenseCategory.ACTIVE),
+            'clothes': ExpenseCategory.objects.create(name="Clothes", state=ExpenseCategory.ACTIVE),
+            'gadgets': ExpenseCategory.objects.create(name="Gadgets", state=ExpenseCategory.ACTIVE)
+        }
+
     # ------------------------ #
     # Award First Goal Created #
     # ------------------------ #
@@ -2019,6 +2025,111 @@ class TestBadgeAwarding(APITestCase):
 
         self.assertEqual(response.data['badge']['name'], self.challenge_win.name, "Unexpected Badge returned.")
         self.assertEqual(response.data['challenge']['id'], challenge.id, "Unexpected Challenge returned.")
+
+    # --------------------- #
+    # Award Budget Creation #
+    # --------------------- #
+
+    def test_budget_create(self):
+        user = create_test_regular_user('anon')
+        data = {
+            'income': 100000,
+            'savings': 40000,
+            'expenses': [
+                {'name': 'Food', 'value': 20000},
+                {'name': 'Shoes', 'value': 10000},
+            ]
+        }
+
+        self.client.force_authenticate(user=user)
+
+        response = self.client.post(reverse('api:budgets-list'), data, format='json')
+
+        self.assertEqual(len(response.data.get('badges')), 1, "No badges returned")
+
+        badges = [b for b in response.data['badges'] if b['name'] == self.budget_creation.name]
+        self.assertEqual(len(badges), 1, "Budget creation badge not included")
+
+    # ----------------- #
+    # Award Budget Edit #
+    # ----------------- #
+
+    def test_budget_edit_income(self):
+        user = create_test_regular_user()
+        budget = Budget.objects.create(
+            user=user,
+            income=100000,
+            savings=30000
+        )
+        budget.expenses.create(value=20000)
+        budget.expenses.create(value=50000)
+        budget.expenses.create(value=70000)
+        budget.save()
+
+        data = {
+            'income': 700000
+        }
+
+        self.client.force_authenticate(user=user)
+
+        response = self.client.patch(reverse('api:budgets-detail', kwargs={'pk': budget.id}),
+                                     data=data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, "Income edit failed")
+        self.assertEqual(len(response.data['badges']), 1, "No badges returned")
+        badges = [b for b in response.data['badges'] if b['name'] == self.budget_edit.name]
+
+        self.assertEqual(len(badges), 1, "Budget edit badge not included")
+
+    def test_budget_edit_savings(self):
+        user = create_test_regular_user()
+        budget = Budget.objects.create(
+            user=user,
+            income=100000,
+            savings=30000
+        )
+        budget.expenses.create(value=20000)
+        budget.expenses.create(value=50000)
+        budget.expenses.create(value=70000)
+        budget.save()
+
+        data = {
+            'savings': 40000
+        }
+
+        self.client.force_authenticate(user=user)
+
+        response = self.client.patch(reverse('api:budgets-detail', kwargs={'pk': budget.id}),
+                                     data=data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, "Savings edit failed")
+        self.assertEqual(len(response.data['badges']), 1, "No badges returned")
+        badges = [b for b in response.data['badges'] if b['name'] == self.budget_edit.name]
+        self.assertEqual(len(badges), 1, "Budget edit badge not included")
+
+    def test_budget_add_expense(self):
+        user = create_test_regular_user()
+        budget = Budget.objects.create(
+            user=user,
+            income=100000,
+            savings=30000
+        )
+        budget.expenses.add(Expense(value=20000, category=self.categories['food']))
+        budget.expenses.add(Expense(value=20000, category=self.categories['clothes']))
+        budget.save()
+
+        data = [{
+            'value': 5000,
+            'category_id': self.categories['gadgets'].id
+        }]
+
+        self.client.force_authenticate(user=user)
+
+        response = self.client.post(reverse('api:budgets-expenses', kwargs={'pk': budget.id}), data=data, format='json')
+
+        self.assertEqual(len(response.data['badges']), 1, "No badges returned")
+        badges = [b for b in response.data['badges'] if b['name'] == self.budget_edit.name]
+        self.assertEqual(len(badges), 1, "Budget edit badge not included")
 
 
 class TestNotification(APITestCase):
@@ -2769,6 +2880,52 @@ class TestBudgetAPI(APITestCase):
         self.assertEqual(updated_budget.savings, budget.savings, "Budget savings unexpectedly affected")
 
 
+class TestBudgetExpenseAPI(APITestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.categories = {
+            'food': ExpenseCategory.objects.create(name="Food", state=ExpenseCategory.ACTIVE),
+            'clothes': ExpenseCategory.objects.create(name="Clothes", state=ExpenseCategory.ACTIVE),
+            'gadgets': ExpenseCategory.objects.create(name="Gadgets", state=ExpenseCategory.ACTIVE)
+        }
+
+    def test_expense_add(self):
+        """Ensure that expenses can be added to an existing Budget"""
+        user = create_test_regular_user()
+        budget = Budget.objects.create(
+            income=100000,
+            savings=30000,
+            user=user
+        )
+        budget.expenses.add(Expense(value=20000, category=self.categories['food']))
+        budget.expenses.add(Expense(value=10000, category=self.categories['clothes']))
+        budget.save()
+
+        data = [{
+            # According to the endpoint interface contract, Food will be ignored
+            'value': 10000,
+            'category_id': self.categories['food'].id
+        }, {
+            'value': 5000,
+            'category_id': self.categories['gadgets'].id
+        }]
+
+        self.client.force_authenticate(user=user)
+
+        response = self.client.post(reverse('api:budgets-expenses', kwargs={'pk': budget.id}), data=data, format='json')
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED, "Expense add failed")
+
+        updated_budget = Budget.objects.get(user=user)
+        self.assertEqual(len(updated_budget.expenses.all()), 3, "Unexpected number of expenses")
+
+        food = updated_budget.expenses.get(category_id=self.categories['food'].id)
+        self.assertEqual(food.value, 20000, "Expense value must not have been updated")
+
+        gadgets = updated_budget.expenses.get(category_id=self.categories['gadgets'].id)
+        self.assertEqual(gadgets.value, 5000, "Unexpected new expense value")
+
+
 class TestBudgetAuditing(APITestCase):
     def test_budget_create(self):
         """Ensures that the initial state of a created Budget is correct."""
@@ -2974,7 +3131,8 @@ class TestExpenseAPI(APITestCase):
         self.client.force_authenticate(user=user)
 
         # Delete the expense
-        delete_response = self.client.delete(reverse('api:expenses-detail', kwargs={'pk': budget.expenses.all().first().pk}))
+        delete_response = self.client.delete(
+            reverse('api:expenses-detail', kwargs={'pk': budget.expenses.all().first().pk}))
 
         self.assertEqual(delete_response.status_code, status.HTTP_204_NO_CONTENT, "Delete request failed")
 
